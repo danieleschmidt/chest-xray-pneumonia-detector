@@ -1,0 +1,63 @@
+name: Model Retraining CI
+
+on:
+  push:
+    branches:
+      - main # Or your primary branch
+  schedule:
+    - cron: '0 0 * * 0' # Runs every Sunday at midnight UTC
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    env:
+      # Define environment variables if train_engine.py expects them
+      # For example, if data paths or MLflow experiment names are configurable:
+      # DATA_DIR: "data_train_engine" # Example, adjust if train_engine uses it
+      # MLFLOW_EXPERIMENT_NAME: "PneumoniaDetectionCI" # Example for CI runs
+      # Ensure these align with how train_engine.py might be configured
+      # For now, assuming train_engine.py uses relative paths or has defaults suitable for CI
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.10' # Using Python 3.10
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        # Install MLflow if not already in requirements.txt, as it's crucial for logging
+        pip install mlflow 
+
+    # Optional: Cache dependencies to speed up future runs
+    # - name: Cache pip dependencies
+    #   uses: actions/cache@v3
+    #   with:
+    #     path: ~/.cache/pip
+    #     key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+    #     restore-keys: |
+    #       ${{ runner.os }}-pip-
+
+    # Optional: Set up MLflow tracking if using a remote server
+    # - name: Configure MLflow Tracking
+    #   run: |
+    #     export MLFLOW_TRACKING_URI="http://your-mlflow-server:5000" # Example
+    #     export MLFLOW_TRACKING_USERNAME="your-username" # If auth is enabled
+    #     export MLFLOW_TRACKING_PASSWORD="your-password" # If auth is enabled
+    # Note: For local MLflow (default, creates mlruns dir), no specific setup is needed here beyond installing mlflow.
+
+    - name: Run Model Training Script
+      run: |
+        python src/train_engine.py
+        # Add any specific flags or arguments if your train_engine.py supports/requires them
+        # e.g., python src/train_engine.py --data_path $DATA_DIR --experiment_name $MLFLOW_EXPERIMENT_NAME
+
+    # Optional: Upload MLflow run ID or other artifacts if needed
+    # - name: Upload MLflow Run ID
+    #   run: echo "MLflow Run ID: $(cat mlruns/.../.../meta.yaml | grep run_id | cut -d ' ' -f 2)" # Adjust path
+    #   # This is a very basic way to get run_id; MLflow API within script is better.

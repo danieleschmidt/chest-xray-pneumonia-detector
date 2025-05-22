@@ -1,0 +1,6 @@
+Flask
+Pillow
+tensorflow
+scikit-learn
+matplotlib
+great-expectations

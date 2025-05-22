@@ -1,5 +1,7 @@
 import tensorflow as tf
 import os
+import mlflow # Ensure MLflow is imported
+import mlflow.keras # Ensure MLflow Keras integration is imported
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 import shutil # For directory cleanup
 from PIL import Image # For creating dummy images
@@ -80,10 +82,22 @@ if __name__ == '__main__':
 
     # --- Setup ---
     # Create dummy data with enough images for batching
-    create_dummy_data(base_dir=dummy_data_base_dir, num_images_per_class=BATCH_SIZE * 2 + 1)
+    create_dummy_data(base_dir=dummy_data_base_dir, num_images_per_class=BATCH_SIZE * 2 + 1) # Ensure enough for class weights
 
+    # MLflow setup: Define experiment name
+    mlflow_experiment_name = "PneumoniaDetectionTraining"
+    mlflow.set_experiment(mlflow_experiment_name)
+    print(f"MLflow experiment set to: {mlflow_experiment_name}")
 
     try:
+      with mlflow.start_run() as run: # Start MLflow run
+        print(f"MLflow Run ID: {run.info.run_id}")
+        mlflow.log_param("image_width", IMG_WIDTH)
+        mlflow.log_param("image_height", IMG_HEIGHT)
+        mlflow.log_param("batch_size", BATCH_SIZE)
+        mlflow.log_param("epochs_configured", EPOCHS) # Log configured epochs
+        # Log more parameters as needed, e.g., learning rate if configured
+
         # --- Load Data using create_data_generators ---
         print("Loading training and validation data using create_data_generators...")
         train_generator, validation_generator = create_data_generators(
@@ -192,14 +206,48 @@ if __name__ == '__main__':
         # --- Save Final Model ---
         # This saves the model at the end of training, regardless of ModelCheckpoint's best
         final_model_save_path = 'saved_models/pneumonia_cnn_v1.keras'
-        # The directory 'saved_models' is already ensured by the callback setup
-        # model_save_dir = os.path.dirname(final_model_save_path)
-        # if not os.path.exists(model_save_dir):
-        #     os.makedirs(model_save_dir)
-        #     print(f"Created directory: {model_save_dir}")
-
         model.save(final_model_save_path)
         print(f"Final model saved successfully to {final_model_save_path}")
+
+        # --- MLflow Model Registration ---
+        # The 'checkpoint_filepath' variable holds the path to the best model saved by ModelCheckpoint
+        best_model_path = checkpoint_filepath 
+
+        if os.path.exists(best_model_path):
+            print(f"Logging best model from {best_model_path} (using in-memory model with best weights) to MLflow...")
+            
+            # Since EarlyStopping(restore_best_weights=True) is used, 
+            # the 'model' object in memory already has the best weights.
+            mlflow.keras.log_model(
+                keras_model=model, 
+                artifact_path="keras_model", # Path within MLflow run's artifact store
+                registered_model_name="pneumonia-detector" # Name for the registered model
+            )
+            print(f"Model registered with MLflow under name: pneumonia-detector")
+            
+            # Optional: Transition model to a specific stage (example)
+            # try:
+            #     client = mlflow.tracking.MlflowClient()
+            #     model_versions = client.get_latest_versions(name="pneumonia-detector")
+            #     if model_versions:
+            #         latest_version = model_versions[0].version
+            #         val_accuracy_threshold = 0.90 
+            #         best_val_acc = max(history.history.get('val_accuracy', [0]))
+            #         if best_val_acc >= val_accuracy_threshold:
+            #             client.transition_model_version_stage(
+            #                 name="pneumonia-detector",
+            #                 version=latest_version,
+            #                 stage="Staging", 
+            #                 archive_existing_versions=True 
+            #             )
+            #             print(f"Model version {latest_version} transitioned to Staging (val_accuracy: {best_val_acc:.4f})")
+            #         else:
+            #             print(f"Model version {latest_version} not transitioned (val_accuracy: {best_val_acc:.4f} < {val_accuracy_threshold})")
+            # except Exception as e_transition:
+            #     print(f"Error during optional model stage transition: {e_transition}")
+        else:
+            print(f"Warning: Best model file not found at {best_model_path}. Skipping MLflow model registration.")
+        # --- End MLflow Model Registration ---
 
         # --- Evaluate Model (Precision, Recall, F1-score) ---
         print("\nEvaluating model on validation set...")
@@ -234,9 +282,12 @@ if __name__ == '__main__':
         val_acc = history.history['val_accuracy']
         loss = history.history['loss']
         val_loss = history.history['val_loss']
-        epochs_range = range(EPOCHS)
+        actual_epochs = len(acc) # Number of epochs actually run due to EarlyStopping
+        mlflow.log_param("epochs_run", actual_epochs) # Log actual epochs run
+        epochs_range = range(actual_epochs)
 
-        plt.figure(figsize=(12, 6)) # Adjusted figsize for better layout
+
+        plt.figure(figsize=(12, 6))
 
         plt.subplot(1, 2, 1)
         plt.plot(epochs_range, acc, label='Training Accuracy')
@@ -245,6 +296,9 @@ if __name__ == '__main__':
         plt.title('Training and Validation Accuracy')
         plt.xlabel('Epoch')
         plt.ylabel('Accuracy')
+        if acc: mlflow.log_metric("final_train_accuracy", acc[-1])
+        if val_acc: mlflow.log_metric("final_val_accuracy", val_acc[-1])
+
 
         plt.subplot(1, 2, 2)
         plt.plot(epochs_range, loss, label='Training Loss')
@@ -253,16 +307,26 @@ if __name__ == '__main__':
         plt.title('Training and Validation Loss')
         plt.xlabel('Epoch')
         plt.ylabel('Loss')
+        if loss: mlflow.log_metric("final_train_loss", loss[-1])
+        if val_loss: mlflow.log_metric("final_val_loss", val_loss[-1])
         
-        plt.tight_layout() # Adjust layout to prevent overlapping titles/labels
+        plt.tight_layout()
         
         plot_save_path = 'training_history.png'
         try:
             plt.savefig(plot_save_path)
             print(f"Training history plot saved to {plot_save_path}")
+            mlflow.log_artifact(plot_save_path, "plots") # Log plot to MLflow
         except Exception as e_plot:
             print(f"Error saving plot: {e_plot}")
-
+        
+        # Log evaluation metrics to MLflow
+        if 'precision' in locals() and 'recall' in locals() and 'f1' in locals():
+            mlflow.log_metric("val_precision", precision)
+            mlflow.log_metric("val_recall", recall)
+            mlflow.log_metric("val_f1_score", f1)
+        
+        print(f"MLflow Run completed. Check experiment '{mlflow_experiment_name}'")
 
     except Exception as e:
         print(f"An error occurred during the training process: {e}")
