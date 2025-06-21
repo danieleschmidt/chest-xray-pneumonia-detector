@@ -1,21 +1,22 @@
+import argparse
 import tensorflow as tf
 import os
-import mlflow # Ensure MLflow is imported
-import mlflow.keras # Ensure MLflow Keras integration is imported
+import mlflow  # Ensure MLflow is imported
+import mlflow.keras  # Ensure MLflow Keras integration is imported
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
-import shutil # For directory cleanup
-from PIL import Image # For creating dummy images
+import shutil  # For directory cleanup
+from PIL import Image  # For creating dummy images
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import precision_score, recall_score, f1_score
-from sklearn.utils.class_weight import compute_class_weight # Added for class imbalance
+from sklearn.utils.class_weight import compute_class_weight  # Added for class imbalance
 
 
 # Attempt to import from src, assuming the script is run from the project root
 # or the src directory is in PYTHONPATH
 try:
-    from data_loader import create_data_generators # Updated import
-    from model_builder import create_simple_cnn
+    from data_loader import create_data_generators  # Updated import
+    from model_builder import create_simple_cnn, create_transfer_learning_model
 except ImportError:
     # Fallback for direct execution or if src is not in PYTHONPATH
     # This might happen if the script is run directly from the src directory
@@ -23,7 +24,7 @@ except ImportError:
     print("Attempting fallback import for data_loader and model_builder.")
     try:
         from .data_loader import load_images_from_directory
-        from .model_builder import create_simple_cnn
+        from .model_builder import create_simple_cnn, create_transfer_learning_model
     except ImportError as e:
         print(f"Error importing modules. Make sure 'src' is in PYTHONPATH or run from project root.")
         print(f"Details: {e}")
@@ -68,12 +69,23 @@ def cleanup_dummy_data(base_dir="data_train_engine"): # Updated base_dir
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Train pneumonia detection model")
+    parser.add_argument(
+        "--model_type",
+        choices=["simple", "mobilenet", "vgg"],
+        default="simple",
+        help="Model architecture to use",
+    )
+    args = parser.parse_args()
+
+    MODEL_TYPE = args.model_type
+
     # Define parameters
     IMG_WIDTH = 150
     IMG_HEIGHT = 150
-    IMAGE_SIZE_TUPLE = (IMG_HEIGHT, IMG_WIDTH) # For create_data_generators
-    BATCH_SIZE = 2 # Keep batch size small for dummy data
-    EPOCHS = 2 # Keep epochs low for a quick test run
+    IMAGE_SIZE_TUPLE = (IMG_HEIGHT, IMG_WIDTH)  # For create_data_generators
+    BATCH_SIZE = 2  # Keep batch size small for dummy data
+    EPOCHS = 2  # Keep epochs low for a quick test run
 
     # Updated directory structure for dummy data
     dummy_data_base_dir = 'data_train_engine'
@@ -95,7 +107,8 @@ if __name__ == '__main__':
         mlflow.log_param("image_width", IMG_WIDTH)
         mlflow.log_param("image_height", IMG_HEIGHT)
         mlflow.log_param("batch_size", BATCH_SIZE)
-        mlflow.log_param("epochs_configured", EPOCHS) # Log configured epochs
+        mlflow.log_param("epochs_configured", EPOCHS)  # Log configured epochs
+        mlflow.log_param("model_type", MODEL_TYPE)
         # Log more parameters as needed, e.g., learning rate if configured
 
         # --- Load Data using create_data_generators ---
@@ -122,7 +135,21 @@ if __name__ == '__main__':
         input_shape = (IMG_HEIGHT, IMG_WIDTH, 3)
         print(f"Using input shape for model: {input_shape}")
 
-        model = create_simple_cnn(input_shape=input_shape, num_classes=1) # Assuming binary classification
+        if MODEL_TYPE == "simple":
+            model = create_simple_cnn(input_shape=input_shape, num_classes=1)
+        elif MODEL_TYPE == "mobilenet":
+            model = create_transfer_learning_model(
+                input_shape=input_shape,
+                num_classes=1,
+                base_model_name="MobileNetV2",
+            )
+        else:  # vgg
+            model = create_transfer_learning_model(
+                input_shape=input_shape,
+                num_classes=1,
+                base_model_name="VGG16",
+            )
+
         print("\nModel Summary:")
         model.summary()
 
