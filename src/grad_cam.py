@@ -1,35 +1,74 @@
+"""Grad-CAM utility functions."""
+
+from typing import Optional
+
 import numpy as np
 import tensorflow as tf
 
-def generate_grad_cam(model, image_array, last_conv_layer_name):
+
+def generate_grad_cam(
+    model: tf.keras.Model,
+    image_array: np.ndarray,
+    last_conv_layer_name: str,
+    class_index: Optional[int] = None,
+) -> np.ndarray:
+    """Generate a Grad-CAM heatmap for a given image.
+
+    Parameters
+    ----------
+    model:
+        A trained ``tf.keras`` model.
+    image_array:
+        Preprocessed image with shape ``(1, H, W, C)``.
+    last_conv_layer_name:
+        Name of the last convolutional layer to compute gradients from.
+    class_index:
+        Optional target class index. If ``None`` the predicted class is used.
+
+    Returns
+    -------
+    np.ndarray
+        2D heatmap array normalised between 0 and 1.
     """
-    Generates a Grad-CAM heatmap for a given image and model.
 
-    Args:
-        model (tf.keras.Model): The trained Keras model.
-        image_array (np.ndarray): A preprocessed image array, typically the output
-                                  of `np.expand_dims(img_array, axis=0)` where
-                                  img_array is a single image (e.g., HxWxC).
-        last_conv_layer_name (str): The name of the last convolutional layer
-                                    in the model to be used for Grad-CAM.
+    # Build a model that maps the input image to the activations of the last
+    # conv layer as well as the final predictions
+    conv_layer = model.get_layer(last_conv_layer_name)
+    grad_model = tf.keras.models.Model(
+        [model.inputs], [conv_layer.output, model.output]
+    )
 
-    Returns:
-        # This function will eventually return a heatmap array.
-        # For now, it's a stub.
-        pass
-    """
-    pass
+    with tf.GradientTape() as tape:
+        conv_outputs, predictions = grad_model(image_array)
 
-if __name__ == '__main__':
-    # This section can be used for basic testing or demonstration later.
-    # For now, it will just confirm the script can be run.
-    print("grad_cam.py executed. Contains generate_grad_cam function stub.")
+        if class_index is None:
+            # If multi-class, take the index of the highest predicted score
+            if predictions.shape[-1] > 1:
+                class_index = tf.argmax(predictions[0])
+            else:
+                class_index = 0
 
-    # Example of how you might get a last convolutional layer name (for context):
-    # model = tf.keras.applications.VGG16(weights="imagenet")
-    # last_conv_layer_name_example = ""
-    # for layer in reversed(model.layers):
-    #     if len(layer.output_shape) == 4: # Check if it's a conv layer (4D output: batch, H, W, C)
-    #         last_conv_layer_name_example = layer.name
-    #         break
-    # print(f"Example last conv layer name for VGG16: {last_conv_layer_name_example}")
+        class_channel = predictions[:, class_index]
+
+    # Compute the gradient of the predicted class with regard to the output
+    # feature map of the last conv layer
+    grads = tape.gradient(class_channel, conv_outputs)
+
+    # Pool the gradients over all the axes leaving out the channel dimension
+    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
+
+    # Weight the output feature map with the pooled gradients
+    conv_outputs = conv_outputs[0]
+    heatmap = conv_outputs * pooled_grads
+    heatmap = tf.reduce_sum(heatmap, axis=-1)
+
+    # Apply ReLU and normalise the heatmap between 0 and 1
+    heatmap = tf.nn.relu(heatmap)
+    if tf.reduce_max(heatmap) != 0:
+        heatmap /= tf.reduce_max(heatmap)
+
+    return heatmap.numpy()
+
+if __name__ == "__main__":
+    # Basic smoke test when executed directly
+    print("grad_cam.py executed. 'generate_grad_cam' is ready for use.")

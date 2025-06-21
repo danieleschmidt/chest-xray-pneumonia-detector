@@ -1,19 +1,36 @@
+import argparse
 import tensorflow as tf
 import os
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
-import shutil # For directory cleanup
-from PIL import Image # For creating dummy images
+from tensorflow.keras.callbacks import (
+    ModelCheckpoint,
+    EarlyStopping,
+    ReduceLROnPlateau,
+)
+import shutil  # For directory cleanup
+from PIL import Image  # For creating dummy images
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import precision_score, recall_score, f1_score
-from sklearn.utils.class_weight import compute_class_weight # Added for class imbalance
+import seaborn as sns
+from sklearn.metrics import (
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+    confusion_matrix,
+)
+from sklearn.utils.class_weight import compute_class_weight  # Added for class imbalance
+import mlflow
 
 
 # Attempt to import from src, assuming the script is run from the project root
 # or the src directory is in PYTHONPATH
 try:
-    from data_loader import create_data_generators # Updated import
-    from model_builder import create_simple_cnn
+    from data_loader import create_data_generators  # Updated import
+    from model_builder import (
+        create_simple_cnn,
+        create_transfer_learning_model,
+        create_cnn_with_attention,
+    )
 except ImportError:
     # Fallback for direct execution or if src is not in PYTHONPATH
     # This might happen if the script is run directly from the src directory
@@ -21,7 +38,11 @@ except ImportError:
     print("Attempting fallback import for data_loader and model_builder.")
     try:
         from .data_loader import load_images_from_directory
-        from .model_builder import create_simple_cnn
+        from .model_builder import (
+            create_simple_cnn,
+            create_transfer_learning_model,
+            create_cnn_with_attention,
+        )
     except ImportError as e:
         print(f"Error importing modules. Make sure 'src' is in PYTHONPATH or run from project root.")
         print(f"Details: {e}")
@@ -48,7 +69,8 @@ def create_dummy_data(base_dir="data_train_engine", num_images_per_class=5):
             os.makedirs(path, exist_ok=True)
             for i in range(num_images_per_class):
                 try:
-                    img = Image.new('RGB', (60, 30), color = ('red' if class_name == "class_a" else 'blue'))
+                    color = 'red' if class_name == "PNEUMONIA" else 'blue'
+                    img = Image.new('RGB', (60, 30), color=color)
                     img.save(os.path.join(path, f"dummy_{s}_{class_name}_{i+1}.jpg"))
                 except Exception as e:
                     print(f"Could not create dummy image {i+1} for {path}: {e}. Pillow might be needed.")
@@ -65,22 +87,46 @@ def cleanup_dummy_data(base_dir="data_train_engine"): # Updated base_dir
         print(f"Directory '{base_dir}' not found, no cleanup needed.")
 
 
-if __name__ == '__main__':
-    # Define parameters
-    IMG_WIDTH = 150
-    IMG_HEIGHT = 150
-    IMAGE_SIZE_TUPLE = (IMG_HEIGHT, IMG_WIDTH) # For create_data_generators
-    BATCH_SIZE = 2 # Keep batch size small for dummy data
-    EPOCHS = 2 # Keep epochs low for a quick test run
+def main():
+    parser = argparse.ArgumentParser(description="Train the pneumonia detector")
+    parser.add_argument("--train_dir", help="Path to training data")
+    parser.add_argument("--val_dir", help="Path to validation data")
+    parser.add_argument("--use_dummy_data", action="store_true", default=True,
+                        help="Generate small dummy dataset for testing")
+    parser.add_argument("--img_size", type=int, nargs=2, default=[150, 150], metavar=("H", "W"))
+    parser.add_argument("--batch_size", type=int, default=2)
+    parser.add_argument("--epochs", type=int, default=2)
+    parser.add_argument("--use_attention_model", action="store_true")
+    parser.add_argument("--use_transfer_learning", action="store_true", default=True)
+    parser.add_argument("--base_model_name", default="MobileNetV2")
+    parser.add_argument("--trainable_base_layers", type=int, default=20)
+    parser.add_argument("--fine_tune_epochs", type=int, default=1)
+    parser.add_argument("--fine_tune_lr", type=float, default=1e-5)
+    args = parser.parse_args()
 
-    # Updated directory structure for dummy data
-    dummy_data_base_dir = 'data_train_engine'
-    train_dir = os.path.join(dummy_data_base_dir, 'train')
-    val_dir = os.path.join(dummy_data_base_dir, 'val')
+    IMG_HEIGHT, IMG_WIDTH = args.img_size
+    IMAGE_SIZE_TUPLE = (IMG_HEIGHT, IMG_WIDTH)
+    BATCH_SIZE = args.batch_size
+    EPOCHS = args.epochs
 
-    # --- Setup ---
-    # Create dummy data with enough images for batching
-    create_dummy_data(base_dir=dummy_data_base_dir, num_images_per_class=BATCH_SIZE * 2 + 1)
+    USE_ATTENTION_MODEL = args.use_attention_model
+    USE_TRANSFER_LEARNING = args.use_transfer_learning
+    BASE_MODEL_NAME = args.base_model_name
+    TRAINABLE_BASE_LAYERS = args.trainable_base_layers
+    FINE_TUNE_EPOCHS = args.fine_tune_epochs
+    FINE_TUNE_LR = args.fine_tune_lr
+
+    if args.use_dummy_data:
+        dummy_data_base_dir = "data_train_engine"
+        train_dir = os.path.join(dummy_data_base_dir, "train")
+        val_dir = os.path.join(dummy_data_base_dir, "val")
+        create_dummy_data(base_dir=dummy_data_base_dir, num_images_per_class=BATCH_SIZE * 2 + 1)
+    else:
+        if not args.train_dir or not args.val_dir:
+            parser.error("--train_dir and --val_dir are required when not using dummy data")
+        train_dir = args.train_dir
+        val_dir = args.val_dir
+        dummy_data_base_dir = None
 
 
     try:
@@ -100,7 +146,17 @@ if __name__ == '__main__':
         )
 
         if train_generator is None or validation_generator is None:
-            raise RuntimeError("Failed to load datasets using create_data_generators. Check paths and data_loader.py.")
+            raise RuntimeError(
+                "Failed to load datasets using create_data_generators. Check paths and data_loader.py."
+            )
+
+        mlflow.start_run()
+        mlflow.log_param("batch_size", BATCH_SIZE)
+        mlflow.log_param("epochs_stage1", EPOCHS)
+        mlflow.log_param("use_attention_model", USE_ATTENTION_MODEL)
+        mlflow.log_param("use_transfer_learning", USE_TRANSFER_LEARNING)
+        mlflow.log_param("base_model", BASE_MODEL_NAME)
+        mlflow.log_param("trainable_base_layers", TRAINABLE_BASE_LAYERS)
 
         # --- Model Creation ---
         # Input shape for CNN (height, width, channels)
@@ -108,7 +164,18 @@ if __name__ == '__main__':
         input_shape = (IMG_HEIGHT, IMG_WIDTH, 3)
         print(f"Using input shape for model: {input_shape}")
 
-        model = create_simple_cnn(input_shape=input_shape, num_classes=1) # Assuming binary classification
+        if USE_ATTENTION_MODEL:
+            print("Creating CNN model with attention...")
+            model = create_cnn_with_attention(input_shape=input_shape, num_classes=1)
+        elif USE_TRANSFER_LEARNING:
+            print(f"Creating transfer learning model with base {BASE_MODEL_NAME}...")
+            model = create_transfer_learning_model(
+                input_shape=input_shape,
+                num_classes=1,
+                base_model_name=BASE_MODEL_NAME,
+            )
+        else:
+            model = create_simple_cnn(input_shape=input_shape, num_classes=1)
         print("\nModel Summary:")
         model.summary()
 
@@ -137,7 +204,7 @@ if __name__ == '__main__':
             classes=unique_classes,
             y=train_labels
         )
-        class_weights_dict = {i : class_weights_array[i] for i, _ in enumerate(unique_classes)}
+        class_weights_dict = dict(zip(unique_classes, class_weights_array))
         
         print(f"Train generator class indices: {train_generator.class_indices}")
         print(f"Unique classes found by np.unique: {unique_classes}")
@@ -189,6 +256,29 @@ if __name__ == '__main__':
         )
         print("Model training completed.")
 
+        if USE_TRANSFER_LEARNING and TRAINABLE_BASE_LAYERS > 0:
+            print("\nStarting fine-tuning stage...")
+            for layer in model.layers[-TRAINABLE_BASE_LAYERS:]:
+                layer.trainable = True
+
+            model.compile(
+                optimizer=tf.keras.optimizers.Adam(learning_rate=FINE_TUNE_LR),
+                loss=model.loss,
+                metrics=model.metrics,
+            )
+            history_fine = model.fit(
+                train_generator,
+                steps_per_epoch=steps_per_epoch,
+                epochs=FINE_TUNE_EPOCHS,
+                validation_data=validation_generator,
+                validation_steps=validation_steps,
+                callbacks=callbacks_list,
+                class_weight=class_weights_dict,
+                verbose=1,
+            )
+            for key, vals in history_fine.history.items():
+                history.history[key] = history.history.get(key, []) + vals
+
         # --- Save Final Model ---
         # This saves the model at the end of training, regardless of ModelCheckpoint's best
         final_model_save_path = 'saved_models/pneumonia_cnn_v1.keras'
@@ -217,14 +307,39 @@ if __name__ == '__main__':
         val_binary_predictions = (val_predictions > 0.5).astype(int).ravel() # Use ravel for (N,1) -> (N,)
 
         val_true_labels = validation_generator.classes[:num_val_samples_for_pred]
-        
+
         if len(val_true_labels) == len(val_binary_predictions):
             precision = precision_score(val_true_labels, val_binary_predictions, zero_division=0)
             recall = recall_score(val_true_labels, val_binary_predictions, zero_division=0)
             f1 = f1_score(val_true_labels, val_binary_predictions, zero_division=0)
+            try:
+                roc_auc = roc_auc_score(val_true_labels, val_predictions)
+            except ValueError:
+                roc_auc = float('nan')
+
+            cm = confusion_matrix(val_true_labels, val_binary_predictions)
+
             print(f"Validation Precision: {precision:.4f}")
             print(f"Validation Recall: {recall:.4f}")
             print(f"Validation F1-score: {f1:.4f}")
+            print(f"Validation ROC AUC: {roc_auc:.4f}")
+
+            mlflow.log_metric("precision", precision)
+            mlflow.log_metric("recall", recall)
+            mlflow.log_metric("f1", f1)
+            mlflow.log_metric("roc_auc", roc_auc)
+
+            os.makedirs('reports', exist_ok=True)
+            plt.figure(figsize=(4, 4))
+            sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+            plt.xlabel('Predicted')
+            plt.ylabel('True')
+            cm_path = os.path.join('reports', 'confusion_matrix_val.png')
+            plt.tight_layout()
+            plt.savefig(cm_path)
+            plt.close()
+            print(f"Confusion matrix saved to {cm_path}")
+            mlflow.log_artifact(cm_path)
         else:
             print(f"Could not calculate precision, recall, F1-score. Label count mismatch: True labels ({len(val_true_labels)}) vs Pred labels ({len(val_binary_predictions)}).")
 
@@ -260,16 +375,28 @@ if __name__ == '__main__':
         try:
             plt.savefig(plot_save_path)
             print(f"Training history plot saved to {plot_save_path}")
+            mlflow.log_artifact(plot_save_path)
         except Exception as e_plot:
             print(f"Error saving plot: {e_plot}")
+
+        mlflow.keras.log_model(model, "model")
+        mlflow.end_run()
 
 
     except Exception as e:
         print(f"An error occurred during the training process: {e}")
         import traceback
         traceback.print_exc()
+        mlflow.end_run()
     finally:
         # --- Cleanup ---
-        cleanup_dummy_data(base_dir=dummy_data_base_dir) # Use updated base_dir
+        if dummy_data_base_dir:
+            cleanup_dummy_data(base_dir=dummy_data_base_dir)
+        if mlflow.active_run():
+            mlflow.end_run()
 
     print("\nTrain engine script finished.")
+
+
+if __name__ == "__main__":
+    main()
