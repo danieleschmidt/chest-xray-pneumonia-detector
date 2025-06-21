@@ -45,6 +45,45 @@ def create_simple_cnn(input_shape, num_classes=1):
 
     return model
 
+
+def create_transfer_learning_model(input_shape, num_classes=1, base_model_name="MobileNetV2"):
+    """Builds a transfer learning model using a pre-trained base.
+
+    Args:
+        input_shape (tuple): The input shape expected by the model.
+        num_classes (int): Number of output classes.
+        base_model_name (str): Name of the Keras Applications model to use as
+            the base. Supported values are ``"MobileNetV2"`` and ``"VGG16"``.
+
+    Returns:
+        tensorflow.keras.Model: A compiled Keras model ready for training.
+
+    Raises:
+        ValueError: If ``base_model_name`` is not one of the supported models.
+    """
+
+    if base_model_name == "MobileNetV2":
+        base_model = MobileNetV2(weights="imagenet", include_top=False,
+                                  input_shape=input_shape)
+    elif base_model_name == "VGG16":
+        base_model = VGG16(weights="imagenet", include_top=False,
+                           input_shape=input_shape)
+    else:
+        raise ValueError(f"Unsupported base model: {base_model_name}")
+
+    base_model.trainable = False
+
+    x = base_model.output
+    x = GlobalAveragePooling2D()(x)
+    activation = "sigmoid" if num_classes == 1 else "softmax"
+    loss_fn = BinaryCrossentropy() if num_classes == 1 else CategoricalCrossentropy()
+    outputs = Dense(num_classes, activation=activation)(x)
+
+    model = Model(inputs=base_model.input, outputs=outputs)
+    model.compile(optimizer=Adam(), loss=loss_fn, metrics=['accuracy'])
+
+    return model
+
 if __name__ == '__main__':
     # This is an example of how to use the function
     img_height = 150
