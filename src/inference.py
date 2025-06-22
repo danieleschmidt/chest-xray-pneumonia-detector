@@ -4,7 +4,12 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing import image
 
 
-def predict_directory(model_path: str, data_dir: str, img_size=(150, 150)) -> pd.DataFrame:
+def predict_directory(
+    model_path: str,
+    data_dir: str,
+    img_size=(150, 150),
+    num_classes: int = 1,
+) -> pd.DataFrame:
     """Generate predictions for all images in a directory.
 
     Parameters
@@ -20,7 +25,9 @@ def predict_directory(model_path: str, data_dir: str, img_size=(150, 150)) -> pd
     Returns
     -------
     pandas.DataFrame
-        DataFrame with columns ``filepath`` and ``prediction``.
+        For binary models, a DataFrame with columns ``filepath`` and ``prediction``.
+        For multi-class models, the DataFrame includes ``prediction`` (predicted
+        class index) and ``prob_i`` columns with class probabilities.
     """
     model = tf.keras.models.load_model(model_path)
 
@@ -34,9 +41,17 @@ def predict_directory(model_path: str, data_dir: str, img_size=(150, 150)) -> pd
     )
 
     preds = model.predict(generator)
-    preds = preds.reshape(-1)
 
-    df = pd.DataFrame({"filepath": generator.filepaths, "prediction": preds})
+    if num_classes == 1:
+        preds = preds.reshape(-1)
+        df = pd.DataFrame({"filepath": generator.filepaths, "prediction": preds})
+    else:
+        pred_labels = preds.argmax(axis=1)
+        data = {"filepath": generator.filepaths, "prediction": pred_labels}
+        for i in range(num_classes):
+            data[f"prob_{i}"] = preds[:, i]
+        df = pd.DataFrame(data)
+
     return df
 
 
@@ -53,9 +68,20 @@ def main() -> None:
         help="Image size expected by the model",
     )
     parser.add_argument("--output_csv", default="predictions.csv", help="Where to save predictions")
+    parser.add_argument(
+        "--num_classes",
+        type=int,
+        default=1,
+        help="Number of model output classes (1 for binary)",
+    )
     args = parser.parse_args()
 
-    df = predict_directory(args.model_path, args.data_dir, tuple(args.img_size))
+    df = predict_directory(
+        args.model_path,
+        args.data_dir,
+        tuple(args.img_size),
+        num_classes=args.num_classes,
+    )
     df.to_csv(args.output_csv, index=False)
     print(f"Saved predictions to {args.output_csv}")
 

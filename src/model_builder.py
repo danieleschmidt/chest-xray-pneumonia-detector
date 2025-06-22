@@ -5,6 +5,7 @@ from tensorflow.keras.layers import (
     MaxPooling2D,
     Flatten,
     Dense,
+    Dropout,
     GlobalAveragePooling2D,
     Reshape,
     multiply,
@@ -19,6 +20,8 @@ def create_transfer_learning_model(
     num_classes=1,
     base_model_name="MobileNetV2",
     trainable_base_layers=0,
+    learning_rate=0.001,
+    dropout_rate=0.0,
 ):
     """Create a transfer learning model with a configurable base.
 
@@ -59,6 +62,8 @@ def create_transfer_learning_model(
     inputs = tf.keras.Input(shape=input_shape)
     x = base_model(inputs, training=False)
     x = GlobalAveragePooling2D()(x)
+    if dropout_rate > 0:
+        x = Dropout(dropout_rate)(x)
 
     activation = "sigmoid" if num_classes == 1 else "softmax"
     loss = BinaryCrossentropy() if num_classes == 1 else CategoricalCrossentropy()
@@ -66,7 +71,7 @@ def create_transfer_learning_model(
     outputs = Dense(num_classes, activation=activation)(x)
     model = Model(inputs, outputs)
 
-    model.compile(optimizer=Adam(), loss=loss, metrics=["accuracy"])
+    model.compile(optimizer=Adam(learning_rate=learning_rate), loss=loss, metrics=["accuracy"])
 
     if trainable_base_layers > 0:
         for layer in base_model.layers[-trainable_base_layers:]:
@@ -75,7 +80,7 @@ def create_transfer_learning_model(
     return model
 
 
-def create_simple_cnn(input_shape, num_classes=1):
+def create_simple_cnn(input_shape, num_classes=1, learning_rate=0.001, dropout_rate=0.0):
     """
     Builds a simple Keras Sequential CNN model for binary classification.
 
@@ -102,12 +107,13 @@ def create_simple_cnn(input_shape, num_classes=1):
         # Flattening and Dense Layer
         Flatten(),
         Dense(128, activation='relu'), # Optional: an additional dense layer before the output
+        Dropout(dropout_rate) if dropout_rate > 0 else tf.keras.layers.Activation('linear'),
         Dense(num_classes, activation='sigmoid') # Output layer for binary classification
     ])
 
     # Compile the model
     model.compile(
-        optimizer=Adam(),
+        optimizer=Adam(learning_rate=learning_rate),
         loss=BinaryCrossentropy(),
         metrics=['accuracy'] # Common metric to monitor
     )
@@ -125,7 +131,7 @@ def _squeeze_excite_block(inputs, ratio=16):
     return multiply([inputs, se])
 
 
-def create_cnn_with_attention(input_shape, num_classes=1):
+def create_cnn_with_attention(input_shape, num_classes=1, learning_rate=0.001, dropout_rate=0.0):
     """Build a simple CNN with Squeeze-and-Excitation attention blocks."""
 
     inputs = tf.keras.Input(shape=input_shape)
@@ -139,12 +145,14 @@ def create_cnn_with_attention(input_shape, num_classes=1):
 
     x = Flatten()(x)
     x = Dense(128, activation="relu")(x)
+    if dropout_rate > 0:
+        x = Dropout(dropout_rate)(x)
     activation = "sigmoid" if num_classes == 1 else "softmax"
     outputs = Dense(num_classes, activation=activation)(x)
 
     model = Model(inputs, outputs)
     loss = BinaryCrossentropy() if num_classes == 1 else CategoricalCrossentropy()
-    model.compile(optimizer=Adam(), loss=loss, metrics=["accuracy"])
+    model.compile(optimizer=Adam(learning_rate=learning_rate), loss=loss, metrics=["accuracy"])
 
     return model
 

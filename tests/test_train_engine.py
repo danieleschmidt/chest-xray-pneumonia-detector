@@ -17,3 +17,24 @@ def test_dummy_data_creation_and_cleanup(tmp_path):
 def test_train_engine_cli_help():
     result = subprocess.run([sys.executable, "-m", "src.train_engine", "--help"], capture_output=True)
     assert result.returncode == 0
+    assert b"--seed" in result.stdout
+    assert b"--mlflow_tracking_uri" in result.stdout
+    assert b"--history_csv" in result.stdout
+    assert b"--rotation_range" in result.stdout
+    assert b"--early_stopping_patience" in result.stdout
+    assert b"--reduce_lr_factor" in result.stdout
+    assert b"--reduce_lr_patience" in result.stdout
+    assert b"--reduce_lr_min_lr" in result.stdout
+    assert b"--class_weights" in result.stdout
+    assert b"--learning_rate" in result.stdout
+    assert b"--dropout_rate" in result.stdout
+    assert b"--num_classes" in result.stdout
+    assert b"--mlflow_experiment" in result.stdout
+    assert b"--mlflow_run_name" in result.stdout
+    assert b"--checkpoint_path" in result.stdout
+    assert b"--save_model_path" in result.stdout
+    assert b"--plot_path" in result.stdout
+    assert b"--cm_path" in result.stdout
+    assert b"--fine_tune_epochs" in result.stdout
+    assert b"--fine_tune_lr" in result.stdout
+    assert b"--resume_checkpoint" in result.stdout
