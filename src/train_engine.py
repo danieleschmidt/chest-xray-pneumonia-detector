@@ -25,32 +25,13 @@ from tensorflow.keras.utils import to_categorical
 import mlflow
 
 
-# Attempt to import from src, assuming the script is run from the project root
-# or the src directory is in PYTHONPATH
-try:
-    from data_loader import create_data_generators  # Updated import
-    from model_builder import (
-        create_simple_cnn,
-        create_transfer_learning_model,
-        create_cnn_with_attention,
-    )
-except ImportError:
-    # Fallback for direct execution or if src is not in PYTHONPATH
-    # This might happen if the script is run directly from the src directory
-    # or if the IDE/environment doesn't automatically add 'src' to sys.path
-    print("Attempting fallback import for data_loader and model_builder.")
-    try:
-        from .data_loader import load_images_from_directory
-        from .model_builder import (
-            create_simple_cnn,
-            create_transfer_learning_model,
-            create_cnn_with_attention,
-        )
-    except ImportError as e:
-        print(f"Error importing modules. Make sure 'src' is in PYTHONPATH or run from project root.")
-        print(f"Details: {e}")
-        # You might want to exit here or raise the error depending on desired behavior
-        raise
+# Local imports
+from .data_loader import create_data_generators
+from .model_builder import (
+    create_simple_cnn,
+    create_transfer_learning_model,
+    create_cnn_with_attention,
+)
 
 def create_dummy_data(base_dir="data_train_engine", num_images_per_class=5):
     """Creates dummy directories and placeholder image files for training and validation."""
@@ -532,29 +513,24 @@ def main():
             print(f"Validation Precision: {precision:.4f}")
             print(f"Validation Recall: {recall:.4f}")
             print(f"Validation F1-score: {f1:.4f}")
-                print(f"Validation ROC AUC: {roc_auc:.4f}")
-    
-                mlflow.log_metric("precision", precision)
-                mlflow.log_metric("recall", recall)
-                mlflow.log_metric("f1", f1)
-                mlflow.log_metric("roc_auc", roc_auc)
-    
-                os.makedirs(os.path.dirname(args.cm_path), exist_ok=True)
-                plt.figure(figsize=(4, 4))
-                sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-                plt.xlabel('Predicted')
-                plt.ylabel('True')
-                cm_path = args.cm_path
-                plt.tight_layout()
-                plt.savefig(cm_path)
-                plt.close()
-                print(f"Confusion matrix saved to {cm_path}")
-                mlflow.log_artifact(cm_path)
-            else:
-                print(
-                    "Could not calculate precision, recall, F1-score. "
-                    f"Label count mismatch: True labels ({len(val_true_labels)}) vs Pred labels ({len(pred_labels)})."
-                )
+            print(f"Validation ROC AUC: {roc_auc:.4f}")
+
+            mlflow.log_metric("precision", precision)
+            mlflow.log_metric("recall", recall)
+            mlflow.log_metric("f1", f1)
+            mlflow.log_metric("roc_auc", roc_auc)
+
+            os.makedirs(os.path.dirname(args.cm_path), exist_ok=True)
+            plt.figure(figsize=(4, 4))
+            sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+            plt.xlabel('Predicted')
+            plt.ylabel('True')
+            cm_path = args.cm_path
+            plt.tight_layout()
+            plt.savefig(cm_path)
+            plt.close()
+            print(f"Confusion matrix saved to {cm_path}")
+            mlflow.log_artifact(cm_path)
     
             # --- Plotting Training History ---
             print("\nGenerating training history plot...")
