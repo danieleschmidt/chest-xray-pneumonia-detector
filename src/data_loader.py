@@ -91,6 +91,56 @@ def create_data_generators(train_dir, val_dir, target_size=(150, 150),
 
     return train_generator, validation_generator
 
+
+def create_tf_datasets(train_dir, val_dir, image_size=(150, 150), batch_size=32):
+    """Load datasets using ``image_dataset_from_directory`` with basic
+    normalization.
+
+    Parameters
+    ----------
+    train_dir : str
+        Path to the training images directory.
+    val_dir : str
+        Path to the validation images directory.
+    image_size : tuple, optional
+        Image dimensions ``(height, width)``.
+    batch_size : int, optional
+        Number of images per batch.
+
+    Returns
+    -------
+    tuple
+        ``(train_ds, val_ds)`` TensorFlow ``Dataset`` objects or
+        ``(None, None)`` if directories are missing.
+    """
+
+    if not os.path.exists(train_dir) or not os.path.exists(val_dir):
+        print("Training or validation directory not found.")
+        return None, None
+
+    train_ds = tf.keras.utils.image_dataset_from_directory(
+        train_dir,
+        image_size=image_size,
+        batch_size=batch_size,
+        shuffle=True,
+    )
+
+    val_ds = tf.keras.utils.image_dataset_from_directory(
+        val_dir,
+        image_size=image_size,
+        batch_size=batch_size,
+        shuffle=False,
+    )
+
+    def _scale(images, labels):
+        images = tf.cast(images, tf.float32) / 255.0
+        return images, labels
+
+    train_ds = train_ds.map(_scale)
+    val_ds = val_ds.map(_scale)
+
+    return train_ds, val_ds
+
 def create_dummy_images_for_generator(base_dir, num_images_per_class=5):
     """Creates dummy directories and placeholder image files for ImageDataGenerator testing."""
     print(f"Creating dummy images for ImageDataGenerator under '{base_dir}'...")

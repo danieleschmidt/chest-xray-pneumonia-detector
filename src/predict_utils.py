@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing import image
 import matplotlib.pyplot as plt
 
-from grad_cam import generate_grad_cam
+from .grad_cam import generate_grad_cam
 
 
 def load_image(img_path, target_size):
