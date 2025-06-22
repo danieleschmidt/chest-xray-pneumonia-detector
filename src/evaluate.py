@@ -11,7 +11,15 @@ from sklearn.metrics import (
 )
 
 
-def evaluate_predictions(pred_csv: str, label_csv: str | None = None, output_png: str = "reports/confusion_matrix.png"):
+def evaluate_predictions(
+    pred_csv: str,
+    label_csv: str | None = None,
+    output_png: str = "reports/confusion_matrix.png",
+    normalize_cm: bool = False,
+    threshold: float = 0.5,
+    metrics_csv: str | None = None,
+    num_classes: int = 1,
+):
     """Evaluate predictions stored in ``pred_csv``.
 
     Parameters
@@ -23,6 +31,14 @@ def evaluate_predictions(pred_csv: str, label_csv: str | None = None, output_png
         ``pred_csv`` must already contain a ``label`` column.
     output_png:
         Path to save the confusion matrix plot.
+    normalize_cm:
+        Whether to normalize the confusion matrix by true labels.
+    threshold:
+        Probability threshold for converting predictions to binary labels.
+    metrics_csv:
+        Optional path to save the computed metrics as a CSV file.
+    num_classes:
+        Number of classes in the predictions. Set >1 for multi-class CSVs.
     """
     df = pd.read_csv(pred_csv)
     if "label" not in df.columns:
@@ -32,15 +48,24 @@ def evaluate_predictions(pred_csv: str, label_csv: str | None = None, output_png
         df = df.merge(labels, on="filepath")
 
     y_true = df["label"].values
-    y_probs = df["prediction"].values
-    y_pred = (y_probs > 0.5).astype(int)
+    if num_classes == 1:
+        y_probs = df["prediction"].values
+        y_pred = (y_probs > threshold).astype(int)
+        precision = precision_score(y_true, y_pred, zero_division=0)
+        recall = recall_score(y_true, y_pred, zero_division=0)
+        f1 = f1_score(y_true, y_pred, zero_division=0)
+        roc_auc = roc_auc_score(y_true, y_probs)
+    else:
+        prob_cols = [f"prob_{i}" for i in range(num_classes)]
+        y_probs = df[prob_cols].values
+        y_pred = df["prediction"].astype(int).values
+        precision = precision_score(y_true, y_pred, average="weighted", zero_division=0)
+        recall = recall_score(y_true, y_pred, average="weighted", zero_division=0)
+        f1 = f1_score(y_true, y_pred, average="weighted", zero_division=0)
+        y_true_cat = pd.get_dummies(y_true, drop_first=False).values
+        roc_auc = roc_auc_score(y_true_cat, y_probs, multi_class="ovr")
 
-    precision = precision_score(y_true, y_pred, zero_division=0)
-    recall = recall_score(y_true, y_pred, zero_division=0)
-    f1 = f1_score(y_true, y_pred, zero_division=0)
-    roc_auc = roc_auc_score(y_true, y_probs)
-
-    cm = confusion_matrix(y_true, y_pred)
+    cm = confusion_matrix(y_true, y_pred, normalize="true" if normalize_cm else None)
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
     plt.xlabel("Predicted")
     plt.ylabel("True")
@@ -48,12 +73,17 @@ def evaluate_predictions(pred_csv: str, label_csv: str | None = None, output_png
     plt.savefig(output_png)
     plt.close()
 
-    return {
+    metrics = {
         "precision": precision,
         "recall": recall,
         "f1": f1,
         "roc_auc": roc_auc,
     }
+
+    if metrics_csv:
+        pd.DataFrame([metrics]).to_csv(metrics_csv, index=False)
+
+    return metrics
 
 
 def main() -> None:
@@ -71,9 +101,39 @@ def main() -> None:
     parser.add_argument(
         "--output_png", default="reports/confusion_matrix.png", help="Output confusion matrix image"
     )
+    parser.add_argument(
+        "--normalize_cm",
+        action="store_true",
+        help="Normalize the confusion matrix by true labels",
+    )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=0.5,
+        help="Probability threshold for positive class",
+    )
+    parser.add_argument(
+        "--metrics_csv",
+        default=None,
+        help="Optional path to save the computed metrics as CSV",
+    )
+    parser.add_argument(
+        "--num_classes",
+        type=int,
+        default=1,
+        help="Number of classes in the predictions CSV",
+    )
     args = parser.parse_args()
 
-    metrics = evaluate_predictions(args.pred_csv, args.label_csv, args.output_png)
+    metrics = evaluate_predictions(
+        args.pred_csv,
+        args.label_csv,
+        args.output_png,
+        normalize_cm=args.normalize_cm,
+        threshold=args.threshold,
+        metrics_csv=args.metrics_csv,
+        num_classes=args.num_classes,
+    )
     for k, v in metrics.items():
         print(f"{k}: {v:.4f}")
 
