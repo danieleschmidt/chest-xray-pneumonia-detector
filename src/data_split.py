@@ -1,5 +1,4 @@
 import argparse
-import os
 import shutil
 from pathlib import Path
 from sklearn.model_selection import train_test_split
@@ -52,8 +51,12 @@ def split_dataset(
 
     for class_dir in class_dirs:
         images = list(class_dir.glob("*"))
-        train_val, test = train_test_split(images, test_size=test_frac, random_state=seed)
-        train, val = train_test_split(train_val, test_size=val_frac / (1 - test_frac), random_state=seed)
+        train_val, test = train_test_split(
+            images, test_size=test_frac, random_state=seed
+        )
+        train, val = train_test_split(
+            train_val, test_size=val_frac / (1 - test_frac), random_state=seed
+        )
         splits = {"train": train, "val": val, "test": test}
         for split_name, files in splits.items():
             dest = output_path / split_name / class_dir.name
@@ -66,11 +69,21 @@ def split_dataset(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Split a dataset into train/val/test directories")
-    parser.add_argument("--input_dir", required=True, help="Directory with class subfolders")
-    parser.add_argument("--output_dir", required=True, help="Where to create split dataset")
-    parser.add_argument("--val_frac", type=float, default=0.1, help="Fraction for validation set")
-    parser.add_argument("--test_frac", type=float, default=0.1, help="Fraction for test set")
+    parser = argparse.ArgumentParser(
+        description="Split a dataset into train/val/test directories"
+    )
+    parser.add_argument(
+        "--input_dir", required=True, help="Directory with class subfolders"
+    )
+    parser.add_argument(
+        "--output_dir", required=True, help="Where to create split dataset"
+    )
+    parser.add_argument(
+        "--val_frac", type=float, default=0.1, help="Fraction for validation set"
+    )
+    parser.add_argument(
+        "--test_frac", type=float, default=0.1, help="Fraction for test set"
+    )
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument(
         "--move",

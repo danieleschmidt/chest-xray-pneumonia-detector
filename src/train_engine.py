@@ -33,6 +33,7 @@ from .model_builder import (
     create_cnn_with_attention,
 )
 
+
 def create_dummy_data(base_dir="data_train_engine", num_images_per_class=5):
     """Creates dummy directories and placeholder image files for training and validation."""
     print(f"Creating dummy data under '{base_dir}'...")
@@ -53,15 +54,20 @@ def create_dummy_data(base_dir="data_train_engine", num_images_per_class=5):
             os.makedirs(path, exist_ok=True)
             for i in range(num_images_per_class):
                 try:
-                    color = 'red' if class_name == "PNEUMONIA" else 'blue'
-                    img = Image.new('RGB', (60, 30), color=color)
+                    color = "red" if class_name == "PNEUMONIA" else "blue"
+                    img = Image.new("RGB", (60, 30), color=color)
                     img.save(os.path.join(path, f"dummy_{s}_{class_name}_{i+1}.jpg"))
                 except Exception as e:
-                    print(f"Could not create dummy image {i+1} for {path}: {e}. Pillow might be needed.")
-                    open(os.path.join(path, f"dummy_{s}_{class_name}_{i+1}.jpg"), 'a').close()
+                    print(
+                        f"Could not create dummy image {i+1} for {path}: {e}. Pillow might be needed."
+                    )
+                    open(
+                        os.path.join(path, f"dummy_{s}_{class_name}_{i+1}.jpg"), "a"
+                    ).close()
     print("Dummy data created.")
 
-def cleanup_dummy_data(base_dir="data_train_engine"): # Updated base_dir
+
+def cleanup_dummy_data(base_dir="data_train_engine"):  # Updated base_dir
     """Removes the dummy data directories."""
     if os.path.exists(base_dir):
         print(f"Cleaning up dummy data from '{base_dir}'...")
@@ -75,9 +81,15 @@ def main():
     parser = argparse.ArgumentParser(description="Train the pneumonia detector")
     parser.add_argument("--train_dir", help="Path to training data")
     parser.add_argument("--val_dir", help="Path to validation data")
-    parser.add_argument("--use_dummy_data", action="store_true", default=True,
-                        help="Generate small dummy dataset for testing")
-    parser.add_argument("--img_size", type=int, nargs=2, default=[150, 150], metavar=("H", "W"))
+    parser.add_argument(
+        "--use_dummy_data",
+        action="store_true",
+        default=True,
+        help="Generate small dummy dataset for testing",
+    )
+    parser.add_argument(
+        "--img_size", type=int, nargs=2, default=[150, 150], metavar=("H", "W")
+    )
     parser.add_argument("--batch_size", type=int, default=2)
     parser.add_argument("--epochs", type=int, default=2)
     parser.add_argument(
@@ -89,7 +101,9 @@ def main():
     parser.add_argument("--use_attention_model", action="store_true")
     parser.add_argument("--use_transfer_learning", action="store_true", default=True)
     parser.add_argument("--base_model_name", default="MobileNetV2")
-    parser.add_argument("--learning_rate", type=float, default=1e-3, help="Initial learning rate")
+    parser.add_argument(
+        "--learning_rate", type=float, default=1e-3, help="Initial learning rate"
+    )
     parser.add_argument(
         "--dropout_rate",
         type=float,
@@ -209,9 +223,9 @@ def main():
     parser.add_argument(
         "--class_weights",
         type=float,
-        nargs='+',
+        nargs="+",
         default=None,
-        metavar='W',
+        metavar="W",
         help="Optional space separated class weights overriding automatic computation",
     )
     args = parser.parse_args()
@@ -233,11 +247,11 @@ def main():
     MLFLOW_TRACKING_URI = args.mlflow_tracking_uri
     HISTORY_CSV = args.history_csv
     SEED = args.seed
-    ROTATION_RANGE = args.rotation_range
-    BRIGHTNESS_RANGE = args.brightness_range
-    CONTRAST_RANGE = args.contrast_range
-    ZOOM_RANGE = args.zoom_range
-    RANDOM_FLIP = args.random_flip
+    _rotation_range = args.rotation_range
+    _brightness_range = args.brightness_range
+    _contrast_range = args.contrast_range
+    _zoom_range = args.zoom_range
+    _random_flip = args.random_flip
     EARLY_STOPPING_PATIENCE = args.early_stopping_patience
     REDUCE_LR_FACTOR = args.reduce_lr_factor
     REDUCE_LR_PATIENCE = args.reduce_lr_patience
@@ -252,20 +266,23 @@ def main():
         dummy_data_base_dir = "data_train_engine"
         train_dir = os.path.join(dummy_data_base_dir, "train")
         val_dir = os.path.join(dummy_data_base_dir, "val")
-        create_dummy_data(base_dir=dummy_data_base_dir, num_images_per_class=BATCH_SIZE * 2 + 1)
+        create_dummy_data(
+            base_dir=dummy_data_base_dir, num_images_per_class=BATCH_SIZE * 2 + 1
+        )
     else:
         if not args.train_dir or not args.val_dir:
-            parser.error("--train_dir and --val_dir are required when not using dummy data")
+            parser.error(
+                "--train_dir and --val_dir are required when not using dummy data"
+            )
         train_dir = args.train_dir
         val_dir = args.val_dir
         dummy_data_base_dir = None
 
-
     try:
         # --- Load Data using create_data_generators ---
         print("Loading training and validation data using create_data_generators...")
-        flip_option = None if args.random_flip == 'none' else args.random_flip
-        class_mode = 'binary' if NUM_CLASSES == 1 else 'categorical'
+        flip_option = None if args.random_flip == "none" else args.random_flip
+        class_mode = "binary" if NUM_CLASSES == 1 else "categorical"
         train_generator, validation_generator = create_data_generators(
             train_dir=train_dir,
             val_dir=val_dir,
@@ -277,7 +294,7 @@ def main():
             contrast_range=args.contrast_range,
             zoom_range=args.zoom_range,
             random_flip=flip_option,
-            class_mode=class_mode
+            class_mode=class_mode,
         )
 
         if train_generator is None or validation_generator is None:
@@ -320,7 +337,7 @@ def main():
             # ImageDataGenerator provides 3 channels (RGB) by default
             input_shape = (IMG_HEIGHT, IMG_WIDTH, 3)
             print(f"Using input shape for model: {input_shape}")
-    
+
             if USE_ATTENTION_MODEL:
                 print("Creating CNN model with attention...")
                 model = create_cnn_with_attention(
@@ -330,7 +347,9 @@ def main():
                     dropout_rate=DROPOUT_RATE,
                 )
             elif USE_TRANSFER_LEARNING:
-                print(f"Creating transfer learning model with base {BASE_MODEL_NAME}...")
+                print(
+                    f"Creating transfer learning model with base {BASE_MODEL_NAME}..."
+                )
                 model = create_transfer_learning_model(
                     input_shape=input_shape,
                     num_classes=NUM_CLASSES,
@@ -357,79 +376,84 @@ def main():
 
             # --- Model Training ---
             print("\nStarting model training with generators...")
-            
+
             # Calculate steps per epoch
             num_train_samples = train_generator.samples
             num_val_samples = validation_generator.samples
-            
+
             steps_per_epoch = num_train_samples // train_generator.batch_size
             validation_steps = num_val_samples // validation_generator.batch_size
-            
+
             # Ensure steps are at least 1, especially for small dummy datasets
             # Updated to use ternary operator for conciseness
-            steps_per_epoch = train_generator.samples // train_generator.batch_size if train_generator.samples > 0 else 1
-            validation_steps = validation_generator.samples // validation_generator.batch_size if validation_generator.samples > 0 else 1
-            
+            steps_per_epoch = (
+                train_generator.samples // train_generator.batch_size
+                if train_generator.samples > 0
+                else 1
+            )
+            validation_steps = (
+                validation_generator.samples // validation_generator.batch_size
+                if validation_generator.samples > 0
+                else 1
+            )
+
             # --- Calculate Class Weights ---
             print("Calculating class weights...")
             if CLASS_WEIGHTS is not None:
                 if len(CLASS_WEIGHTS) != NUM_CLASSES:
-                    raise ValueError(
-                        "Number of class weights must match num_classes"
-                    )
-                class_weights_dict = {
-                    i: w for i, w in enumerate(CLASS_WEIGHTS)
-                }
+                    raise ValueError("Number of class weights must match num_classes")
+                class_weights_dict = {i: w for i, w in enumerate(CLASS_WEIGHTS)}
                 print(f"Using provided class weights: {class_weights_dict}")
             else:
                 train_labels = train_generator.classes
                 unique_classes = np.unique(train_labels)
 
                 class_weights_array = compute_class_weight(
-                    class_weight='balanced',
-                    classes=unique_classes,
-                    y=train_labels
+                    class_weight="balanced", classes=unique_classes, y=train_labels
                 )
                 class_weights_dict = dict(zip(unique_classes, class_weights_array))
 
                 print(f"Train generator class indices: {train_generator.class_indices}")
                 print(f"Unique classes found by np.unique: {unique_classes}")
                 print(f"Calculated class weights: {class_weights_dict}")
-    
-    
+
             # --- Callbacks ---
             # Ensure 'saved_models' directory exists for ModelCheckpoint
             os.makedirs(os.path.dirname(args.checkpoint_path), exist_ok=True)
-    
+
             checkpoint_filepath = args.checkpoint_path
             model_checkpoint_callback = ModelCheckpoint(
                 filepath=checkpoint_filepath,
                 save_weights_only=False,
-                monitor='val_loss',
-                mode='min',
+                monitor="val_loss",
+                mode="min",
                 save_best_only=True,
-                verbose=1
+                verbose=1,
             )
-    
+
             early_stopping_callback = EarlyStopping(
-                monitor='val_loss',
+                monitor="val_loss",
                 patience=EARLY_STOPPING_PATIENCE,
                 verbose=1,
-                mode='min',
-                restore_best_weights=True
+                mode="min",
+                restore_best_weights=True,
             )
-    
+
             reduce_lr_callback = ReduceLROnPlateau(
-                monitor='val_loss',
+                monitor="val_loss",
                 factor=REDUCE_LR_FACTOR,
                 patience=REDUCE_LR_PATIENCE,
                 verbose=1,
-                mode='min',
-                min_lr=REDUCE_LR_MIN_LR
+                mode="min",
+                min_lr=REDUCE_LR_MIN_LR,
             )
-            
-            callbacks_list = [model_checkpoint_callback, early_stopping_callback, reduce_lr_callback]
-    
+
+            callbacks_list = [
+                model_checkpoint_callback,
+                early_stopping_callback,
+                reduce_lr_callback,
+            ]
+
             history = model.fit(
                 train_generator,
                 steps_per_epoch=steps_per_epoch,
@@ -437,16 +461,16 @@ def main():
                 validation_data=validation_generator,
                 validation_steps=validation_steps,
                 callbacks=callbacks_list,
-                class_weight=class_weights_dict, # Pass the class weights here
-                verbose=1
+                class_weight=class_weights_dict,  # Pass the class weights here
+                verbose=1,
             )
             print("Model training completed.")
-    
+
             if USE_TRANSFER_LEARNING and TRAINABLE_BASE_LAYERS > 0:
                 print("\nStarting fine-tuning stage...")
                 for layer in model.layers[-TRAINABLE_BASE_LAYERS:]:
                     layer.trainable = True
-    
+
                 model.compile(
                     optimizer=tf.keras.optimizers.Adam(learning_rate=FINE_TUNE_LR),
                     loss=model.loss,
@@ -464,49 +488,60 @@ def main():
                 )
                 for key, vals in history_fine.history.items():
                     history.history[key] = history.history.get(key, []) + vals
-    
+
             # --- Save Final Model ---
             # This saves the model at the end of training, regardless of ModelCheckpoint's best
             final_model_save_path = args.save_model_path
             os.makedirs(os.path.dirname(final_model_save_path), exist_ok=True)
-    
+
             model.save(final_model_save_path)
             print(f"Final model saved successfully to {final_model_save_path}")
-    
+
             # --- Evaluate Model (Precision, Recall, F1-score) ---
             print("\nEvaluating model on validation set...")
-            
+
             # Ensure validation_generator is reset if it was used before (e.g. in model.fit)
             # and shuffle is False for consistent order. The create_data_generators sets shuffle=False for val.
             # validation_generator.reset() # Not strictly necessary if shuffle=False and steps cover all data
-    
+
             num_val_samples_for_pred = validation_generator.samples
-            val_pred_steps = (num_val_samples_for_pred // validation_generator.batch_size) + \
-                             (1 if num_val_samples_for_pred % validation_generator.batch_size else 0)
-    
+            val_pred_steps = (
+                num_val_samples_for_pred // validation_generator.batch_size
+            ) + (1 if num_val_samples_for_pred % validation_generator.batch_size else 0)
+
             val_predictions = model.predict(validation_generator, steps=val_pred_steps)
             val_predictions = val_predictions[:num_val_samples_for_pred]
             val_true_labels = validation_generator.classes[:num_val_samples_for_pred]
 
             if NUM_CLASSES == 1:
                 pred_labels = (val_predictions > 0.5).astype(int).ravel()
-                precision = precision_score(val_true_labels, pred_labels, zero_division=0)
+                precision = precision_score(
+                    val_true_labels, pred_labels, zero_division=0
+                )
                 recall = recall_score(val_true_labels, pred_labels, zero_division=0)
                 f1 = f1_score(val_true_labels, pred_labels, zero_division=0)
                 try:
                     roc_auc = roc_auc_score(val_true_labels, val_predictions)
                 except ValueError:
-                    roc_auc = float('nan')
+                    roc_auc = float("nan")
             else:
                 pred_labels = np.argmax(val_predictions, axis=1)
-                precision = precision_score(val_true_labels, pred_labels, average="weighted", zero_division=0)
-                recall = recall_score(val_true_labels, pred_labels, average="weighted", zero_division=0)
-                f1 = f1_score(val_true_labels, pred_labels, average="weighted", zero_division=0)
+                precision = precision_score(
+                    val_true_labels, pred_labels, average="weighted", zero_division=0
+                )
+                recall = recall_score(
+                    val_true_labels, pred_labels, average="weighted", zero_division=0
+                )
+                f1 = f1_score(
+                    val_true_labels, pred_labels, average="weighted", zero_division=0
+                )
                 try:
                     y_true_cat = to_categorical(val_true_labels, NUM_CLASSES)
-                    roc_auc = roc_auc_score(y_true_cat, val_predictions, multi_class="ovr")
+                    roc_auc = roc_auc_score(
+                        y_true_cat, val_predictions, multi_class="ovr"
+                    )
                 except ValueError:
-                    roc_auc = float('nan')
+                    roc_auc = float("nan")
 
             cm = confusion_matrix(val_true_labels, pred_labels)
 
@@ -522,46 +557,46 @@ def main():
 
             os.makedirs(os.path.dirname(args.cm_path), exist_ok=True)
             plt.figure(figsize=(4, 4))
-            sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-            plt.xlabel('Predicted')
-            plt.ylabel('True')
+            sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
+            plt.xlabel("Predicted")
+            plt.ylabel("True")
             cm_path = args.cm_path
             plt.tight_layout()
             plt.savefig(cm_path)
             plt.close()
             print(f"Confusion matrix saved to {cm_path}")
             mlflow.log_artifact(cm_path)
-    
+
             # --- Plotting Training History ---
             print("\nGenerating training history plot...")
-            acc = history.history['accuracy']
-            val_acc = history.history['val_accuracy']
-            loss = history.history['loss']
-            val_loss = history.history['val_loss']
+            acc = history.history["accuracy"]
+            val_acc = history.history["val_accuracy"]
+            loss = history.history["loss"]
+            val_loss = history.history["val_loss"]
             epochs_range = range(EPOCHS)
-    
-            plt.figure(figsize=(12, 6)) # Adjusted figsize for better layout
-    
+
+            plt.figure(figsize=(12, 6))  # Adjusted figsize for better layout
+
             plt.subplot(1, 2, 1)
-            plt.plot(epochs_range, acc, label='Training Accuracy')
-            plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-            plt.legend(loc='lower right')
-            plt.title('Training and Validation Accuracy')
-            plt.xlabel('Epoch')
-            plt.ylabel('Accuracy')
-    
+            plt.plot(epochs_range, acc, label="Training Accuracy")
+            plt.plot(epochs_range, val_acc, label="Validation Accuracy")
+            plt.legend(loc="lower right")
+            plt.title("Training and Validation Accuracy")
+            plt.xlabel("Epoch")
+            plt.ylabel("Accuracy")
+
             plt.subplot(1, 2, 2)
-            plt.plot(epochs_range, loss, label='Training Loss')
-            plt.plot(epochs_range, val_loss, label='Validation Loss')
-            plt.legend(loc='upper right')
-            plt.title('Training and Validation Loss')
-            plt.xlabel('Epoch')
-            plt.ylabel('Loss')
-            
-            plt.tight_layout() # Adjust layout to prevent overlapping titles/labels
-            
+            plt.plot(epochs_range, loss, label="Training Loss")
+            plt.plot(epochs_range, val_loss, label="Validation Loss")
+            plt.legend(loc="upper right")
+            plt.title("Training and Validation Loss")
+            plt.xlabel("Epoch")
+            plt.ylabel("Loss")
+
+            plt.tight_layout()  # Adjust layout to prevent overlapping titles/labels
+
             plot_save_path = args.plot_path
-            os.makedirs(os.path.dirname(plot_save_path) or '.', exist_ok=True)
+            os.makedirs(os.path.dirname(plot_save_path) or ".", exist_ok=True)
             try:
                 plt.savefig(plot_save_path)
                 print(f"Training history plot saved to {plot_save_path}")
@@ -580,10 +615,10 @@ def main():
 
             mlflow.keras.log_model(model, "model")
 
-
     except Exception as e:
         print(f"An error occurred during the training process: {e}")
         import traceback
+
         traceback.print_exc()
     finally:
         # --- Cleanup ---

@@ -1,0 +1,20 @@
+{
+  "implement-scaffolding-for-**review:**-conduct-a-full-architecture-review-to-define-initial-tasks.": {
+    "test_file": "tests/test_implement-scaffolding-for-**review:**-conduct-a-full-architecture-review-to-define-initial-tasks..py",
+    "cases": {
+      "success": "Asserts the primary success case."
+    }
+  },
+  "add-core-logic-for-**review:**-conduct-a-full-architecture-review-to-define-initial-tasks.": {
+    "test_file": "tests/test_add-core-logic-for-**review:**-conduct-a-full-architecture-review-to-define-initial-tasks..py",
+    "cases": {
+      "success": "Asserts the primary success case."
+    }
+  },
+  "write-unit-tests-covering-success-and-failure-paths-for-**review:**-conduct-a-full-architecture-review-to-define-initial-tasks.": {
+    "test_file": "tests/test_write-unit-tests-covering-success-and-failure-paths-for-**review:**-conduct-a-full-architecture-review-to-define-initial-tasks..py",
+    "cases": {
+      "success": "Asserts the primary success case."
+    }
+  }
+}
