@@ -1,10 +1,8 @@
-# Sprint Board
+# Sprint Board: **Review:** Conduct a full architecture review to define initial tasks.
 
-## P1
-- [x] Implement data loading and preprocessing pipeline - @codex
-- [x] Design and train a custom CNN model - @codex
-- [x] Experiment with transfer learning - @codex
-- [x] Handle class imbalance - @codex
-- [x] Evaluate metrics (accuracy, precision, recall, F1, AUC) - @codex
-- [x] Add Grad-CAM interpretability - @codex
-
+## Backlog
+| Task | Owner | Priority | Status |
+| --- | --- | --- | --- |
+| Implement scaffolding for **Review:** Conduct a full architecture review to define initial tasks. | @agent | P1 | Done |
+| Add core logic for **Review:** Conduct a full architecture review to define initial tasks. | @agent | P1 | Done |
+| Write unit tests covering success and failure paths for **Review:** Conduct a full architecture review to define initial tasks. | @agent | P1 | Done |

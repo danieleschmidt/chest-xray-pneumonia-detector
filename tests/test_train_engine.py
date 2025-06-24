@@ -3,7 +3,10 @@ import subprocess
 import sys
 
 tf = pytest.importorskip("tensorflow")
-from src.train_engine import create_dummy_data, cleanup_dummy_data
+from src.train_engine import (  # noqa: E402
+    create_dummy_data,
+    cleanup_dummy_data,
+)
 
 
 def test_dummy_data_creation_and_cleanup(tmp_path):
@@ -15,7 +18,9 @@ def test_dummy_data_creation_and_cleanup(tmp_path):
 
 
 def test_train_engine_cli_help():
-    result = subprocess.run([sys.executable, "-m", "src.train_engine", "--help"], capture_output=True)
+    result = subprocess.run(
+        [sys.executable, "-m", "src.train_engine", "--help"], capture_output=True
+    )
     assert result.returncode == 0
     assert b"--seed" in result.stdout
     assert b"--mlflow_tracking_uri" in result.stdout

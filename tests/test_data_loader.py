@@ -1,7 +1,7 @@
 import pytest
 
 tf = pytest.importorskip("tensorflow")
-from src.data_loader import create_data_generators, create_tf_datasets
+from src.data_loader import create_data_generators, create_tf_datasets  # noqa: E402
 
 
 def test_missing_directories(tmp_path):
@@ -21,7 +21,12 @@ def test_create_tf_datasets(tmp_path):
     img_path_val = val_dir / "img0.png"
     tf.keras.preprocessing.image.save_img(img_path_val, tf.zeros((10, 10, 3)))
 
-    train_ds, val_ds = create_tf_datasets(str(tmp_path / "train"), str(tmp_path / "val"), image_size=(10, 10), batch_size=1)
+    train_ds, val_ds = create_tf_datasets(
+        str(tmp_path / "train"),
+        str(tmp_path / "val"),
+        image_size=(10, 10),
+        batch_size=1,
+    )
     batch = next(iter(train_ds))
     assert batch[0].shape == (1, 10, 10, 3)
     batch_val = next(iter(val_ds))

@@ -56,9 +56,17 @@ def predict_directory(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Batch inference on a directory of images")
-    parser.add_argument("--model_path", required=True, help="Path to a saved Keras model")
-    parser.add_argument("--data_dir", required=True, help="Directory with images organised in class folders")
+    parser = argparse.ArgumentParser(
+        description="Batch inference on a directory of images"
+    )
+    parser.add_argument(
+        "--model_path", required=True, help="Path to a saved Keras model"
+    )
+    parser.add_argument(
+        "--data_dir",
+        required=True,
+        help="Directory with images organised in class folders",
+    )
     parser.add_argument(
         "--img_size",
         type=int,
@@ -67,7 +75,9 @@ def main() -> None:
         metavar=("HEIGHT", "WIDTH"),
         help="Image size expected by the model",
     )
-    parser.add_argument("--output_csv", default="predictions.csv", help="Where to save predictions")
+    parser.add_argument(
+        "--output_csv", default="predictions.csv", help="Where to save predictions"
+    )
     parser.add_argument(
         "--num_classes",
         type=int,

@@ -3,7 +3,10 @@ import pytest
 # Skip tests if TensorFlow is unavailable
 tf = pytest.importorskip("tensorflow")
 
-from src.model_builder import create_simple_cnn, create_cnn_with_attention
+from src.model_builder import (  # noqa: E402
+    create_simple_cnn,
+    create_cnn_with_attention,
+)
 
 
 def test_simple_cnn_output_shape():

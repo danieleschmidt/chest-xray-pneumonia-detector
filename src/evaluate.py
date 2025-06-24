@@ -99,7 +99,9 @@ def main() -> None:
         help="Unused. For backward compatibility",
     )
     parser.add_argument(
-        "--output_png", default="reports/confusion_matrix.png", help="Output confusion matrix image"
+        "--output_png",
+        default="reports/confusion_matrix.png",
+        help="Output confusion matrix image",
     )
     parser.add_argument(
         "--normalize_cm",

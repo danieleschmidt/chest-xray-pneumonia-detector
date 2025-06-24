@@ -69,6 +69,7 @@ def generate_grad_cam(
 
     return heatmap.numpy()
 
+
 if __name__ == "__main__":
     # Basic smoke test when executed directly
     print("grad_cam.py executed. 'generate_grad_cam' is ready for use.")
