@@ -61,11 +61,9 @@ def create_data_generators(
         tuple: (train_generator, validation_generator)
     """
     if not os.path.exists(train_dir):
-        print(f"Error: Training directory '{train_dir}' not found.")
-        return None, None
+        raise FileNotFoundError(f"Training directory '{train_dir}' not found.")
     if not os.path.exists(val_dir):
-        print(f"Error: Validation directory '{val_dir}' not found.")
-        return None, None
+        raise FileNotFoundError(f"Validation directory '{val_dir}' not found.")
 
     # Training Data Generator
     train_datagen_args = {
@@ -130,8 +128,7 @@ def create_tf_datasets(train_dir, val_dir, image_size=(150, 150), batch_size=32)
     """
 
     if not os.path.exists(train_dir) or not os.path.exists(val_dir):
-        print("Training or validation directory not found.")
-        return None, None
+        raise FileNotFoundError("Training or validation directory not found.")
 
     train_ds = tf.keras.utils.image_dataset_from_directory(
         train_dir,
