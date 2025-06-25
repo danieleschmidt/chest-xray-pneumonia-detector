@@ -1,29 +1,23 @@
 [build-system]
-requires = [ "setuptools>=61",]
+requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "chest_xray_pneumonia_detector"
 version = "0.1.0"
 requires-python = ">=3.8"
-dependencies = [ "mlflow", "tensorflow", "pandas", "seaborn", "scikit-learn",]
-
-[project.optional-dependencies]
-dev = [ "ruff", "black", "pytest", "coverage",]
 
 [tool.setuptools]
-packages = [ "src",]
-
-[tool.setuptools.package-dir]
-src = "src"
-
-[tool.pytest.ini_options]
-addopts = "-ra"
-testpaths = [ "tests",]
-
-[tool.coverage.run]
-source = [ "src",]
-branch = true
-
-[tool.coverage.report]
-show_missing = true
+package-dir = {"" = "src"}
+packages = ["chest_xray_pneumonia_detector"]
+py-modules = [
+    "architecture_review",
+    "data_loader",
+    "data_split",
+    "evaluate",
+    "grad_cam",
+    "inference",
+    "model_builder",
+    "predict_utils",
+    "train_engine",
+]
