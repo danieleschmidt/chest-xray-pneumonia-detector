@@ -19,5 +19,11 @@ py-modules = [
     "inference",
     "model_builder",
     "predict_utils",
+    "dataset_stats",
     "train_engine",
+    "version_cli",
 ]
+
+[project.scripts]
+cxr-version = "version_cli:main"
+cxr-dataset-stats = "dataset_stats:main"

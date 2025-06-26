@@ -14,6 +14,6 @@
 - Integration tests run the training CLI on dummy data and verify the inference CLI handles non‑image files without crashing.
 - Unit tests cover data loading success and failure cases, as well as model creation and validation of bad configurations.
 - Lint and security scan tests ensure `ruff` and `bandit` pass cleanly.
-- **Observation:** `DEVELOPMENT_PLAN.md` still lists Phase 2 tasks as incomplete despite the board showing completion. Updating the plan would provide better alignment.
+- The `DEVELOPMENT_PLAN.md` file now reflects that Phase 2 tasks are complete, matching the board status.
 
 Overall, the implementation meets the sprint objectives and passes all automated checks. Future improvements could focus on trimming example code from modules and enhancing documentation.

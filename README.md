@@ -204,3 +204,15 @@ mlflow ui
 The training engine can optionally build a CNN incorporating Squeeze-and-Excitation
 blocks for attention. Enable this architecture via the `--use_attention_model`
 flag when running the training CLI.
+
+## Additional CLI Examples
+
+For a concise reference of the available command-line interfaces, see [API_USAGE_GUIDE.md](API_USAGE_GUIDE.md). It summarizes training, inference, Grad-CAM and evaluation commands.
+The guide also shows how to print the package version using the `cxr-version` command (or `python -m src.version_cli`).
+It now includes a dataset statistics tool for counting images per class using
+`cxr-dataset-stats`. The command accepts a custom list of file extensions via
+`--extensions` (case-insensitive and dot optional). Counts saved via
+`--json_output` or `--csv_output` are sorted alphabetically by class name for
+easier reading. The tool exits with an error if the provided path does not exist
+or is not a directory.
+
