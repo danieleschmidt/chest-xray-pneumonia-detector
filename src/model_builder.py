@@ -1,3 +1,5 @@
+"""Model-building utilities for the pneumonia detection CNN."""
+
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.layers import (

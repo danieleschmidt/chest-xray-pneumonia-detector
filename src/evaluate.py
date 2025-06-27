@@ -1,3 +1,5 @@
+"""Utility script to compute metrics and plot a confusion matrix from predictions."""
+
 import argparse
 import pandas as pd
 import seaborn as sns

@@ -1,4 +1,5 @@
 import argparse
+from dataclasses import dataclass
 import tensorflow as tf
 import random
 import os
@@ -24,7 +25,6 @@ from sklearn.utils.class_weight import compute_class_weight  # Added for class i
 from tensorflow.keras.utils import to_categorical
 import mlflow
 
-
 # Local imports
 from .data_loader import create_data_generators
 from .model_builder import (
@@ -32,6 +32,50 @@ from .model_builder import (
     create_transfer_learning_model,
     create_cnn_with_attention,
 )
+
+
+
+
+@dataclass
+class TrainingArgs:
+    """Arguments configuring a training run."""
+
+    train_dir: str | None = None
+    val_dir: str | None = None
+    use_dummy_data: bool = True
+    img_size: tuple[int, int] = (150, 150)
+    batch_size: int = 2
+    epochs: int = 2
+    num_classes: int = 1
+    use_attention_model: bool = False
+    use_transfer_learning: bool = True
+    base_model_name: str = "MobileNetV2"
+    learning_rate: float = 1e-3
+    dropout_rate: float = 0.0
+    trainable_base_layers: int = 20
+    fine_tune_epochs: int = 1
+    fine_tune_lr: float = 1e-5
+    rotation_range: int = 20
+    brightness_range: tuple[float, float] = (0.7, 1.3)
+    contrast_range: float = 0.0
+    zoom_range: float = 0.2
+    random_flip: str = "horizontal"
+    seed: int = 42
+    checkpoint_path: str = "saved_models/best_pneumonia_cnn.keras"
+    save_model_path: str = "saved_models/pneumonia_cnn_v1.keras"
+    mlflow_experiment: str = "pneumonia-detector"
+    mlflow_run_name: str | None = None
+    mlflow_tracking_uri: str | None = None
+    plot_path: str = "training_history.png"
+    cm_path: str = "reports/confusion_matrix_val.png"
+    resume_checkpoint: str | None = None
+    history_csv: str = "training_history.csv"
+    early_stopping_patience: int = 10
+    reduce_lr_factor: float = 0.2
+    reduce_lr_patience: int = 5
+    reduce_lr_min_lr: float = 1e-5
+    class_weights: list[float] | None = None
+
 
 
 def create_dummy_data(base_dir="data_train_engine", num_images_per_class=5):
@@ -77,7 +121,9 @@ def cleanup_dummy_data(base_dir="data_train_engine"):  # Updated base_dir
         print(f"Directory '{base_dir}' not found, no cleanup needed.")
 
 
-def main():
+def _parse_args(argv: list[str] | None = None) -> TrainingArgs:
+    """Parse command-line arguments into a :class:`TrainingArgs`."""
+
     parser = argparse.ArgumentParser(description="Train the pneumonia detector")
     parser.add_argument("--train_dir", help="Path to training data")
     parser.add_argument("--val_dir", help="Path to validation data")
@@ -228,7 +274,50 @@ def main():
         metavar="W",
         help="Optional space separated class weights overriding automatic computation",
     )
-    args = parser.parse_args()
+    parsed = parser.parse_args(argv)
+    if not parsed.use_dummy_data and (not parsed.train_dir or not parsed.val_dir):
+        parser.error("--train_dir and --val_dir are required when not using dummy data")
+    return TrainingArgs(
+        train_dir=parsed.train_dir,
+        val_dir=parsed.val_dir,
+        use_dummy_data=parsed.use_dummy_data,
+        img_size=tuple(parsed.img_size),
+        batch_size=parsed.batch_size,
+        epochs=parsed.epochs,
+        num_classes=parsed.num_classes,
+        use_attention_model=parsed.use_attention_model,
+        use_transfer_learning=parsed.use_transfer_learning,
+        base_model_name=parsed.base_model_name,
+        learning_rate=parsed.learning_rate,
+        dropout_rate=parsed.dropout_rate,
+        trainable_base_layers=parsed.trainable_base_layers,
+        fine_tune_epochs=parsed.fine_tune_epochs,
+        fine_tune_lr=parsed.fine_tune_lr,
+        rotation_range=parsed.rotation_range,
+        brightness_range=tuple(parsed.brightness_range),
+        contrast_range=parsed.contrast_range,
+        zoom_range=parsed.zoom_range,
+        random_flip=parsed.random_flip,
+        seed=parsed.seed,
+        checkpoint_path=parsed.checkpoint_path,
+        save_model_path=parsed.save_model_path,
+        mlflow_experiment=parsed.mlflow_experiment,
+        mlflow_run_name=parsed.mlflow_run_name,
+        mlflow_tracking_uri=parsed.mlflow_tracking_uri,
+        plot_path=parsed.plot_path,
+        cm_path=parsed.cm_path,
+        resume_checkpoint=parsed.resume_checkpoint,
+        history_csv=parsed.history_csv,
+        early_stopping_patience=parsed.early_stopping_patience,
+        reduce_lr_factor=parsed.reduce_lr_factor,
+        reduce_lr_patience=parsed.reduce_lr_patience,
+        reduce_lr_min_lr=parsed.reduce_lr_min_lr,
+        class_weights=parsed.class_weights,
+    )
+
+
+def main():
+    args = _parse_args(argv=None)
 
     IMG_HEIGHT, IMG_WIDTH = args.img_size
     IMAGE_SIZE_TUPLE = (IMG_HEIGHT, IMG_WIDTH)
@@ -270,10 +359,6 @@ def main():
             base_dir=dummy_data_base_dir, num_images_per_class=BATCH_SIZE * 2 + 1
         )
     else:
-        if not args.train_dir or not args.val_dir:
-            parser.error(
-                "--train_dir and --val_dir are required when not using dummy data"
-            )
         train_dir = args.train_dir
         val_dir = args.val_dir
         dummy_data_base_dir = None

@@ -1,3 +1,5 @@
+"""Command-line interface for running a trained model on a directory of images."""
+
 import argparse
 import pandas as pd
 import tensorflow as tf
