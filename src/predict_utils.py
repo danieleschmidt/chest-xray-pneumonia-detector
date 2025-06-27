@@ -1,3 +1,5 @@
+"""Generate Grad-CAM overlays for images using a trained model."""
+
 import argparse
 import numpy as np
 import tensorflow as tf

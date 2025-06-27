@@ -1,3 +1,5 @@
+"""CLI to count images per class in a dataset directory."""
+
 import argparse
 import json
 from pathlib import Path

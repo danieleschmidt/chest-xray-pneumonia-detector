@@ -1,3 +1,5 @@
+"""Utility for splitting a dataset into train, val and test folders."""
+
 import argparse
 import shutil
 from pathlib import Path

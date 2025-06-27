@@ -1,8 +1,11 @@
-import tensorflow as tf
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+"""Utilities for loading image datasets with optional augmentation."""
+
 import os
 import shutil
+
 from PIL import Image  # For creating dummy images
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import numpy as np  # For dummy image creation if needed, and for apply_contrast
 
 

@@ -216,3 +216,7 @@ It now includes a dataset statistics tool for counting images per class using
 easier reading. The tool exits with an error if the provided path does not exist
 or is not a directory.
 
+
+## Continuous Integration
+
+Every pull request triggers a GitHub Actions workflow that installs project dependencies and runs code quality checks. The pipeline executes `ruff` for linting, `bandit` for a security scan and `pytest` for the test suite.
