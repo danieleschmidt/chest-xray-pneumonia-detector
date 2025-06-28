@@ -212,8 +212,10 @@ The guide also shows how to print the package version using the `cxr-version` co
 It now includes a dataset statistics tool for counting images per class using
 `cxr-dataset-stats`. The command accepts a custom list of file extensions via
 `--extensions` (case-insensitive and dot optional). Counts saved via
-`--json_output` or `--csv_output` are sorted alphabetically by class name for
-easier reading. The tool exits with an error if the provided path does not exist
+`--json_output` or `--csv_output` are sorted alphabetically by class name by default.
+An optional `--sort_by count` flag sorts results by descending count instead.
+`--plot_png` saves a bar chart visualizing the class distribution (requires `matplotlib`, install with `pip install matplotlib`).
+The PNG's parent directory must already exist. The tool exits with an error if the provided path does not exist
 or is not a directory.
 
 

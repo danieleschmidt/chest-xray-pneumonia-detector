@@ -86,9 +86,15 @@ Count the number of images per class in a dataset. You can restrict the scan to 
 ```bash
 cxr-dataset-stats --input_dir path/to/data --json_output counts.json \
     --csv_output counts.csv \
-    --extensions .jpeg .bmp
+    --extensions .jpeg .bmp \
+    --plot_png counts.png
 
-Extensions are case-insensitive and may be provided without a leading dot. Both
-output files list classes in alphabetical order for readability. The command
+Use ``--sort_by count`` to sort results by descending count instead of the
+default alphabetical order.
+
+Extensions are case-insensitive and may be provided without a leading dot. By
+default, output files list classes in alphabetical order for readability. The
+command
 exits with an error if the input path does not exist or is not a directory.
+Plotting requires the optional ``matplotlib`` dependency (install with ``pip install matplotlib``). The PNG output directory must exist.
 ```
