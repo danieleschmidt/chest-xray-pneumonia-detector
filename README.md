@@ -222,3 +222,12 @@ or is not a directory.
 ## Continuous Integration
 
 Every pull request triggers a GitHub Actions workflow that installs project dependencies and runs code quality checks. The pipeline executes `ruff` for linting, `bandit` for a security scan and `pytest` for the test suite.
+
+## Contributing
+
+We welcome pull requests! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on coding style and testing.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE). By contributing you
+agree that your work will be released under the same terms.
