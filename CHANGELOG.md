@@ -13,3 +13,9 @@
 - `cxr-dataset-stats` can save a bar chart of class counts via `--plot_png` (requires `matplotlib`)
 - `cxr-dataset-stats` now checks that the PNG output directory exists
 - `cxr-dataset-stats` supports sorting results by count via `--sort_by count`
+
+## v0.1.1
+- Added MIT `LICENSE` and detailed `CONTRIBUTING.md` guide
+- Refactored `train_engine.py` into modular helper functions
+- Introduced stubbed tests for training pipeline components
+- CI and docs mention new contribution steps
