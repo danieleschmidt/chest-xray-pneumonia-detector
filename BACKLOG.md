@@ -24,6 +24,11 @@
 - **Status**: COMPLETED  
 - **Description**: Enhanced test coverage for predict_directory function including binary/multiclass prediction, model loading, data generation, file path handling, and edge cases.
 
+### ✅ 4. Enhance predict_utils.py Test Coverage
+- **WSJF Score**: 1.3
+- **Status**: COMPLETED
+- **Description**: Added comprehensive test coverage for load_image and display_grad_cam functions with 13 test cases covering image loading, normalization, Grad-CAM generation, heatmap processing, and error handling.
+
 ## High Priority Items (WSJF > 1.0)
 
 ### 1. Add Integration Tests for Full Pipeline
@@ -34,15 +39,7 @@
 - **Job Size**: 13 (High complexity - full workflow testing)
 - **Description**: Test complete train→evaluate→predict workflow.
 
-### 2. Enhance predict_utils.py Test Coverage
-- **WSJF Score**: 1.3
-- **Business Value**: 6 (Grad-CAM utility functionality)
-- **Time Criticality**: 3 (Lower priority than core functions)
-- **Risk Reduction**: 4 (Currently only CLI help tested)
-- **Job Size**: 10 (Medium complexity - visualization testing)
-- **Description**: Add tests for Grad-CAM generation logic.
-
-### 3. Add Performance Benchmarking
+### 2. Add Performance Benchmarking
 - **WSJF Score**: 1.2
 - **Business Value**: 7 (Important for production deployment)
 - **Time Criticality**: 2 (Not immediately critical)
