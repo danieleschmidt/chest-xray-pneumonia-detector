@@ -393,7 +393,8 @@ def _train(model, train_generator, val_generator, class_weights, args: TrainingA
     return history
 
 
-def _evaluate(model, val_generator, history, args: TrainingArgs):
+def _calculate_metrics(model, val_generator, args: TrainingArgs):
+    """Calculate evaluation metrics for model predictions."""
     num_samples = val_generator.samples
     pred_steps = num_samples // val_generator.batch_size
     if num_samples % val_generator.batch_size:
@@ -427,22 +428,32 @@ def _evaluate(model, val_generator, history, args: TrainingArgs):
 
     cm = confusion_matrix(true_labels, pred_labels)
 
-    mlflow.log_metric("precision", precision)
-    mlflow.log_metric("recall", recall)
-    mlflow.log_metric("f1", f1)
-    mlflow.log_metric("roc_auc", roc_auc)
+    return {
+        'precision': precision,
+        'recall': recall,
+        'f1_score': f1,
+        'roc_auc': roc_auc,
+        'predictions': preds,
+        'true_labels': true_labels,
+        'confusion_matrix': cm
+    }
 
-    os.makedirs(os.path.dirname(args.cm_path), exist_ok=True)
+
+def _plot_confusion_matrix(cm, save_path):
+    """Plot and save confusion matrix."""
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
     plt.figure(figsize=(4, 4))
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
     plt.xlabel("Predicted")
     plt.ylabel("True")
     plt.tight_layout()
-    plt.savefig(args.cm_path)
+    plt.savefig(save_path)
     plt.close()
-    mlflow.log_artifact(args.cm_path)
 
-    epochs_range = range(args.epochs)
+
+def _plot_training_history(history, epochs, save_path):
+    """Plot and save training history."""
+    epochs_range = range(epochs)
     acc = history.history["accuracy"]
     val_acc = history.history["val_accuracy"]
     loss = history.history["loss"]
@@ -466,17 +477,48 @@ def _evaluate(model, val_generator, history, args: TrainingArgs):
     plt.ylabel("Loss")
     plt.tight_layout()
 
-    os.makedirs(os.path.dirname(args.plot_path) or ".", exist_ok=True)
-    plt.savefig(args.plot_path)
+    os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
+    plt.savefig(save_path)
     plt.close()
-    mlflow.log_artifact(args.plot_path)
 
+
+def _save_artifacts(model, history, args: TrainingArgs):
+    """Save model and training artifacts."""
     history_df = pd.DataFrame(history.history)
     history_df.to_csv(args.history_csv, index=False)
     mlflow.log_artifact(args.history_csv)
 
     model.save(args.save_model_path)
     mlflow.keras.log_model(model, "model")
+
+
+def _evaluate_refactored(model, val_generator, history, args: TrainingArgs):
+    """Orchestrate the complete evaluation process using refactored functions."""
+    # Calculate metrics
+    metrics = _calculate_metrics(model, val_generator, args)
+    
+    # Log metrics to MLflow
+    mlflow.log_metric("precision", metrics['precision'])
+    mlflow.log_metric("recall", metrics['recall'])
+    mlflow.log_metric("f1", metrics['f1_score'])
+    mlflow.log_metric("roc_auc", metrics['roc_auc'])
+
+    # Plot and save confusion matrix
+    _plot_confusion_matrix(metrics['confusion_matrix'], args.cm_path)
+    mlflow.log_artifact(args.cm_path)
+
+    # Plot and save training history
+    _plot_training_history(history, args.epochs, args.plot_path)
+    mlflow.log_artifact(args.plot_path)
+
+    # Save artifacts
+    _save_artifacts(model, history, args)
+
+
+# Keep old function for backward compatibility during transition
+def _evaluate(model, val_generator, history, args: TrainingArgs):
+    """Legacy evaluation function - delegates to refactored implementation."""
+    return _evaluate_refactored(model, val_generator, history, args)
 
 
 def train_pipeline(args: TrainingArgs) -> None:
