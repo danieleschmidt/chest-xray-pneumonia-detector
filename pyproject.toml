@@ -22,8 +22,10 @@ py-modules = [
     "dataset_stats",
     "train_engine",
     "version_cli",
+    "performance_benchmark",
 ]
 
 [project.scripts]
 cxr-version = "version_cli:main"
 cxr-dataset-stats = "dataset_stats:main"
+cxr-benchmark = "performance_benchmark:main"

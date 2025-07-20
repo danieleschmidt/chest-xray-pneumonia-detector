@@ -88,13 +88,49 @@ cxr-dataset-stats --input_dir path/to/data --json_output counts.json \
     --csv_output counts.csv \
     --extensions .jpeg .bmp \
     --plot_png counts.png
+```
 
 Use ``--sort_by count`` to sort results by descending count instead of the
 default alphabetical order.
 
 Extensions are case-insensitive and may be provided without a leading dot. By
 default, output files list classes in alphabetical order for readability. The
-command
-exits with an error if the input path does not exist or is not a directory.
+command exits with an error if the input path does not exist or is not a directory.
 Plotting requires the optional ``matplotlib`` dependency (install with ``pip install matplotlib``). The PNG output directory must exist.
+
+## 8. Performance Benchmarking
+
+Benchmark training and inference performance with timing, memory usage, and throughput metrics:
+
+### Training Benchmark
+
+```bash
+cxr-benchmark training \
+    --epochs 5 \
+    --batch_size 32 \
+    --use_transfer_learning \
+    --base_model_name MobileNetV2 \
+    --output_json training_benchmark.json \
+    --verbose
 ```
+
+### Inference Benchmark
+
+```bash
+cxr-benchmark inference \
+    --model_path saved_models/best_model.keras \
+    --data_dir path/to/test_data \
+    --num_classes 1 \
+    --num_samples 100 \
+    --output_json inference_benchmark.json \
+    --verbose
+```
+
+The benchmarking tool provides detailed metrics including:
+- Total execution time
+- Average time per epoch (for training)
+- Peak memory usage
+- Throughput (samples per second)
+- Comprehensive metadata about the configuration
+
+Results can be saved as JSON for further analysis or integration into CI/CD pipelines.
