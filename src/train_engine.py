@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import tensorflow as tf
 import random
 import os
+from .config import config
 from tensorflow.keras.callbacks import (
     ModelCheckpoint,
     EarlyStopping,
@@ -58,25 +59,48 @@ class TrainingArgs:
     contrast_range: float = 0.0
     zoom_range: float = 0.2
     random_flip: str = "horizontal"
-    seed: int = 42
-    checkpoint_path: str = "saved_models/best_pneumonia_cnn.keras"
-    save_model_path: str = "saved_models/pneumonia_cnn_v1.keras"
-    mlflow_experiment: str = "pneumonia-detector"
-    mlflow_run_name: str | None = None
-    mlflow_tracking_uri: str | None = None
-    plot_path: str = "training_history.png"
-    cm_path: str = "reports/confusion_matrix_val.png"
+    seed: int = config.RANDOM_SEED
+    checkpoint_path: str = config.CHECKPOINT_PATH
+    save_model_path: str = config.SAVE_MODEL_PATH
+    mlflow_experiment: str = config.MLFLOW_EXPERIMENT
+    mlflow_run_name: str | None = config.MLFLOW_RUN_NAME
+    mlflow_tracking_uri: str | None = config.MLFLOW_TRACKING_URI
+    plot_path: str = config.PLOT_PATH
+    cm_path: str = config.CONFUSION_MATRIX_PATH
     resume_checkpoint: str | None = None
-    history_csv: str = "training_history.csv"
-    early_stopping_patience: int = 10
-    reduce_lr_factor: float = 0.2
-    reduce_lr_patience: int = 5
-    reduce_lr_min_lr: float = 1e-5
+    history_csv: str = config.HISTORY_CSV_PATH
+    early_stopping_patience: int = config.EARLY_STOPPING_PATIENCE
+    reduce_lr_factor: float = config.REDUCE_LR_FACTOR
+    reduce_lr_patience: int = config.REDUCE_LR_PATIENCE
+    reduce_lr_min_lr: float = config.REDUCE_LR_MIN_LR
     class_weights: list[float] | None = None
 
 
-def create_dummy_data(base_dir="data_train_engine", num_images_per_class=5):
-    """Creates dummy directories and placeholder image files for training and validation."""
+def create_dummy_data(
+    base_dir: str = None, 
+    num_images_per_class: int = None,
+    image_width: int = None,
+    image_height: int = None
+):
+    """Creates dummy directories and placeholder image files for training and validation.
+    
+    Parameters
+    ----------
+    base_dir : str, optional
+        Base directory for dummy data. Defaults to config.DUMMY_DATA_BASE_DIR.
+    num_images_per_class : int, optional
+        Number of images per class. Defaults to config.DUMMY_DATA_IMAGES_PER_CLASS.
+    image_width : int, optional
+        Width of dummy images. Defaults to config.DUMMY_IMAGE_WIDTH.
+    image_height : int, optional
+        Height of dummy images. Defaults to config.DUMMY_IMAGE_HEIGHT.
+    """
+    # Use configuration defaults if not provided
+    base_dir = base_dir or config.DUMMY_DATA_BASE_DIR
+    num_images_per_class = num_images_per_class or config.DUMMY_DATA_IMAGES_PER_CLASS
+    image_width = image_width or config.DUMMY_IMAGE_WIDTH
+    image_height = image_height or config.DUMMY_IMAGE_HEIGHT
+    
     print(f"Creating dummy data under '{base_dir}'...")
     # Use 'NORMAL' and 'PNEUMONIA' for class names to match expected scenario
     class_names = ["NORMAL", "PNEUMONIA"]
@@ -96,7 +120,7 @@ def create_dummy_data(base_dir="data_train_engine", num_images_per_class=5):
             for i in range(num_images_per_class):
                 try:
                     color = "red" if class_name == "PNEUMONIA" else "blue"
-                    img = Image.new("RGB", (60, 30), color=color)
+                    img = Image.new("RGB", (image_width, image_height), color=color)
                     img.save(os.path.join(path, f"dummy_{s}_{class_name}_{i+1}.jpg"))
                 except Exception as e:
                     print(
@@ -105,11 +129,18 @@ def create_dummy_data(base_dir="data_train_engine", num_images_per_class=5):
                     open(
                         os.path.join(path, f"dummy_{s}_{class_name}_{i+1}.jpg"), "a"
                     ).close()
-    print("Dummy data created.")
+    print(f"Dummy data created with {num_images_per_class} images per class ({image_width}x{image_height}).")
 
 
-def cleanup_dummy_data(base_dir="data_train_engine"):  # Updated base_dir
-    """Removes the dummy data directories."""
+def cleanup_dummy_data(base_dir: str = None):
+    """Removes the dummy data directories.
+    
+    Parameters
+    ----------
+    base_dir : str, optional
+        Base directory for dummy data. Defaults to config.DUMMY_DATA_BASE_DIR.
+    """
+    base_dir = base_dir or config.DUMMY_DATA_BASE_DIR
     if os.path.exists(base_dir):
         print(f"Cleaning up dummy data from '{base_dir}'...")
         shutil.rmtree(base_dir)
@@ -654,6 +685,9 @@ def _evaluate(model, val_generator, history, args: TrainingArgs):
 
 def train_pipeline(args: TrainingArgs) -> None:
     """Run the full training pipeline based on ``args``."""
+    
+    # Ensure all required directories exist
+    config.ensure_directories()
 
     random.seed(args.seed)
     np.random.seed(args.seed)

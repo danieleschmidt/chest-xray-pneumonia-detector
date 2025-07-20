@@ -457,6 +457,57 @@ class TestSecurityConsiderations:
             assert isinstance(call_args, list)
             assert call_args[0] in ['pip-audit', 'python3']
 
+    def test_subprocess_calls_explicitly_disable_shell(self):
+        """Test that all subprocess calls explicitly set shell=False for security."""
+        scanner = DependencySecurityScanner()
+        
+        # Test _run_pip_audit
+        with patch('subprocess.run') as mock_run:
+            mock_run.return_value.returncode = 0
+            mock_run.return_value.stdout = "[]"
+            
+            scanner._run_pip_audit()
+            
+            # Verify shell=False is explicitly set
+            call_kwargs = mock_run.call_args[1]
+            assert 'shell' in call_kwargs
+            assert call_kwargs['shell'] is False
+        
+        # Test check_tool_availability
+        with patch('subprocess.run') as mock_run:
+            mock_run.return_value.returncode = 0
+            
+            check_tool_availability("pip-audit")
+            
+            # Verify shell=False is explicitly set
+            call_kwargs = mock_run.call_args[1]
+            assert 'shell' in call_kwargs
+            assert call_kwargs['shell'] is False
+        
+        # Test pip-audit in scan_pip_audit
+        with patch('subprocess.run') as mock_run:
+            mock_run.return_value.returncode = 0
+            mock_run.return_value.stdout = "[]"
+            
+            scanner.scan_pip_audit()
+            
+            # Verify shell=False is explicitly set
+            call_kwargs = mock_run.call_args[1]
+            assert 'shell' in call_kwargs
+            assert call_kwargs['shell'] is False
+        
+        # Test safety in scan_safety
+        with patch('subprocess.run') as mock_run:
+            mock_run.return_value.returncode = 1
+            mock_run.return_value.stdout = ""
+            
+            scanner.scan_safety()
+            
+            # Verify shell=False is explicitly set
+            call_kwargs = mock_run.call_args[1]
+            assert 'shell' in call_kwargs
+            assert call_kwargs['shell'] is False
+
     def test_output_sanitization(self):
         """Test that scanner output is properly sanitized."""
         # Test with potentially malicious input

@@ -357,3 +357,88 @@ def test_main_function_integration(temp_dir_fixture=None):
         printed_output = [str(call) for call in mock_print.call_args_list]
         metrics_printed = any('precision:' in output for output in printed_output)
         assert metrics_printed
+
+
+class TestInputValidation:
+    """Test input validation for evaluate_predictions function."""
+
+    @pytest.fixture
+    def sample_data(self):
+        """Create minimal test data."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pred_data = pd.DataFrame({
+                'filepath': ['img1.jpg', 'img2.jpg'],
+                'prediction': [0.8, 0.3],
+                'label': [1, 0]
+            })
+            pred_csv = os.path.join(tmpdir, 'predictions.csv')
+            pred_data.to_csv(pred_csv, index=False)
+            yield tmpdir, pred_csv
+
+    def test_threshold_validation_negative_value(self, sample_data):
+        """Test that negative threshold values raise ValueError."""
+        temp_dir, pred_csv = sample_data
+        
+        with pytest.raises(ValueError, match="Threshold must be between 0 and 1"):
+            evaluate_predictions(
+                pred_csv=pred_csv,
+                threshold=-0.1
+            )
+
+    def test_threshold_validation_above_one(self, sample_data):
+        """Test that threshold values above 1 raise ValueError."""
+        temp_dir, pred_csv = sample_data
+        
+        with pytest.raises(ValueError, match="Threshold must be between 0 and 1"):
+            evaluate_predictions(
+                pred_csv=pred_csv,
+                threshold=1.5
+            )
+
+    def test_threshold_validation_exactly_zero(self, sample_data):
+        """Test that threshold of exactly 0 is valid."""
+        temp_dir, pred_csv = sample_data
+        
+        # Should not raise an exception
+        try:
+            evaluate_predictions(
+                pred_csv=pred_csv,
+                threshold=0.0
+            )
+        except ValueError as e:
+            if "Threshold must be between 0 and 1" in str(e):
+                pytest.fail("Threshold 0.0 should be valid")
+
+    def test_threshold_validation_exactly_one(self, sample_data):
+        """Test that threshold of exactly 1 is valid."""
+        temp_dir, pred_csv = sample_data
+        
+        # Should not raise an exception
+        try:
+            evaluate_predictions(
+                pred_csv=pred_csv,
+                threshold=1.0
+            )
+        except ValueError as e:
+            if "Threshold must be between 0 and 1" in str(e):
+                pytest.fail("Threshold 1.0 should be valid")
+
+    def test_threshold_validation_nan_value(self, sample_data):
+        """Test that NaN threshold values raise ValueError."""
+        temp_dir, pred_csv = sample_data
+        
+        with pytest.raises(ValueError, match="Threshold must be between 0 and 1"):
+            evaluate_predictions(
+                pred_csv=pred_csv,
+                threshold=float('nan')
+            )
+
+    def test_threshold_validation_infinity_value(self, sample_data):
+        """Test that infinite threshold values raise ValueError."""
+        temp_dir, pred_csv = sample_data
+        
+        with pytest.raises(ValueError, match="Threshold must be between 0 and 1"):
+            evaluate_predictions(
+                pred_csv=pred_csv,
+                threshold=float('inf')
+            )

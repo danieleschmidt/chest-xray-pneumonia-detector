@@ -37,11 +37,22 @@ def evaluate_predictions(
         Whether to normalize the confusion matrix by true labels.
     threshold:
         Probability threshold for converting predictions to binary labels.
+        Must be between 0 and 1 (inclusive).
     metrics_csv:
         Optional path to save the computed metrics as a CSV file.
     num_classes:
         Number of classes in the predictions. Set >1 for multi-class CSVs.
+    
+    Raises
+    ------
+    ValueError
+        If threshold is not between 0 and 1 (inclusive), or if threshold is NaN.
     """
+    # Input validation
+    import math
+    if not (0 <= threshold <= 1) or math.isnan(threshold):
+        raise ValueError(f"Threshold must be between 0 and 1 (inclusive), got {threshold}")
+    
     df = pd.read_csv(pred_csv)
     if "label" not in df.columns:
         if label_csv is None:
