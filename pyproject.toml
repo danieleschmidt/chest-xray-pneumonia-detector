@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chest_xray_pneumonia_detector"
-version = "0.1.0"
+version = "0.2.0"
 requires-python = ">=3.8"
 
 [tool.setuptools]
@@ -22,8 +22,16 @@ py-modules = [
     "dataset_stats",
     "train_engine",
     "version_cli",
+    "performance_benchmark",
+    "model_architecture_validation",
+    "dependency_security_scan",
+    "synthetic_medical_data_generator",
 ]
 
 [project.scripts]
 cxr-version = "version_cli:main"
 cxr-dataset-stats = "dataset_stats:main"
+cxr-benchmark = "performance_benchmark:main"
+cxr-validate = "model_architecture_validation:main"
+cxr-security-scan = "dependency_security_scan:main"
+cxr-generate-data = "synthetic_medical_data_generator:main"
