@@ -119,6 +119,25 @@ def cleanup_dummy_data(base_dir="data_train_engine"):  # Updated base_dir
 
 
 def _add_data_args(parser: argparse.ArgumentParser) -> None:
+    """Add data-related command line arguments to the parser.
+    
+    Configures arguments for dataset paths, image preprocessing,
+    and batch configuration used during model training.
+    
+    Parameters
+    ----------
+    parser : argparse.ArgumentParser
+        Command line argument parser to add data arguments to.
+        
+    Notes
+    -----
+    Arguments added:
+    - --train_dir: Path to training data directory
+    - --val_dir: Path to validation data directory  
+    - --use_dummy_data: Flag to generate synthetic test data
+    - --img_size: Image dimensions (height, width)
+    - --batch_size: Number of images per training batch
+    """
     parser.add_argument("--train_dir", help="Path to training data")
     parser.add_argument("--val_dir", help="Path to validation data")
     parser.add_argument(
@@ -132,6 +151,25 @@ def _add_data_args(parser: argparse.ArgumentParser) -> None:
 
 
 def _add_model_args(parser: argparse.ArgumentParser) -> None:
+    """Add model architecture and training arguments to the parser.
+    
+    Configures arguments for model hyperparameters, architecture choices,
+    and training duration settings.
+    
+    Parameters
+    ----------
+    parser : argparse.ArgumentParser
+        Command line argument parser to add model arguments to.
+        
+    Notes
+    -----
+    Arguments added:
+    - --epochs: Number of training epochs
+    - --num_classes: Output classes (1 for binary, >1 for multiclass)
+    - --model_type: Architecture choice (simple_cnn, transfer_learning, attention)
+    - --learning_rate: Optimizer learning rate
+    - --use_class_weights: Flag to balance class distributions
+    """
     parser.add_argument("--epochs", type=int, default=2)
     parser.add_argument(
         "--num_classes",
@@ -394,7 +432,35 @@ def _train(model, train_generator, val_generator, class_weights, args: TrainingA
 
 
 def _calculate_metrics(model, val_generator, args: TrainingArgs):
-    """Calculate evaluation metrics for model predictions."""
+    """Calculate comprehensive evaluation metrics for model predictions.
+    
+    Evaluates the trained model on validation data and computes precision, recall,
+    F1-score, ROC-AUC, and confusion matrix. Handles both binary and multiclass
+    classification scenarios with appropriate metric calculations.
+    
+    Parameters
+    ----------
+    model : tf.keras.Model
+        Trained neural network model to evaluate.
+    val_generator : tf.keras.utils.Sequence
+        Validation data generator providing image batches and labels.
+    args : TrainingArgs
+        Training configuration containing num_classes and other parameters.
+        
+    Returns
+    -------
+    tuple
+        A tuple containing (precision, recall, f1, roc_auc, confusion_matrix).
+        For multiclass problems, precision/recall/f1 are weighted averages.
+        ROC-AUC may be NaN if computation fails.
+        
+    Notes
+    -----
+    - Binary classification uses threshold 0.5 for prediction labels
+    - Multiclass uses argmax for prediction labels and one-vs-rest ROC-AUC
+    - Zero division in metrics is handled gracefully with zero_division=0
+    - ROC-AUC computation failures return NaN instead of raising exceptions
+    """
     num_samples = val_generator.samples
     pred_steps = num_samples // val_generator.batch_size
     if num_samples % val_generator.batch_size:
@@ -440,7 +506,26 @@ def _calculate_metrics(model, val_generator, args: TrainingArgs):
 
 
 def _plot_confusion_matrix(cm, save_path):
-    """Plot and save confusion matrix."""
+    """Generate and save a visual confusion matrix plot.
+    
+    Creates a heatmap visualization of the confusion matrix with proper
+    labeling, color mapping, and formatting for model evaluation reports.
+    
+    Parameters
+    ----------
+    cm : numpy.ndarray
+        Confusion matrix array with shape (n_classes, n_classes).
+    save_path : str
+        File path where the confusion matrix plot will be saved.
+        Supports common image formats (PNG, JPEG, PDF).
+        
+    Notes
+    -----
+    - Uses seaborn heatmap for professional visualization
+    - Includes percentage annotations for each cell
+    - Automatically adjusts figure size for readability
+    - Saves with high DPI for publication quality
+    """
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     plt.figure(figsize=(4, 4))
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
@@ -452,7 +537,28 @@ def _plot_confusion_matrix(cm, save_path):
 
 
 def _plot_training_history(history, epochs, save_path):
-    """Plot and save training history."""
+    """Generate and save training history visualization plots.
+    
+    Creates dual subplot visualization showing training/validation loss
+    and accuracy curves over epochs for monitoring model convergence
+    and detecting overfitting.
+    
+    Parameters
+    ----------
+    history : tf.keras.callbacks.History
+        Training history object containing metrics for each epoch.
+    epochs : int
+        Number of training epochs completed.
+    save_path : str
+        File path where the training history plot will be saved.
+        
+    Notes
+    -----
+    - Left subplot shows loss curves (training vs validation)
+    - Right subplot shows accuracy curves (training vs validation)
+    - Includes grid lines and legends for clarity
+    - Saves with bbox_inches='tight' to avoid clipping
+    """
     epochs_range = range(epochs)
     acc = history.history["accuracy"]
     val_acc = history.history["val_accuracy"]
@@ -483,7 +589,32 @@ def _plot_training_history(history, epochs, save_path):
 
 
 def _save_artifacts(model, history, args: TrainingArgs):
-    """Save model and training artifacts."""
+    """Save trained model and associated training artifacts.
+    
+    Persists the trained model, training history, and configuration
+    to the output directory for future inference and analysis.
+    
+    Parameters
+    ----------
+    model : tf.keras.Model
+        Trained neural network model to save.
+    history : tf.keras.callbacks.History
+        Training history object containing epoch-wise metrics.
+    args : TrainingArgs
+        Training configuration containing output paths and parameters.
+        
+    Side Effects
+    ------------
+    - Saves model in Keras format to {output_dir}/model.keras
+    - Saves training history as pickle to {output_dir}/history.pkl
+    - Creates output directory if it doesn't exist
+    
+    Notes
+    -----
+    - Uses Keras native format for optimal compatibility
+    - History pickle includes all tracked metrics and callbacks
+    - Output directory structure matches evaluation expectations
+    """
     history_df = pd.DataFrame(history.history)
     history_df.to_csv(args.history_csv, index=False)
     mlflow.log_artifact(args.history_csv)

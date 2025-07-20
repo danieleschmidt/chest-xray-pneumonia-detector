@@ -10,6 +10,40 @@ from .grad_cam import generate_grad_cam
 
 
 def load_image(img_path, target_size):
+    """Load and preprocess an image for model inference.
+    
+    Loads an image from the specified path, resizes it to the target dimensions,
+    converts it to a numpy array with batch dimension, and normalizes pixel values
+    to the range [0, 1] for neural network input.
+    
+    Parameters
+    ----------
+    img_path : str
+        Path to the image file to load. Supported formats include PNG, JPEG, BMP.
+    target_size : tuple of int
+        Target dimensions (height, width) to resize the image to.
+        
+    Returns
+    -------
+    numpy.ndarray
+        Preprocessed image array with shape (1, height, width, channels)
+        and pixel values normalized to [0, 1].
+        
+    Raises
+    ------
+    FileNotFoundError
+        If the image file does not exist at the specified path.
+    PIL.UnidentifiedImageError
+        If the file is not a valid image format.
+        
+    Examples
+    --------
+    >>> img_array = load_image('chest_xray.png', (150, 150))
+    >>> img_array.shape
+    (1, 150, 150, 3)
+    >>> img_array.min(), img_array.max()
+    (0.0, 1.0)
+    """
     img = image.load_img(img_path, target_size=target_size)
     img_array = image.img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0)
