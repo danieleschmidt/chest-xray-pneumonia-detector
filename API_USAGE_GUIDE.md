@@ -134,3 +134,58 @@ The benchmarking tool provides detailed metrics including:
 - Comprehensive metadata about the configuration
 
 Results can be saved as JSON for further analysis or integration into CI/CD pipelines.
+
+## 9. Model Architecture Validation
+
+Validate model architectures to ensure they meet expected specifications and structural requirements:
+
+### Default Validation (All Model Types)
+
+```bash
+cxr-validate --verbose --output_json validation_results.json
+```
+
+### Custom Configuration Validation
+
+Create a JSON configuration file (e.g., `model_config.json`):
+
+```json
+[
+  {
+    "type": "simple_cnn",
+    "input_shape": [150, 150, 3],
+    "num_classes": 1,
+    "min_conv_layers": 2,
+    "min_dense_layers": 2
+  },
+  {
+    "type": "transfer_learning",
+    "input_shape": [224, 224, 3],
+    "num_classes": 2,
+    "base_model_name": "MobileNetV2",
+    "min_params": 100000,
+    "max_params": 10000000
+  },
+  {
+    "type": "attention_cnn",
+    "input_shape": [150, 150, 3],
+    "num_classes": 3,
+    "expected_layer_types": ["Conv2D", "GlobalAveragePooling2D", "Multiply"]
+  }
+]
+```
+
+Then run validation:
+
+```bash
+cxr-validate --config model_config.json --output_json validation_results.json --verbose
+```
+
+The validation tool checks:
+- Input/output shape correctness
+- Parameter count within expected ranges
+- Layer structure and types
+- Model compilation status
+- Architecture-specific requirements (e.g., attention blocks, transfer learning base models)
+
+Validation results include detailed error messages and can be exported as JSON for automated testing and CI/CD integration.

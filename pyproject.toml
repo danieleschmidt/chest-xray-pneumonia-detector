@@ -23,9 +23,11 @@ py-modules = [
     "train_engine",
     "version_cli",
     "performance_benchmark",
+    "model_architecture_validation",
 ]
 
 [project.scripts]
 cxr-version = "version_cli:main"
 cxr-dataset-stats = "dataset_stats:main"
 cxr-benchmark = "performance_benchmark:main"
+cxr-validate = "model_architecture_validation:main"
