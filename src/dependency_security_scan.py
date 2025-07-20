@@ -76,7 +76,8 @@ def check_tool_availability(tool_name: str) -> bool:
             [tool_name, "--version"],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
+            shell=False
         )
         return result.returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired, Exception):
@@ -263,7 +264,8 @@ class DependencySecurityScanner:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=120  # 2 minute timeout
+                timeout=120,  # 2 minute timeout
+                shell=False
             )
             
             if result.returncode == 0:
@@ -290,7 +292,8 @@ class DependencySecurityScanner:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=120  # 2 minute timeout
+                timeout=120,  # 2 minute timeout
+                shell=False
             )
             
             # Safety returns non-zero when vulnerabilities are found
@@ -317,7 +320,8 @@ class DependencySecurityScanner:
             ["pip-audit", "--format", "json"],
             capture_output=True,
             text=True,
-            timeout=120
+            timeout=120,
+            shell=False
         )
 
 
