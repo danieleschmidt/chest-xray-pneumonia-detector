@@ -189,3 +189,73 @@ The validation tool checks:
 - Architecture-specific requirements (e.g., attention blocks, transfer learning base models)
 
 Validation results include detailed error messages and can be exported as JSON for automated testing and CI/CD integration.
+
+## 10. Dependency Security Scanning
+
+Scan project dependencies for known security vulnerabilities using industry-standard tools:
+
+### Basic Security Scan
+
+```bash
+cxr-security-scan --verbose
+```
+
+### Scan Custom Requirements File
+
+```bash
+cxr-security-scan --requirements-file path/to/requirements.txt --output-json security_report.json
+```
+
+### CI/CD Integration (Fail on Vulnerabilities)
+
+```bash
+cxr-security-scan --fail-on-vulnerabilities --output-json security_results.json
+```
+
+### Advanced Options
+
+```bash
+cxr-security-scan \
+    --requirements-file requirements.txt \
+    --output-json vulnerability_report.json \
+    --verbose \
+    --fail-on-vulnerabilities
+```
+
+The security scanner provides:
+- **Automatic tool detection**: Uses pip-audit (preferred) or safety as fallback
+- **Vulnerability classification**: Critical, High, Medium, Low severity levels
+- **Detailed reporting**: Package versions, vulnerability IDs, fix recommendations
+- **JSON export**: Structured data for automated processing and CI/CD integration
+- **Zero false positives**: Only reports confirmed vulnerabilities from official databases
+- **Performance metrics**: Scan duration and tool information
+
+**Tool Installation:**
+```bash
+# For comprehensive scanning, install security tools:
+pip install pip-audit  # PyPA's official security scanner (recommended)
+pip install safety     # Alternative security scanner
+```
+
+**Example Output:**
+```
+🔍 Scanning dependencies for security vulnerabilities...
+
+=== Dependency Security Scan Results ===
+Scan Tool: pip-audit
+Scan Duration: 3.45 seconds
+Total Vulnerabilities: 2
+  Critical: 0
+  High: 1
+  Medium: 1
+  Low: 0
+
+=== Vulnerability Details ===
+📦 Package: requests (2.25.0)
+🔴 Vulnerability: PYSEC-2021-59
+⚠️  Severity: HIGH
+📝 Description: Inefficient Regular Expression Complexity
+✅ Fixed in: 2.25.1
+```
+
+Security scanning integrates seamlessly with CI/CD pipelines and provides actionable intelligence for maintaining secure dependencies.
