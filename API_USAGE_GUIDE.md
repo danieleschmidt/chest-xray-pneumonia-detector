@@ -259,3 +259,99 @@ Total Vulnerabilities: 2
 ```
 
 Security scanning integrates seamlessly with CI/CD pipelines and provides actionable intelligence for maintaining secure dependencies.
+
+## 11. Synthetic Medical Data Generation
+
+Generate realistic synthetic chest X-ray datasets for testing, development, and validation without privacy concerns:
+
+### Basic Dataset Generation
+
+```bash
+cxr-generate-data --output-dir ./test_data --total-images 100 --image-size 224
+```
+
+### Advanced Dataset Configuration
+
+```bash
+cxr-generate-data \
+    --output-dir ./synthetic_dataset \
+    --total-images 500 \
+    --image-size 224 \
+    --pathology-probability 0.35 \
+    --noise-level 0.15 \
+    --train-split 0.8 \
+    --val-split 0.1 \
+    --test-split 0.1 \
+    --contrast-enhancement \
+    --anatomical-markers \
+    --verbose
+```
+
+### Dataset Splits and Structure
+
+```bash
+# Generate dataset with custom splits
+cxr-generate-data \
+    --output-dir ./medical_test_data \
+    --total-images 200 \
+    --train-split 0.7 \
+    --val-split 0.2 \
+    --test-split 0.1 \
+    --pathology-probability 0.4
+```
+
+**Generated Directory Structure:**
+```
+synthetic_medical_dataset/
+├── train/
+│   ├── NORMAL/
+│   └── PNEUMONIA/
+├── val/
+│   ├── NORMAL/
+│   └── PNEUMONIA/
+├── test/
+│   ├── NORMAL/
+│   └── PNEUMONIA/
+└── dataset_metadata.json
+```
+
+The synthetic data generator provides:
+- **Realistic Medical Features**: Anatomical structures (ribcage, heart, spine, lung fields)
+- **Pathological Variations**: Configurable pneumonia patterns and consolidations
+- **Quality Control**: Noise, contrast, and brightness variations matching real X-rays
+- **Comprehensive Metadata**: JSON metadata with quality metrics and dataset statistics
+- **Privacy Safe**: No patient data, fully synthetic generation
+- **Scalable**: Generate datasets from small test sets to large training corpora
+
+**Key Parameters:**
+- `--pathology-probability`: Controls ratio of pathological to normal images (0.0-1.0)
+- `--noise-level`: Medical imaging noise simulation (0.0-1.0)
+- `--image-size`: Output image dimensions (square format)
+- `--contrast-enhancement`: Apply medical-grade contrast enhancement
+- `--anatomical-markers`: Include detailed anatomical structures
+
+**Use Cases:**
+- Integration testing without privacy concerns
+- Performance benchmarking with controlled datasets
+- Algorithm validation with known ground truth
+- CI/CD pipeline testing with reproducible data
+- Development and debugging with realistic medical imagery
+
+**Example Output:**
+```
+🔧 Configuration:
+  Image Size: (224, 224)
+  Pathology Probability: 0.35
+  Noise Level: 0.15
+
+Generating 400 images for train split...
+Generating 50 images for val split...
+Generating 50 images for test split...
+
+✅ Synthetic medical dataset created successfully!
+📍 Location: ./synthetic_dataset/synthetic_medical_dataset
+📊 Total Images: 500
+🫁 Normal: 325, 🦠 Pneumonia: 175
+⏱️  Generation completed in 15.2 seconds
+📈 Performance: 32.9 images/second
+```

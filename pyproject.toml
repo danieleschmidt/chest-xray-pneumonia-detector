@@ -25,6 +25,7 @@ py-modules = [
     "performance_benchmark",
     "model_architecture_validation",
     "dependency_security_scan",
+    "synthetic_medical_data_generator",
 ]
 
 [project.scripts]
@@ -33,3 +34,4 @@ cxr-dataset-stats = "dataset_stats:main"
 cxr-benchmark = "performance_benchmark:main"
 cxr-validate = "model_architecture_validation:main"
 cxr-security-scan = "dependency_security_scan:main"
+cxr-generate-data = "synthetic_medical_data_generator:main"
