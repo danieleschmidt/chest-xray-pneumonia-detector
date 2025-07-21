@@ -26,6 +26,8 @@ py-modules = [
     "model_architecture_validation",
     "dependency_security_scan",
     "synthetic_medical_data_generator",
+    "model_registry",
+    "model_management_cli",
 ]
 
 [project.scripts]
@@ -35,3 +37,4 @@ cxr-benchmark = "performance_benchmark:main"
 cxr-validate = "model_architecture_validation:main"
 cxr-security-scan = "dependency_security_scan:main"
 cxr-generate-data = "synthetic_medical_data_generator:main"
+cxr-model-registry = "model_management_cli:main"

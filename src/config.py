@@ -75,6 +75,12 @@ class Config:
     REDUCE_LR_PATIENCE: int = int(os.getenv("CXR_REDUCE_LR_PATIENCE", "5"))
     REDUCE_LR_MIN_LR: float = float(os.getenv("CXR_REDUCE_LR_MIN_LR", "1e-5"))
     
+    # Model registry configuration
+    MODEL_REGISTRY_PATH: str = os.getenv(
+        "CXR_MODEL_REGISTRY_PATH",
+        str(BASE_DIR / "model_registry")
+    )
+    
     @classmethod
     def ensure_directories(cls) -> None:
         """Ensure all required directories exist."""
@@ -85,6 +91,7 @@ class Config:
             Path(cls.CONFUSION_MATRIX_PATH).parent,
             Path(cls.HISTORY_CSV_PATH).parent,
             Path(cls.DUMMY_DATA_BASE_DIR),
+            Path(cls.MODEL_REGISTRY_PATH),
         ]
         
         for directory in directories:
@@ -111,6 +118,7 @@ class Config:
             "CXR_REDUCE_LR_FACTOR": cls.REDUCE_LR_FACTOR,
             "CXR_REDUCE_LR_PATIENCE": cls.REDUCE_LR_PATIENCE,
             "CXR_REDUCE_LR_MIN_LR": cls.REDUCE_LR_MIN_LR,
+            "CXR_MODEL_REGISTRY_PATH": cls.MODEL_REGISTRY_PATH,
         }
 
 

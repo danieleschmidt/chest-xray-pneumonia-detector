@@ -355,3 +355,114 @@ Generating 50 images for test split...
 ⏱️  Generation completed in 15.2 seconds
 📈 Performance: 32.9 images/second
 ```
+
+## 12. Model Registry and Versioning
+
+The model registry provides production-ready model versioning, A/B testing, and deployment management specifically designed for medical AI applications where regulatory compliance and safe deployments are critical.
+
+### Model Registration
+
+Register a newly trained model with comprehensive metadata:
+
+```bash
+cxr-model-registry register \
+    --model-id pneumonia_detector \
+    --version 1.2.0 \
+    --model-path saved_models/pneumonia_cnn_v1.keras \
+    --accuracy 0.924 \
+    --f1-score 0.891 \
+    --roc-auc 0.956 \
+    --dataset-version chest_xray_v3 \
+    --description "MobileNetV2 with attention, 50 epochs" \
+    --tags "production,mobilenet,attention" \
+    --mlflow-run-id abc123def456
+```
+
+### Model Promotion and Production Deployment
+
+Promote a model to production after validation:
+
+```bash
+# Promote to production
+cxr-model-registry promote \
+    --model-id pneumonia_detector \
+    --version 1.2.0
+
+# Rollback if issues occur
+cxr-model-registry rollback \
+    --model-id pneumonia_detector \
+    --version 1.1.0
+```
+
+### A/B Testing Framework
+
+Start A/B tests to safely evaluate new models in production:
+
+```bash
+# Start A/B test
+cxr-model-registry ab-test start \
+    --model-id pneumonia_detector \
+    --experiment-name "v1.2_accuracy_test" \
+    --control-version 1.1.0 \
+    --treatment-version 1.2.0 \
+    --traffic-split 0.2 \
+    --duration-days 7 \
+    --success-metrics "accuracy,f1_score,roc_auc" \
+    --min-samples 1000 \
+    --confidence-level 0.95
+
+# Monitor active A/B tests
+cxr-model-registry ab-test list
+```
+
+### Model Listing and Performance Tracking
+
+```bash
+# List all models and versions
+cxr-model-registry list
+
+# List specific model versions
+cxr-model-registry list --model-id pneumonia_detector
+
+# View performance metrics
+cxr-model-registry performance \
+    --model-id pneumonia_detector \
+    --version 1.2.0
+```
+
+### Model Registry Features
+
+**Version Management:**
+- Semantic versioning (major.minor.patch)
+- Automatic model file integrity verification (SHA256)
+- Production promotion workflows with validation
+- Safe rollback capabilities
+
+**A/B Testing:**
+- Deterministic traffic splitting based on user ID hashing
+- Statistical significance testing
+- Automatic experiment expiration
+- Comprehensive metrics tracking
+
+**Production Safety:**
+- Thread-safe operations for concurrent access
+- Atomic file operations with rollback
+- Comprehensive audit logging for regulatory compliance
+- Integration with MLflow experiment tracking
+
+**Regulatory Compliance:**
+- Model lineage tracking with dataset versions
+- Performance monitoring and drift detection
+- Audit trails for all model operations
+- Support for regulatory approval workflows
+
+### Environment Configuration
+
+Configure the model registry location via environment variables:
+
+```bash
+export CXR_MODEL_REGISTRY_PATH="/secure/model_registry"
+export CXR_MLFLOW_TRACKING_URI="http://mlflow-server:5000"
+```
+
+The model registry automatically integrates with the existing training pipeline and can be used alongside the inference tools for production deployments.
