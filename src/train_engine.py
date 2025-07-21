@@ -683,66 +683,205 @@ def _evaluate(model, val_generator, history, args: TrainingArgs):
     return _evaluate_refactored(model, val_generator, history, args)
 
 
-def train_pipeline(args: TrainingArgs) -> None:
-    """Run the full training pipeline based on ``args``."""
+def _setup_training_environment(args: TrainingArgs):
+    """Set up the training environment including seeds, directories, and data generators.
     
+    Initializes random seeds for reproducibility, ensures required directories exist,
+    and loads training/validation data generators based on the provided arguments.
+    
+    Parameters
+    ----------
+    args : TrainingArgs
+        Training configuration containing seed, data paths, and generator settings.
+        
+    Returns
+    -------
+    tuple
+        A tuple containing (train_generator, val_generator, dummy_base_dir).
+        dummy_base_dir is None if real data is used, otherwise contains the path
+        to generated dummy data for cleanup.
+        
+    Notes
+    -----
+    - Sets NumPy, Python random, and TensorFlow random seeds for reproducibility
+    - Creates necessary output directories for models, plots, and artifacts
+    - Handles both real dataset paths and dummy data generation
+    """
     # Ensure all required directories exist
     config.ensure_directories()
 
+    # Set random seeds for reproducibility
     random.seed(args.seed)
     np.random.seed(args.seed)
     tf.random.set_seed(args.seed)
 
+    # Load data generators
     train_gen, val_gen, dummy_base = _load_generators(args)
+    
+    return train_gen, val_gen, dummy_base
 
+
+def _setup_mlflow_tracking(args: TrainingArgs):
+    """Set up MLflow experiment tracking and parameter logging.
+    
+    Configures MLflow tracking URI, creates experiment, starts run, and logs
+    all training parameters for experiment tracking and reproducibility.
+    
+    Parameters
+    ----------
+    args : TrainingArgs
+        Training configuration containing MLflow settings and all parameters to log.
+        
+    Returns
+    -------
+    mlflow.ActiveRun
+        MLflow run context manager for experiment tracking.
+        
+    Notes
+    -----
+    - Only sets tracking URI if explicitly provided in args
+    - Logs comprehensive parameter set including model, training, and augmentation settings
+    - Handles optional parameters (class_weights, resume_checkpoint) gracefully
+    """
     if args.mlflow_tracking_uri:
         mlflow.set_tracking_uri(args.mlflow_tracking_uri)
     mlflow.set_experiment(args.mlflow_experiment)
-    with mlflow.start_run(run_name=args.mlflow_run_name):
-        input_shape = (*args.img_size, 3)
-        mlflow.log_params(
-            {
-                "batch_size": args.batch_size,
-                "epochs_stage1": args.epochs,
-                "use_attention_model": args.use_attention_model,
-                "use_transfer_learning": args.use_transfer_learning,
-                "base_model": args.base_model_name,
-                "trainable_base_layers": args.trainable_base_layers,
-                "num_classes": args.num_classes,
-                "learning_rate": args.learning_rate,
-                "dropout_rate": args.dropout_rate,
-                "fine_tune_epochs": args.fine_tune_epochs,
-                "fine_tune_lr": args.fine_tune_lr,
-                "seed": args.seed,
-                "rotation_range": args.rotation_range,
-                "brightness_range": args.brightness_range,
-                "contrast_range": args.contrast_range,
-                "zoom_range": args.zoom_range,
-                "random_flip": args.random_flip,
-                "early_stopping_patience": args.early_stopping_patience,
-                "reduce_lr_factor": args.reduce_lr_factor,
-                "reduce_lr_patience": args.reduce_lr_patience,
-                "reduce_lr_min_lr": args.reduce_lr_min_lr,
-            }
-        )
-        if args.class_weights is not None:
-            mlflow.log_param("class_weights_manual", args.class_weights)
-        if args.resume_checkpoint:
-            mlflow.log_param("resume_checkpoint", args.resume_checkpoint)
+    
+    run_context = mlflow.start_run(run_name=args.mlflow_run_name)
+    
+    # Log all training parameters
+    mlflow.log_params(
+        {
+            "batch_size": args.batch_size,
+            "epochs_stage1": args.epochs,
+            "use_attention_model": args.use_attention_model,
+            "use_transfer_learning": args.use_transfer_learning,
+            "base_model": args.base_model_name,
+            "trainable_base_layers": args.trainable_base_layers,
+            "num_classes": args.num_classes,
+            "learning_rate": args.learning_rate,
+            "dropout_rate": args.dropout_rate,
+            "fine_tune_epochs": args.fine_tune_epochs,
+            "fine_tune_lr": args.fine_tune_lr,
+            "seed": args.seed,
+            "rotation_range": args.rotation_range,
+            "brightness_range": args.brightness_range,
+            "contrast_range": args.contrast_range,
+            "zoom_range": args.zoom_range,
+            "random_flip": args.random_flip,
+            "early_stopping_patience": args.early_stopping_patience,
+            "reduce_lr_factor": args.reduce_lr_factor,
+            "reduce_lr_patience": args.reduce_lr_patience,
+            "reduce_lr_min_lr": args.reduce_lr_min_lr,
+        }
+    )
+    
+    # Log optional parameters if provided
+    if args.class_weights is not None:
+        mlflow.log_param("class_weights_manual", args.class_weights)
+    if args.resume_checkpoint:
+        mlflow.log_param("resume_checkpoint", args.resume_checkpoint)
+    
+    return run_context
 
-        model = _create_model(args, input_shape)
-        if args.resume_checkpoint and os.path.exists(args.resume_checkpoint):
-            try:
-                model.load_weights(args.resume_checkpoint)
-            except Exception as e_ckpt:  # pragma: no cover - best effort
-                print(f"Failed to load checkpoint: {e_ckpt}")
 
-        class_weights = _compute_class_weights(train_gen, args)
-        history = _train(model, train_gen, val_gen, class_weights, args)
-        _evaluate(model, val_gen, history, args)
+def _execute_training_workflow(model, train_gen, val_gen, class_weights, args: TrainingArgs):
+    """Execute the core training workflow including model loading, training, and evaluation.
+    
+    Handles checkpoint resumption, executes model training with the provided generators
+    and class weights, and performs comprehensive model evaluation.
+    
+    Parameters
+    ----------
+    model : tf.keras.Model
+        Compiled neural network model ready for training.
+    train_gen : tf.keras.utils.Sequence
+        Training data generator providing image batches and labels.
+    val_gen : tf.keras.utils.Sequence
+        Validation data generator for model evaluation.
+    class_weights : dict
+        Class weight mapping for handling class imbalance during training.
+    args : TrainingArgs
+        Training configuration containing checkpoint paths and training settings.
+        
+    Notes
+    -----
+    - Attempts to load checkpoint if resume_checkpoint is provided and file exists
+    - Gracefully handles checkpoint loading failures and continues training
+    - Executes full training pipeline including fine-tuning if enabled
+    - Performs comprehensive evaluation with metrics, plots, and artifact generation
+    """
+    # Load checkpoint if resuming from previous training
+    if args.resume_checkpoint and os.path.exists(args.resume_checkpoint):
+        try:
+            model.load_weights(args.resume_checkpoint)
+        except Exception as e_ckpt:  # pragma: no cover - best effort
+            print(f"Failed to load checkpoint: {e_ckpt}")
 
+    # Execute training and evaluation
+    history = _train(model, train_gen, val_gen, class_weights, args)
+    _evaluate(model, val_gen, history, args)
+
+
+def _cleanup_training_resources(dummy_base):
+    """Clean up training resources including temporary dummy data.
+    
+    Removes temporary dummy data directories created during training if they exist.
+    Safe to call with None dummy_base when real data was used.
+    
+    Parameters
+    ----------
+    dummy_base : str or None
+        Path to dummy data base directory to clean up. If None, no cleanup is performed.
+        
+    Notes
+    -----
+    - Only performs cleanup if dummy_base is not None
+    - Uses cleanup_dummy_data function for proper directory removal
+    - Safe to call even if dummy data was not created
+    """
     if dummy_base:
         cleanup_dummy_data(base_dir=dummy_base)
+
+
+def train_pipeline(args: TrainingArgs) -> None:
+    """Run the full training pipeline based on ``args``.
+    
+    Orchestrates the complete model training workflow including environment setup,
+    MLflow tracking, model creation and training, and resource cleanup. This is the
+    main entry point for the training pipeline.
+    
+    Parameters
+    ----------
+    args : TrainingArgs
+        Complete training configuration including data paths, model parameters,
+        training hyperparameters, and experiment tracking settings.
+        
+    Notes
+    -----
+    - Follows a structured workflow: setup → tracking → training → cleanup
+    - Handles both real datasets and dummy data generation for testing
+    - Provides comprehensive experiment tracking via MLflow
+    - Ensures proper cleanup of temporary resources
+    - Maintains backward compatibility with existing usage patterns
+    """
+    # Set up training environment and load data
+    train_gen, val_gen, dummy_base = _setup_training_environment(args)
+
+    # Set up MLflow experiment tracking
+    with _setup_mlflow_tracking(args):
+        # Create model with input shape
+        input_shape = (*args.img_size, 3)
+        model = _create_model(args, input_shape)
+        
+        # Compute class weights for handling imbalance
+        class_weights = _compute_class_weights(train_gen, args)
+        
+        # Execute training workflow
+        _execute_training_workflow(model, train_gen, val_gen, class_weights, args)
+
+    # Clean up temporary resources
+    _cleanup_training_resources(dummy_base)
 
 
 def main() -> None:
