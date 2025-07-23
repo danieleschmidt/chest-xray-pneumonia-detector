@@ -5,6 +5,8 @@ import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.preprocessing import image
 
+from .image_utils import create_inference_data_generator
+
 
 def predict_directory(
     model_path: str,
@@ -33,13 +35,10 @@ def predict_directory(
     """
     model = tf.keras.models.load_model(model_path)
 
-    datagen = image.ImageDataGenerator(rescale=1.0 / 255)
-    generator = datagen.flow_from_directory(
-        data_dir,
+    generator = create_inference_data_generator(
+        directory=data_dir,
         target_size=img_size,
-        class_mode=None,
-        shuffle=False,
-        batch_size=32,
+        batch_size=32
     )
 
     preds = model.predict(generator)
