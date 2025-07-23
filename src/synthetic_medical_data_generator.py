@@ -1,7 +1,9 @@
 """Synthetic medical data generation for realistic pipeline testing."""
 
+# Standard library imports
 import argparse
 import json
+import math
 import os
 import random
 import sys
@@ -9,10 +11,10 @@ import time
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
-import math
 
-from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
+# Third-party imports
 import numpy as np
+from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
 
 
 @dataclass

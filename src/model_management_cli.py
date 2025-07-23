@@ -136,7 +136,7 @@ def cmd_list(args) -> None:
     
     for model_id, model_versions in models_by_id.items():
         print(f"\n📦 Model: {model_id}")
-        print("   " + "=" * 60)
+        print(f"   {'=' * 60}")
         
         for model in sorted(model_versions, key=lambda m: m.version, reverse=True):
             status_icon = "🟢" if model.is_production else "🔵" if model.status == "staged" else "⚪"
