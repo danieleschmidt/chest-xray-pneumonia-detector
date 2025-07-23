@@ -5,6 +5,25 @@ All notable changes to the Chest X-Ray Pneumonia Detector project will be docume
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2025-07-23
+
+### Code Quality Improvements
+- **Centralized Image Loading Utilities** - Eliminated code duplication across modules
+  - Created `src/image_utils.py` with unified image loading functions
+  - `load_single_image()` for single image preprocessing with normalization control
+  - `create_image_data_generator()` for training/validation data generators
+  - `create_inference_data_generator()` for batch inference workflows
+  - Refactored `predict_utils.py`, `inference.py`, and `data_loader.py` to use centralized utilities
+  - Maintained backward compatibility with existing function signatures
+  - Added comprehensive test suite with 15+ test cases covering all utility functions
+  - Enhanced code maintainability and consistency across image processing workflows
+
+### Testing Enhancements
+- **Integration Testing** - Added integration tests for refactored image utilities
+  - Created `test_image_utils_integration.py` for cross-module compatibility testing
+  - Verified function signature compatibility and import structure
+  - Enhanced existing tests to work with both old and new utility functions
+
 ## [0.2.0] - 2025-07-20
 
 ### Major Features Added

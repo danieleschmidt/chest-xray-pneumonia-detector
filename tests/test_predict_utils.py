@@ -10,6 +10,10 @@ from PIL import Image
 pytest.importorskip("tensorflow")
 
 from src.predict_utils import load_image, display_grad_cam  # noqa: E402
+try:
+    from src.image_utils import load_single_image  # Test new centralized function
+except ImportError:
+    load_single_image = None  # Fallback for environments without dependencies
 
 
 class TestLoadImage:

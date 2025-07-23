@@ -28,6 +28,7 @@ py-modules = [
     "synthetic_medical_data_generator",
     "model_registry",
     "model_management_cli",
+    "image_utils",
 ]
 
 [project.scripts]

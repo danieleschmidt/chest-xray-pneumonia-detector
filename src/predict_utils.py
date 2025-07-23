@@ -7,14 +7,15 @@ from tensorflow.keras.preprocessing import image
 import matplotlib.pyplot as plt
 
 from .grad_cam import generate_grad_cam
+from .image_utils import load_single_image
 
 
+# Backward compatibility alias
 def load_image(img_path, target_size):
     """Load and preprocess an image for model inference.
     
-    Loads an image from the specified path, resizes it to the target dimensions,
-    converts it to a numpy array with batch dimension, and normalizes pixel values
-    to the range [0, 1] for neural network input.
+    Deprecated: Use image_utils.load_single_image instead.
+    This function is maintained for backward compatibility.
     
     Parameters
     ----------
@@ -44,11 +45,7 @@ def load_image(img_path, target_size):
     >>> img_array.min(), img_array.max()
     (0.0, 1.0)
     """
-    img = image.load_img(img_path, target_size=target_size)
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)
-    img_array = img_array / 255.0
-    return img_array
+    return load_single_image(img_path, target_size, normalize=True)
 
 
 def display_grad_cam(
@@ -75,7 +72,7 @@ def display_grad_cam(
     """
 
     model = tf.keras.models.load_model(model_path)
-    img_array = load_image(img_path, target_size)
+    img_array = load_single_image(img_path, target_size, normalize=True)
 
     heatmap = generate_grad_cam(model, img_array, last_conv_layer_name)
 
@@ -84,8 +81,9 @@ def display_grad_cam(
     heatmap = tf.image.resize(heatmap, target_size).numpy().astype("uint8")
     heatmap = np.squeeze(heatmap)
 
-    original = image.load_img(img_path, target_size=target_size)
-    original = image.img_to_array(original).astype("uint8")
+    # Use centralized image loading for consistency
+    original_array = load_single_image(img_path, target_size, normalize=False)
+    original = np.squeeze(original_array).astype("uint8")
 
     plt.imshow(original / 255.0)
     plt.imshow(heatmap, cmap="jet", alpha=0.4)
