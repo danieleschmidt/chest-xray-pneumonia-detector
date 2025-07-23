@@ -674,7 +674,7 @@ class ModelRegistry:
         # Log to performance file
         log_file = self.registry_path / "performance_logs" / f"{model_id}_v{version}.jsonl"
         with open(log_file, 'a') as f:
-            f.write(json.dumps(metrics) + '\n')
+            f.write(f"{json.dumps(metrics)}\n")
 
     def get_model_performance_summary(self, model_id: str, version: str) -> Dict[str, Any]:
         """Get performance summary for a model version.

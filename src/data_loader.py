@@ -1,14 +1,17 @@
 """Utilities for loading image datasets with optional augmentation."""
 
+# Standard library imports
 import os
 import shutil
-from typing import Tuple, Optional, List, Union
+from typing import Tuple, Optional, List, Union, Callable
 
-from PIL import Image  # For creating dummy images
+# Third-party imports
+import numpy as np
 import tensorflow as tf
+from PIL import Image
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, DirectoryIterator
-import numpy as np  # For dummy image creation if needed, and for apply_contrast
 
+# Local imports
 from .image_utils import create_image_data_generator
 
 
@@ -81,9 +84,15 @@ def create_data_generators(
         tuple: (train_generator, validation_generator)
     """
     if not os.path.exists(train_dir):
-        raise FileNotFoundError(f"Training directory '{train_dir}' not found.")
+        raise FileNotFoundError(
+            f"Training directory '{train_dir}' not found. "
+            f"Please ensure the data directory exists and contains the expected structure."
+        )
     if not os.path.exists(val_dir):
-        raise FileNotFoundError(f"Validation directory '{val_dir}' not found.")
+        raise FileNotFoundError(
+            f"Validation directory '{val_dir}' not found. "
+            f"Please ensure the data directory exists and contains the expected structure."
+        )
 
     # Prepare custom augmentation parameters
     train_augmentation_params = {
@@ -97,9 +106,11 @@ def create_data_generators(
     }
 
     # Custom preprocessing function for contrast adjustment
-    custom_preprocessing = None
+    custom_preprocessing: Optional[Callable[[tf.Tensor], tf.Tensor]] = None
     if contrast_range != 0.0:
-        custom_preprocessing = lambda x: apply_contrast(x, contrast_range_param=contrast_range)
+        def contrast_preprocessing(x: tf.Tensor) -> tf.Tensor:
+            return apply_contrast(x, contrast_range_param=contrast_range)
+        custom_preprocessing = contrast_preprocessing
 
     # Create training generator with augmentation
     train_generator = create_image_data_generator(
@@ -155,8 +166,16 @@ def create_tf_datasets(
         If training or validation directory does not exist.
     """
 
-    if not os.path.exists(train_dir) or not os.path.exists(val_dir):
-        raise FileNotFoundError("Training or validation directory not found.")
+    if not os.path.exists(train_dir):
+        raise FileNotFoundError(
+            f"Training directory '{train_dir}' not found. "
+            f"Please verify the path exists and contains subdirectories for each class."
+        )
+    if not os.path.exists(val_dir):
+        raise FileNotFoundError(
+            f"Validation directory '{val_dir}' not found. "
+            f"Please verify the path exists and contains subdirectories for each class."
+        )
 
     train_ds = tf.keras.utils.image_dataset_from_directory(
         train_dir,
@@ -218,13 +237,19 @@ def create_dummy_images_for_generator(base_dir: str, num_images_per_class: int =
                     color=("red" if class_name == "class_a" else "blue"),
                 )
                 img.save(os.path.join(path, f"img_{class_name}_{i}.png"))
-            except Exception as e:
+            except (IOError, OSError) as e:
                 print(
-                    f"Could not create dummy image {i} for {path}: {e}. Pillow might be needed."
+                    f"Could not create dummy image {i} for class '{class_name}' in '{path}': {e}. "
+                    f"This might be due to missing PIL/Pillow library or insufficient disk space. "
+                    f"Creating placeholder file instead."
                 )
-                open(
-                    os.path.join(path, f"img_{class_name}_{i}.png"), "a"
-                ).close()  # Fallback
+                try:
+                    open(
+                        os.path.join(path, f"img_{class_name}_{i}.png"), "a"
+                    ).close()  # Fallback
+                except OSError as fallback_error:
+                    print(f"Failed to create placeholder file: {fallback_error}")
+                    raise
     print(f"Dummy images created in {base_dir}")
 
 

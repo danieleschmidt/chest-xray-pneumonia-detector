@@ -1,37 +1,40 @@
+# Standard library imports
 import argparse
-from dataclasses import dataclass
-import tensorflow as tf
-import random
 import os
-from .config import config
-from tensorflow.keras.callbacks import (
-    ModelCheckpoint,
-    EarlyStopping,
-    ReduceLROnPlateau,
-)
-import shutil  # For directory cleanup
-from PIL import Image  # For creating dummy images
-import numpy as np
+import random
+import shutil
+from dataclasses import dataclass
+
+# Third-party imports
+import mlflow
 import matplotlib.pyplot as plt
-import seaborn as sns
+import numpy as np
 import pandas as pd
+import seaborn as sns
+import tensorflow as tf
+from PIL import Image
 from sklearn.metrics import (
+    confusion_matrix,
+    f1_score,
     precision_score,
     recall_score,
-    f1_score,
     roc_auc_score,
-    confusion_matrix,
 )
-from sklearn.utils.class_weight import compute_class_weight  # Added for class imbalance
+from sklearn.utils.class_weight import compute_class_weight
+from tensorflow.keras.callbacks import (
+    EarlyStopping,
+    ModelCheckpoint,
+    ReduceLROnPlateau,
+)
 from tensorflow.keras.utils import to_categorical
-import mlflow
 
 # Local imports
+from .config import config
 from .data_loader import create_data_generators
 from .model_builder import (
+    create_cnn_with_attention,
     create_simple_cnn,
     create_transfer_learning_model,
-    create_cnn_with_attention,
 )
 
 
