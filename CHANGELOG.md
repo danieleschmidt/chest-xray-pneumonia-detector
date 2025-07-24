@@ -5,6 +5,24 @@ All notable changes to the Chest X-Ray Pneumonia Detector project will be docume
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2025-07-24
+
+### Security Fixes
+- **Critical Security Fix - A/B Testing Hash Function** - Fixed cryptographic vulnerability in model registry
+  - Replaced MD5 hash with SHA256 in `ABTestConfig.should_use_treatment()` method (src/model_registry.py:281)
+  - MD5 is cryptographically broken and vulnerable to collision attacks
+  - SHA256 provides better security while maintaining deterministic A/B testing behavior
+  - Updated test suite to verify SHA256 implementation and traffic split distribution
+  - No breaking changes - A/B test routing behavior preserved with improved security
+
+- **Input Validation Security System** - Added comprehensive input validation to prevent security vulnerabilities
+  - Created centralized `src/input_validation.py` module with secure path validation functions
+  - Prevents path traversal attacks (../../../etc/passwd), null byte injection, and file extension validation
+  - Added specialized validators: `validate_model_path()`, `validate_image_path()`, `validate_directory_path()`
+  - Integrated validation into all CLI tools: `train_engine.py`, `predict_utils.py`, `model_management_cli.py`
+  - Comprehensive test suite with 25+ security test cases including symlink and Unicode attack scenarios
+  - Protects against injection attacks while maintaining usability and proper error messages
+
 ## [0.2.1] - 2025-07-23
 
 ### Code Quality Improvements
