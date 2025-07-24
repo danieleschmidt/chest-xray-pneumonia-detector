@@ -4,6 +4,7 @@ import os
 import random
 import shutil
 from dataclasses import dataclass
+from typing import Optional
 
 # Third-party imports
 import mlflow
@@ -539,7 +540,7 @@ def _calculate_metrics(model, val_generator, args: TrainingArgs):
     }
 
 
-def _plot_confusion_matrix(cm, save_path):
+def _plot_confusion_matrix(cm: np.ndarray, save_path: str) -> None:
     """Generate and save a visual confusion matrix plot.
     
     Creates a heatmap visualization of the confusion matrix with proper
@@ -570,7 +571,7 @@ def _plot_confusion_matrix(cm, save_path):
     plt.close()
 
 
-def _plot_training_history(history, epochs, save_path):
+def _plot_training_history(history: tf.keras.callbacks.History, epochs: int, save_path: str) -> None:
     """Generate and save training history visualization plots.
     
     Creates dual subplot visualization showing training/validation loss
@@ -826,7 +827,7 @@ def _execute_training_workflow(model, train_gen, val_gen, class_weights, args: T
     _evaluate(model, val_gen, history, args)
 
 
-def _cleanup_training_resources(dummy_base):
+def _cleanup_training_resources(dummy_base: Optional[str]) -> None:
     """Clean up training resources including temporary dummy data.
     
     Removes temporary dummy data directories created during training if they exist.
