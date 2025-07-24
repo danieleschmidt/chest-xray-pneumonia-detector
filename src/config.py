@@ -81,6 +81,11 @@ class Config:
         str(BASE_DIR / "model_registry")
     )
     
+    # Performance log rotation configuration
+    MAX_LOG_FILE_SIZE_MB: int = int(os.getenv("CXR_MAX_LOG_FILE_SIZE_MB", "100"))
+    MAX_LOG_FILES_PER_MODEL: int = int(os.getenv("CXR_MAX_LOG_FILES_PER_MODEL", "10"))
+    LOG_RETENTION_DAYS: int = int(os.getenv("CXR_LOG_RETENTION_DAYS", "30"))
+    
     @classmethod
     def ensure_directories(cls) -> None:
         """Ensure all required directories exist."""

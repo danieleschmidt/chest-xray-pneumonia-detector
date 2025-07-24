@@ -19,12 +19,18 @@ import os
 import shutil
 import hashlib
 import threading
+import glob
 from datetime import datetime, timedelta
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Union
 from concurrent.futures import ThreadPoolExecutor
 import logging
+
+try:
+    from .config import Config
+except ImportError:
+    from config import Config
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -364,25 +370,34 @@ class ModelRegistry:
             return {}
 
     def _save_metadata(self):
-        """Save model metadata to storage."""
-        metadata_file = self.registry_path / "metadata.json"
-        
-        # Convert to serializable format
-        data = {}
-        for model_id, versions in self._metadata_cache.items():
-            data[model_id] = {}
-            for version, metadata in versions.items():
-                metadata_dict = asdict(metadata)
-                metadata_dict['training_date'] = metadata.training_date.isoformat()
-                data[model_id][version] = metadata_dict
-        
-        # Atomic write with backup
-        temp_file = metadata_file.with_suffix('.tmp')
-        with open(temp_file, 'w') as f:
-            json.dump(data, f, indent=2)
-        
-        # Atomic rename
-        temp_file.replace(metadata_file)
+        """Save model metadata to storage with thread safety."""
+        with self._lock:  # Ensure thread-safe access to metadata cache
+            metadata_file = self.registry_path / "metadata.json"
+            
+            # Convert to serializable format
+            data = {}
+            for model_id, versions in self._metadata_cache.items():
+                data[model_id] = {}
+                for version, metadata in versions.items():
+                    metadata_dict = asdict(metadata)
+                    metadata_dict['training_date'] = metadata.training_date.isoformat()
+                    data[model_id][version] = metadata_dict
+            
+            # Atomic write with backup
+            temp_file = metadata_file.with_suffix('.tmp')
+            try:
+                with open(temp_file, 'w') as f:
+                    json.dump(data, f, indent=2)
+                
+                # Atomic rename
+                temp_file.replace(metadata_file)
+                logger.debug(f"Metadata saved successfully to {metadata_file}")
+            except Exception as e:
+                # Clean up temp file on error
+                if temp_file.exists():
+                    temp_file.unlink()
+                logger.error(f"Failed to save metadata: {e}")
+                raise
 
     def _load_ab_tests(self) -> List[ABTestConfig]:
         """Load active A/B tests from storage."""
@@ -437,7 +452,7 @@ class ModelRegistry:
         FileNotFoundError
             If the source model file doesn't exist.
         """
-        with self._get_write_lock():
+        with self._lock:
             # Validate model file exists
             if not os.path.exists(metadata.model_path):
                 raise FileNotFoundError(f"Model file not found: {metadata.model_path}")
@@ -481,7 +496,7 @@ class ModelRegistry:
         ModelPromotionError
             If promotion fails validation.
         """
-        with self._get_write_lock():
+        with self._lock:
             # Validate model exists
             if model_id not in self._metadata_cache or version not in self._metadata_cache[model_id]:
                 raise ModelPromotionError(f"Model {model_id} v{version} not found in registry")
@@ -534,14 +549,15 @@ class ModelRegistry:
         ModelMetadata or None
             Production model metadata, or None if no production model exists.
         """
-        if model_id not in self._metadata_cache:
+        with self._lock:  # Ensure thread-safe cache access
+            if model_id not in self._metadata_cache:
+                return None
+            
+            for metadata in self._metadata_cache[model_id].values():
+                if metadata.is_production:
+                    return metadata
+            
             return None
-        
-        for metadata in self._metadata_cache[model_id].values():
-            if metadata.is_production:
-                return metadata
-        
-        return None
 
     def list_models(self, model_id: Optional[str] = None) -> List[ModelMetadata]:
         """List all registered models or versions of a specific model.
@@ -556,17 +572,18 @@ class ModelRegistry:
         List[ModelMetadata]
             List of model metadata objects.
         """
-        result = []
-        
-        if model_id:
-            if model_id in self._metadata_cache:
-                result.extend(self._metadata_cache[model_id].values())
-        else:
-            for versions in self._metadata_cache.values():
-                result.extend(versions.values())
-        
-        # Sort by model_id and version
-        return sorted(result, key=lambda m: (m.model_id, ModelVersion(m.version)))
+        with self._lock:  # Ensure thread-safe cache access
+            result = []
+            
+            if model_id:
+                if model_id in self._metadata_cache:
+                    result.extend(self._metadata_cache[model_id].values())
+            else:
+                for versions in self._metadata_cache.values():
+                    result.extend(versions.values())
+            
+            # Sort by model_id and version
+            return sorted(result, key=lambda m: (m.model_id, ModelVersion(m.version)))
 
     def start_ab_test(self, model_id: str, config: ABTestConfig) -> None:
         """Start an A/B test for the specified model.
@@ -578,7 +595,7 @@ class ModelRegistry:
         config : ABTestConfig
             A/B test configuration.
         """
-        with self._get_write_lock():
+        with self._lock:
             # Validate both model versions exist
             if (model_id not in self._metadata_cache or 
                 config.control_model_version not in self._metadata_cache[model_id] or
@@ -632,7 +649,8 @@ class ModelRegistry:
                     else:
                         version = test.control_model_version
                     
-                    return self._metadata_cache[model_id][version]
+                    with self._lock:  # Ensure thread-safe cache access
+                        return self._metadata_cache[model_id][version]
         
         # Return production model
         production_model = self.get_production_model(model_id)
@@ -671,8 +689,12 @@ class ModelRegistry:
             "correct_prediction": correct_prediction,
         }
         
-        # Log to performance file
+        # Log to performance file with rotation
         log_file = self.registry_path / "performance_logs" / f"{model_id}_v{version}.jsonl"
+        
+        # Check if log rotation is needed before writing
+        self._rotate_log_if_needed(log_file)
+        
         with open(log_file, 'a') as f:
             f.write(f"{json.dumps(metrics)}\n")
 
@@ -724,3 +746,137 @@ class ModelRegistry:
             summary["accuracy"] = correct_predictions / total_with_ground_truth
         
         return summary
+
+    def _rotate_log_if_needed(self, log_file: Path) -> None:
+        """Rotate log file if it exceeds size limit.
+        
+        Parameters
+        ----------
+        log_file : Path
+            Path to the log file to check for rotation.
+        """
+        if not log_file.exists():
+            return
+            
+        # Check file size
+        file_size_mb = log_file.stat().st_size / (1024 * 1024)
+        if file_size_mb >= Config.MAX_LOG_FILE_SIZE_MB:
+            self._perform_log_rotation(log_file)
+    
+    def _perform_log_rotation(self, log_file: Path) -> None:
+        """Perform log file rotation with backup files.
+        
+        Parameters
+        ----------
+        log_file : Path
+            Path to the log file to rotate.
+        """
+        with self._lock:  # Ensure thread safety
+            try:
+                # Get base name without extension
+                base_name = log_file.stem
+                log_dir = log_file.parent
+                
+                # Find existing backup files
+                backup_pattern = f"{base_name}.*.jsonl"
+                backup_files = sorted(log_dir.glob(backup_pattern))
+                
+                # Remove old backup files if we exceed the limit
+                while len(backup_files) >= Config.MAX_LOG_FILES_PER_MODEL:
+                    oldest_backup = backup_files.pop(0)
+                    oldest_backup.unlink()
+                    logger.info(f"Removed old log backup: {oldest_backup}")
+                
+                # Rotate existing backup files
+                for i, backup_file in enumerate(reversed(backup_files)):
+                    # Extract current backup number
+                    parts = backup_file.stem.split('.')
+                    if len(parts) >= 2 and parts[-1].isdigit():
+                        current_num = int(parts[-1])
+                        new_num = current_num + 1
+                        new_name = f"{base_name}.{new_num}.jsonl"
+                    else:
+                        new_name = f"{base_name}.2.jsonl"
+                    
+                    new_backup_path = log_dir / new_name
+                    backup_file.rename(new_backup_path)
+                
+                # Move current log to backup
+                backup_path = log_dir / f"{base_name}.1.jsonl"
+                log_file.rename(backup_path)
+                
+                logger.info(f"Rotated log file {log_file} to {backup_path}")
+                
+            except Exception as e:
+                logger.error(f"Failed to rotate log file {log_file}: {e}")
+                # Continue operation even if rotation fails
+    
+    def cleanup_old_logs(self, days: int = None) -> None:
+        """Clean up old log files based on retention policy.
+        
+        Parameters
+        ----------
+        days : int, optional
+            Number of days to retain logs. Defaults to Config.LOG_RETENTION_DAYS.
+        """
+        if days is None:
+            days = Config.LOG_RETENTION_DAYS
+            
+        cutoff_time = datetime.now() - timedelta(days=days)
+        performance_logs_dir = self.registry_path / "performance_logs"
+        
+        if not performance_logs_dir.exists():
+            return
+        
+        deleted_count = 0
+        with self._lock:  # Ensure thread safety
+            try:
+                for log_file in performance_logs_dir.glob("*.jsonl"):
+                    # Check file modification time
+                    file_mtime = datetime.fromtimestamp(log_file.stat().st_mtime)
+                    
+                    if file_mtime < cutoff_time:
+                        log_file.unlink()
+                        deleted_count += 1
+                        logger.info(f"Deleted old log file: {log_file}")
+                        
+                if deleted_count > 0:
+                    logger.info(f"Cleaned up {deleted_count} old log files older than {days} days")
+                    
+            except Exception as e:
+                logger.error(f"Failed to cleanup old logs: {e}")
+    
+    def get_log_statistics(self) -> Dict[str, Any]:
+        """Get statistics about performance logs.
+        
+        Returns
+        -------
+        Dict[str, Any]
+            Statistics including total files, total size, oldest/newest files.
+        """
+        performance_logs_dir = self.registry_path / "performance_logs"
+        
+        if not performance_logs_dir.exists():
+            return {"total_files": 0, "total_size_mb": 0}
+        
+        log_files = list(performance_logs_dir.glob("*.jsonl"))
+        
+        if not log_files:
+            return {"total_files": 0, "total_size_mb": 0}
+        
+        total_size = sum(f.stat().st_size for f in log_files)
+        file_times = [f.stat().st_mtime for f in log_files]
+        
+        stats = {
+            "total_files": len(log_files),
+            "total_size_mb": round(total_size / (1024 * 1024), 2),
+            "oldest_file": datetime.fromtimestamp(min(file_times)).isoformat(),
+            "newest_file": datetime.fromtimestamp(max(file_times)).isoformat(),
+            "config": {
+                "max_file_size_mb": Config.MAX_LOG_FILE_SIZE_MB,
+                "max_files_per_model": Config.MAX_LOG_FILES_PER_MODEL,
+                "retention_days": Config.LOG_RETENTION_DAYS
+            }
+        }
+        
+        return stats
