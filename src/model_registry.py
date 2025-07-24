@@ -22,8 +22,7 @@ import threading
 from datetime import datetime, timedelta
 from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Union
-from concurrent.futures import ThreadPoolExecutor
+from typing import Dict, List, Optional, Any
 import logging
 
 # Configure logging
