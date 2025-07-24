@@ -1,0 +1,11 @@
+# Development Dependencies
+# Keep separate from production
+
+pytest==8.2.2
+pytest-cov==5.0.0
+black==24.4.2
+pylint==3.2.5
+mypy==1.11.1
+isort==5.13.2
+flake8==7.1.0
+pre-commit==3.7.1
