@@ -1,0 +1,7 @@
+# HIPAA Compliance Dependencies
+# For handling Protected Health Information (PHI)
+
+structlog==24.2.0  # Structured audit logging
+python-jose==3.3.0  # JWT for secure tokens
+pycryptodome==3.20.0  # Additional cryptography
+python-dotenv==1.0.1  # Environment variable management

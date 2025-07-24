@@ -1,0 +1,7 @@
+# Security Scanning Tools
+# Required for HIPAA compliance and vulnerability management
+
+pip-audit==2.7.3  # Vulnerability scanning
+safety==3.2.4  # Dependency checker
+bandit==1.7.9  # Static security analysis
+semgrep==1.79.0  # Advanced pattern matching
