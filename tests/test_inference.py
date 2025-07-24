@@ -11,6 +11,7 @@ from pathlib import Path
 pytest.importorskip("tensorflow")
 
 from src.inference import predict_directory  # noqa: E402
+from src.input_validation import ValidationError  # noqa: E402
 
 
 class TestPredictDirectory:
@@ -388,3 +389,119 @@ def test_main_function_integration():
             assert mock_print.call_count > 0
             printed_output = str(mock_print.call_args_list[-1])
             assert output_csv in printed_output
+
+
+class TestInferenceInputValidation:
+    """Test suite for input validation in inference module."""
+
+    def test_invalid_model_path_raises_validation_error(self):
+        """Test that invalid model path raises ValidationError."""
+        with pytest.raises(ValidationError, match="Path traversal detected"):
+            predict_directory(
+                model_path="../../etc/passwd",
+                data_dir="test_data",
+                num_classes=1
+            )
+
+    def test_invalid_data_directory_raises_validation_error(self):
+        """Test that invalid data directory raises ValidationError.""" 
+        with patch('src.inference.validate_model_path') as mock_validate_model:
+            mock_validate_model.return_value = "valid_model.keras"
+            
+            with pytest.raises(ValidationError, match="Path traversal detected"):
+                predict_directory(
+                    model_path="valid_model.keras",
+                    data_dir="../../../sensitive_data",
+                    num_classes=1
+                )
+
+    def test_empty_model_path_raises_validation_error(self):
+        """Test that empty model path raises ValidationError."""
+        with pytest.raises(ValidationError, match="cannot be empty"):
+            predict_directory(
+                model_path="",
+                data_dir="test_data",
+                num_classes=1
+            )
+
+    def test_null_byte_in_paths_raises_validation_error(self):
+        """Test that null bytes in paths raise ValidationError."""
+        with pytest.raises(ValidationError, match="null bytes"):
+            predict_directory(
+                model_path="model\x00.keras",
+                data_dir="test_data",
+                num_classes=1
+            )
+
+    def test_invalid_model_extension_raises_validation_error(self):
+        """Test that invalid model file extension raises ValidationError."""
+        with pytest.raises(ValidationError, match="Invalid file extension"):
+            predict_directory(
+                model_path="model.txt",
+                data_dir="test_data",
+                num_classes=1
+            )
+
+    @patch('src.inference.validate_model_path')
+    @patch('src.inference.validate_directory_path')
+    def test_main_function_validates_inputs(self, mock_validate_dir, mock_validate_model):
+        """Test that main function validates inputs before processing."""
+        import tempfile
+        
+        with tempfile.TemporaryDirectory() as temp_dir:
+            model_path = os.path.join(temp_dir, 'test_model.keras')
+            data_dir = os.path.join(temp_dir, 'test_data')
+            output_csv = os.path.join(temp_dir, 'test_predictions.csv')
+            
+            # Setup validation mocks
+            mock_validate_model.return_value = model_path
+            mock_validate_dir.return_value = data_dir
+            
+            # Mock the prediction function to avoid actual model loading
+            test_df = pd.DataFrame({
+                'filepath': ['img1.jpg'],
+                'prediction': [0.8]
+            })
+            
+            test_args = [
+                'src.inference',
+                '--model_path', model_path,
+                '--data_dir', data_dir,
+                '--output_csv', output_csv,
+                '--num_classes', '1'
+            ]
+            
+            with patch('sys.argv', test_args), \
+                 patch('src.inference.predict_directory') as mock_predict, \
+                 patch('builtins.print'):
+                
+                mock_predict.return_value = test_df
+                
+                from src.inference import main
+                main()
+                
+                # Verify validation functions were called
+                mock_validate_model.assert_called_once_with(model_path, must_exist=True)
+                mock_validate_dir.assert_called_once_with(data_dir, must_exist=True)
+
+    def test_main_function_validation_error_handling(self):
+        """Test that main function handles validation errors gracefully."""
+        test_args = [
+            'src.inference',
+            '--model_path', '../../malicious.exe',
+            '--data_dir', 'test_data',
+            '--output_csv', 'output.csv',
+            '--num_classes', '1'
+        ]
+        
+        with patch('sys.argv', test_args), \
+             patch('builtins.print') as mock_print, \
+             pytest.raises(SystemExit):
+            
+            from src.inference import main
+            main()
+            
+            # Verify error message was printed
+            assert mock_print.call_count > 0
+            error_output = str(mock_print.call_args_list)
+            assert "validation" in error_output.lower() or "error" in error_output.lower()
