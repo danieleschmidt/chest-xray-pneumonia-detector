@@ -889,6 +889,30 @@ def train_pipeline(args: TrainingArgs) -> None:
 
 def main() -> None:
     args = _parse_args(argv=None)
+    
+    # Validate input paths for security
+    from .input_validation import validate_directory_path, validate_file_path, ValidationError
+    try:
+        if args.train_dir:
+            args.train_dir = validate_directory_path(args.train_dir, create_if_missing=True)
+        if args.val_dir:
+            args.val_dir = validate_directory_path(args.val_dir, create_if_missing=True)
+        if args.checkpoint_path:
+            # Validate parent directory and create if needed
+            checkpoint_dir = os.path.dirname(args.checkpoint_path)
+            if checkpoint_dir:
+                validate_directory_path(checkpoint_dir, create_if_missing=True)
+            args.checkpoint_path = validate_file_path(args.checkpoint_path, must_exist=False, allowed_extensions=['.keras', '.h5'])
+        if args.save_model_path:
+            # Validate parent directory and create if needed
+            model_dir = os.path.dirname(args.save_model_path)
+            if model_dir:
+                validate_directory_path(model_dir, create_if_missing=True)
+            args.save_model_path = validate_file_path(args.save_model_path, must_exist=False, allowed_extensions=['.keras', '.h5'])
+    except ValidationError as e:
+        print(f"❌ Input validation error: {e}")
+        return
+    
     try:
         train_pipeline(args)
     except Exception as exc:  # pragma: no cover - CLI surface

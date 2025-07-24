@@ -52,6 +52,14 @@ def create_registry() -> ModelRegistry:
 
 def cmd_register(args) -> None:
     """Register a new model version."""
+    # Validate input paths for security
+    from .input_validation import validate_model_path, ValidationError
+    try:
+        args.model_path = validate_model_path(args.model_path, must_exist=True)
+    except ValidationError as e:
+        print(f"❌ Input validation error: {e}")
+        return
+    
     registry = create_registry()
     
     # Create metadata from command line arguments

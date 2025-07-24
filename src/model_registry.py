@@ -277,8 +277,8 @@ class ABTestConfig:
         bool
             True if user should receive treatment model, False for control.
         """
-        # Use hash of user_id for deterministic routing
-        hash_value = int(hashlib.md5(user_id.encode()).hexdigest(), 16)
+        # Use SHA256 hash of user_id for deterministic routing (security fix)
+        hash_value = int(hashlib.sha256(user_id.encode()).hexdigest(), 16)
         return (hash_value % 100) / 100 < self.traffic_split
 
 

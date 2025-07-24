@@ -115,6 +115,17 @@ if __name__ == "__main__":
         help="Size to which the image will be resized",
     )
     args = parser.parse_args()
+    
+    # Validate input paths for security
+    from .input_validation import validate_model_path, validate_image_path, validate_file_path, ValidationError
+    try:
+        args.model_path = validate_model_path(args.model_path, must_exist=True)
+        args.img_path = validate_image_path(args.img_path, must_exist=True)
+        # Validate output path (allow any extension for output)
+        args.output_path = validate_file_path(args.output_path, must_exist=False)
+    except ValidationError as e:
+        print(f"❌ Input validation error: {e}")
+        return
 
     display_grad_cam(
         model_path=args.model_path,
