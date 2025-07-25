@@ -133,6 +133,58 @@ class TestEvaluatePredictions:
             mock_savefig.assert_called_once_with(output_png)
             mock_close.assert_called_once()
 
+    def test_multiclass_evaluation_empty_dataframe(self, temp_dir):
+        """Test handling of empty dataframe in multiclass evaluation."""
+        # Create empty CSV file
+        empty_csv = os.path.join(temp_dir, 'empty_predictions.csv')
+        empty_df = pd.DataFrame(columns=['true_label', 'prediction', 'prob_0', 'prob_1', 'prob_2'])
+        empty_df.to_csv(empty_csv, index=False)
+        
+        output_png = os.path.join(temp_dir, 'empty_cm.png')
+        
+        with pytest.raises(ValueError) as exc_info:
+            evaluate_predictions(
+                pred_csv=empty_csv,
+                output_png=output_png,
+                num_classes=3
+            )
+        
+        assert "Cannot evaluate empty dataset" in str(exc_info.value)
+
+    def test_multiclass_evaluation_division_by_zero(self, temp_dir):
+        """Test handling of division by zero in multiclass ROC-AUC calculation."""
+        # Create data with problematic probabilities (all zeros)
+        problem_data = pd.DataFrame({
+            'true_label': [0, 1, 2, 0, 1],
+            'prediction': [0, 1, 2, 0, 1],
+            'prob_0': [0.0, 0.0, 0.0, 0.0, 0.0],  # All zeros - problematic for ROC-AUC
+            'prob_1': [0.0, 0.0, 0.0, 0.0, 0.0],
+            'prob_2': [0.0, 0.0, 0.0, 0.0, 0.0]
+        })
+        
+        problem_csv = os.path.join(temp_dir, 'problem_predictions.csv')
+        problem_data.to_csv(problem_csv, index=False)
+        output_png = os.path.join(temp_dir, 'problem_cm.png')
+        
+        with patch('matplotlib.pyplot.savefig'), \
+             patch('matplotlib.pyplot.close'):
+            
+            # Should handle gracefully and return NaN for ROC-AUC
+            metrics = evaluate_predictions(
+                pred_csv=problem_csv,
+                output_png=output_png,
+                num_classes=3
+            )
+            
+            # Other metrics should still work
+            assert 'precision' in metrics
+            assert 'recall' in metrics  
+            assert 'f1' in metrics
+            
+            # ROC-AUC should be NaN due to invalid probabilities
+            assert 'roc_auc' in metrics
+            assert np.isnan(metrics['roc_auc'])
+
     def test_separate_label_files(self, separate_label_data, temp_dir):
         """Test evaluation with separate prediction and label files."""
         pred_csv, label_csv, pred_data, label_data = separate_label_data

@@ -22,8 +22,15 @@ def generate_grad_cam(
         Preprocessed image with shape ``(1, H, W, C)``.
     last_conv_layer_name:
         Name of the last convolutional layer to compute gradients from.
+        Must be a valid layer name that exists in the model.
     class_index:
         Optional target class index. If ``None`` the predicted class is used.
+        
+    Raises
+    ------
+    ValueError
+        If the specified layer name does not exist in the model.
+        Error message includes list of available layer names for debugging.
 
     Returns
     -------
@@ -33,7 +40,15 @@ def generate_grad_cam(
 
     # Build a model that maps the input image to the activations of the last
     # conv layer as well as the final predictions
-    conv_layer = model.get_layer(last_conv_layer_name)
+    try:
+        conv_layer = model.get_layer(last_conv_layer_name)
+    except ValueError as e:
+        # Provide helpful error message with available layer names
+        available_layers = [layer.name for layer in model.layers]
+        raise ValueError(
+            f"Layer '{last_conv_layer_name}' not found in model. "
+            f"Available layers: {', '.join(available_layers)}"
+        ) from e
     grad_model = tf.keras.models.Model(
         [model.inputs], [conv_layer.output, model.output]
     )
