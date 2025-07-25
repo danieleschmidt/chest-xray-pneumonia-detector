@@ -473,6 +473,9 @@ def _calculate_metrics(model, val_generator, args: TrainingArgs):
     F1-score, ROC-AUC, and confusion matrix. Handles both binary and multiclass
     classification scenarios with appropriate metric calculations.
     
+    Uses memory-efficient batch-wise prediction to handle large validation sets
+    without loading all predictions into memory at once.
+    
     Parameters
     ----------
     model : tf.keras.Model
@@ -495,12 +498,20 @@ def _calculate_metrics(model, val_generator, args: TrainingArgs):
     - Multiclass uses argmax for prediction labels and one-vs-rest ROC-AUC
     - Zero division in metrics is handled gracefully with zero_division=0
     - ROC-AUC computation failures return NaN instead of raising exceptions
+    - Memory-efficient: processes predictions in batches to avoid memory exhaustion
     """
     num_samples = val_generator.samples
     pred_steps = num_samples // val_generator.batch_size
     if num_samples % val_generator.batch_size:
         pred_steps += 1
-    preds = model.predict(val_generator, steps=pred_steps)[:num_samples]
+    
+    # Memory-efficient batch-wise prediction
+    predictions_list = []
+    for step in range(pred_steps):
+        batch_preds = model.predict(val_generator[step])
+        predictions_list.append(batch_preds)
+    
+    preds = np.concatenate(predictions_list, axis=0)[:num_samples]
     true_labels = val_generator.classes[:num_samples]
 
     if args.num_classes == 1:

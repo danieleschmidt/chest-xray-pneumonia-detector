@@ -258,6 +258,70 @@ class TestBenchmarkCLI:
         mock_benchmark.assert_called_once()
         mock_print.assert_called()
 
+
+class TestErrorHandling:
+    """Test error handling in benchmark functions."""
+
+    @patch('src.performance_benchmark.create_data_generators')
+    def test_benchmark_training_data_generator_import_error(self, mock_data_gen):
+        """Test graceful handling of data generator import errors."""
+        mock_data_gen.side_effect = ImportError("Failed to import TensorFlow")
+        
+        with pytest.raises(ImportError) as exc_info:
+            benchmark_training(epochs=1)
+        
+        assert "Failed to import required dependencies for data generation" in str(exc_info.value)
+        assert "TensorFlow, Pillow, etc." in str(exc_info.value)
+
+    @patch('src.performance_benchmark.create_data_generators')
+    def test_benchmark_training_data_generator_file_error(self, mock_data_gen):
+        """Test graceful handling of data generator file system errors."""
+        mock_data_gen.side_effect = OSError("Directory not found")
+        
+        with pytest.raises(RuntimeError) as exc_info:
+            benchmark_training(epochs=1)
+        
+        assert "Failed to create data generators" in str(exc_info.value)
+        assert "check that data directories exist" in str(exc_info.value)
+
+    @patch('src.performance_benchmark.create_simple_cnn')
+    @patch('src.performance_benchmark.create_data_generators')
+    def test_benchmark_training_model_creation_import_error(self, mock_data_gen, mock_model):
+        """Test graceful handling of model creation import errors."""
+        # Mock successful data generation
+        mock_train_gen = MagicMock()
+        mock_val_gen = MagicMock()
+        mock_train_gen.__len__.return_value = 10
+        mock_data_gen.return_value = (mock_train_gen, mock_val_gen)
+        
+        # Mock model creation failure
+        mock_model.side_effect = ImportError("TensorFlow not available")
+        
+        with pytest.raises(ImportError) as exc_info:
+            benchmark_training(epochs=1)
+        
+        assert "Failed to import required dependencies for model creation" in str(exc_info.value)
+        assert "TensorFlow and related packages" in str(exc_info.value)
+
+    @patch('src.performance_benchmark.create_simple_cnn')
+    @patch('src.performance_benchmark.create_data_generators')
+    def test_benchmark_training_model_creation_value_error(self, mock_data_gen, mock_model):
+        """Test graceful handling of model creation configuration errors."""
+        # Mock successful data generation
+        mock_train_gen = MagicMock()
+        mock_val_gen = MagicMock()
+        mock_train_gen.__len__.return_value = 10
+        mock_data_gen.return_value = (mock_train_gen, mock_val_gen)
+        
+        # Mock model creation failure
+        mock_model.side_effect = ValueError("Invalid input shape")
+        
+        with pytest.raises(ValueError) as exc_info:
+            benchmark_training(epochs=1)
+        
+        assert "Failed to create model with given configuration" in str(exc_info.value)
+        assert "check model parameters" in str(exc_info.value)
+
     def test_cli_help(self):
         """Test CLI help functionality."""
         from src.performance_benchmark import main

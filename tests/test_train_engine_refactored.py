@@ -112,16 +112,52 @@ class TestCalculateMetrics:
         assert np.isnan(metrics['roc_auc'])
 
     def test_calculate_metrics_prediction_steps_calculation(self, mock_model, mock_generator):
-        """Test correct calculation of prediction steps."""
+        """Test correct calculation of prediction steps and batch-wise prediction."""
         # Test with samples not evenly divisible by batch_size
         mock_generator.samples = 95
         mock_generator.batch_size = 10
+        
+        # Mock individual batch predictions for memory-efficient implementation
+        batch_preds = np.array([[0.3], [0.7], [0.2], [0.8], [0.6], [0.4], [0.9], [0.1], [0.5], [0.75]])
+        mock_model.predict.return_value = batch_preds
+        mock_generator.__getitem__.return_value = (None, None)  # Mock batch data
+        
         args = TrainingArgs(num_classes=1)
         
         _calculate_metrics(mock_model, mock_generator, args)
         
-        # Should predict with 10 steps (95/10 = 9.5, rounded up to 10)
-        mock_model.predict.assert_called_once_with(mock_generator, steps=10)
+        # Should call predict 10 times (95/10 = 9.5, rounded up to 10) for batch-wise processing
+        assert mock_model.predict.call_count == 10
+
+    def test_calculate_metrics_memory_efficient_batch_processing(self, mock_model, mock_generator):
+        """Test that memory-efficient batch processing works correctly."""
+        # Setup test data
+        mock_generator.samples = 25
+        mock_generator.batch_size = 10
+        mock_generator.classes = np.array([0, 1, 0, 1, 0] * 5)
+        
+        # Mock batch predictions - 3 batches: 10, 10, 5 samples
+        batch_predictions = [
+            np.array([[0.2], [0.8], [0.1], [0.9], [0.3], [0.7], [0.4], [0.6], [0.15], [0.85]]),  # batch 1
+            np.array([[0.25], [0.75], [0.35], [0.65], [0.45], [0.55], [0.2], [0.8], [0.1], [0.9]]),  # batch 2
+            np.array([[0.3], [0.7], [0.4], [0.6], [0.5]])  # batch 3 (partial)
+        ]
+        
+        mock_model.predict.side_effect = batch_predictions
+        mock_generator.__getitem__.return_value = (None, None)
+        
+        args = TrainingArgs(num_classes=1)
+        
+        metrics = _calculate_metrics(mock_model, mock_generator, args)
+        
+        # Verify batch-wise processing occurred
+        assert mock_model.predict.call_count == 3  # 3 batches: 25/10 = 2.5, rounded up to 3
+        
+        # Verify metrics are calculated correctly
+        assert 'precision' in metrics
+        assert 'recall' in metrics
+        assert 'f1_score' in metrics
+        assert 'roc_auc' in metrics
 
 
 class TestPlotConfusionMatrix:

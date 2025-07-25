@@ -154,32 +154,58 @@ def benchmark_training(
     epoch_times = []
     
     with memory_usage() as memory_tracker:
-        # Create data generators
-        train_gen, val_gen = create_data_generators(
-            train_dir=train_dir,
-            val_dir=val_dir,
-            use_dummy_data=use_dummy_data,
-            img_size=img_size,
-            batch_size=batch_size,
-        )
+        # Create data generators with error handling
+        try:
+            train_gen, val_gen = create_data_generators(
+                train_dir=train_dir,
+                val_dir=val_dir,
+                use_dummy_data=use_dummy_data,
+                img_size=img_size,
+                batch_size=batch_size,
+            )
+        except ImportError as e:
+            raise ImportError(
+                f"Failed to import required dependencies for data generation: {e}. "
+                "Please ensure all required packages are installed (TensorFlow, Pillow, etc.)"
+            )
+        except (ValueError, OSError, IOError) as e:
+            raise RuntimeError(
+                f"Failed to create data generators: {e}. "
+                "Please check that data directories exist and are accessible."
+            )
+        except Exception as e:
+            raise RuntimeError(f"Unexpected error creating data generators: {e}")
         
-        # Create model based on configuration
-        if use_attention_model:
-            model = create_cnn_with_attention(
-                input_shape=(*img_size, 3),
-                num_classes=num_classes
+        # Create model based on configuration with error handling
+        try:
+            if use_attention_model:
+                model = create_cnn_with_attention(
+                    input_shape=(*img_size, 3),
+                    num_classes=num_classes
+                )
+            elif use_transfer_learning:
+                model = create_transfer_learning_model(
+                    input_shape=(*img_size, 3),
+                    num_classes=num_classes,
+                    base_model_name=base_model_name
+                )
+            else:
+                model = create_simple_cnn(
+                    input_shape=(*img_size, 3),
+                    num_classes=num_classes
+                )
+        except ImportError as e:
+            raise ImportError(
+                f"Failed to import required dependencies for model creation: {e}. "
+                "Please ensure TensorFlow and related packages are properly installed."
             )
-        elif use_transfer_learning:
-            model = create_transfer_learning_model(
-                input_shape=(*img_size, 3),
-                num_classes=num_classes,
-                base_model_name=base_model_name
+        except (ValueError, AttributeError) as e:
+            raise ValueError(
+                f"Failed to create model with given configuration: {e}. "
+                "Please check model parameters (input_shape, num_classes, base_model_name)."
             )
-        else:
-            model = create_simple_cnn(
-                input_shape=(*img_size, 3),
-                num_classes=num_classes
-            )
+        except Exception as e:
+            raise RuntimeError(f"Unexpected error creating model: {e}")
         
         # Calculate total samples for throughput
         total_samples = len(train_gen) * batch_size
