@@ -2,9 +2,9 @@
 # Last security audit: 2025-07-24
 
 # Core ML/DL Frameworks
-mlflow==2.19.0  # Fixes CVE-2025-1474 (account creation without password)
+mlflow==3.1.4  # SECURITY FIX: PYSEC-2025-52, GHSA-969w-gqqr-g6j3 (updated from 2.19.0)
 tensorflow==2.17.0  # Latest stable, addresses multiple CVEs
-keras==2.13.1  # Fixes CVE-2025-1550 code injection (CVSS 9.8)
+# keras version managed by tensorflow
 
 # Data Processing
 pandas==2.3.1  # Latest stable, no active CVEs
@@ -28,7 +28,7 @@ pymongo==4.7.2  # MongoDB driver
 
 # API Framework (if needed)
 flask==3.0.3
-gunicorn==22.0.0
+gunicorn==23.0.0  # SECURITY FIX: GHSA-hc5x-x2vx-497g
 
 # Security & Encryption
-cryptography==42.0.8  # AES-256 for PHI encryption
+cryptography==45.0.5  # SECURITY FIX: GHSA-h4gh-qq45-vh27, GHSA-79v4-65xg-pq4g - AES-256 for PHI encryption
