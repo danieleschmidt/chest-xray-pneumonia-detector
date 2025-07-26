@@ -5,8 +5,7 @@ import tempfile
 import os
 import pandas as pd
 import numpy as np
-from unittest.mock import patch, Mock, MagicMock
-from pathlib import Path
+from unittest.mock import patch, Mock
 
 pytest.importorskip("tensorflow")
 

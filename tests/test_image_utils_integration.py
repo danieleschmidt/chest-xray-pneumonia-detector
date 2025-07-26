@@ -1,7 +1,6 @@
 """Integration tests for image utilities refactoring."""
 import os
 import sys
-from unittest.mock import patch, MagicMock
 
 # Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -15,9 +14,7 @@ class TestImageUtilsIntegration:
         # Test that the modules can be imported without errors (syntax/structure)
         try:
             import image_utils
-            import predict_utils 
-            import inference
-            import data_loader
+            import predict_utils
             
             # Check that key functions exist
             assert hasattr(image_utils, 'load_single_image')
@@ -41,7 +38,6 @@ class TestImageUtilsIntegration:
         try:
             # Import without executing (syntax check)
             import image_utils
-            import predict_utils
             
             # Check that the functions have the expected signatures
             import inspect

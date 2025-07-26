@@ -4,10 +4,13 @@ import argparse
 import sys
 import pandas as pd
 import tensorflow as tf
-from tensorflow.keras.preprocessing import image
 
 from .image_utils import create_inference_data_generator
-from .input_validation import validate_model_path, validate_directory_path, ValidationError
+from .input_validation import (
+    validate_model_path,
+    validate_directory_path,
+    ValidationError,
+)
 
 
 def predict_directory(
@@ -38,13 +41,11 @@ def predict_directory(
     # Validate inputs for security
     validated_model_path = validate_model_path(model_path, must_exist=True)
     validated_data_dir = validate_directory_path(data_dir, must_exist=True)
-    
+
     model = tf.keras.models.load_model(validated_model_path)
 
     generator = create_inference_data_generator(
-        directory=validated_data_dir,
-        target_size=img_size,
-        batch_size=32
+        directory=validated_data_dir, target_size=img_size, batch_size=32
     )
 
     preds = model.predict(generator)
@@ -97,7 +98,7 @@ def main() -> None:
         # Validate inputs before processing
         validated_model_path = validate_model_path(args.model_path, must_exist=True)
         validated_data_dir = validate_directory_path(args.data_dir, must_exist=True)
-        
+
         df = predict_directory(
             validated_model_path,
             validated_data_dir,
@@ -106,7 +107,7 @@ def main() -> None:
         )
         df.to_csv(args.output_csv, index=False)
         print(f"Saved predictions to {args.output_csv}")
-        
+
     except ValidationError as e:
         print(f"Input validation error: {e}", file=sys.stderr)
         sys.exit(1)

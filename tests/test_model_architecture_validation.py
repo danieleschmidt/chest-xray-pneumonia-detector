@@ -1,8 +1,7 @@
 """Tests for model architecture validation."""
 
 import pytest
-import numpy as np
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 pytest.importorskip("tensorflow")
 import tensorflow as tf

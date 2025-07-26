@@ -127,6 +127,8 @@ class TestConfig:
         save_model_path = Path(Config.SAVE_MODEL_PATH)
         
         # Paths should be valid Path objects
+        assert checkpoint_path.name == "best_pneumonia_cnn.keras"
+        assert save_model_path.name == "pneumonia_cnn_v1.keras"
         
     def test_ensure_directories_permission_denied(self):
         """Test handling of permission denied errors when creating directories."""
@@ -151,8 +153,6 @@ class TestConfig:
             
             assert "Failed to create directory" in str(exc_info.value)
             assert "No space left on device" in str(exc_info.value)
-        assert checkpoint_path.name == "best_pneumonia_cnn.keras"
-        assert save_model_path.name == "pneumonia_cnn_v1.keras"
 
     def test_invalid_numeric_environment_variables(self):
         """Test handling of invalid numeric environment variables."""

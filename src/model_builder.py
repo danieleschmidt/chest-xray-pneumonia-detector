@@ -173,5 +173,3 @@ def create_cnn_with_attention(
     )
 
     return model
-
-

@@ -12,80 +12,69 @@ from typing import Optional
 
 class Config:
     """Central configuration class that reads from environment variables."""
-    
+
     # Base directories
     BASE_DIR = Path(__file__).parent.parent
-    
+
     # Model and checkpoint paths
     CHECKPOINT_PATH: str = os.getenv(
-        "CXR_CHECKPOINT_PATH", 
-        str(BASE_DIR / "saved_models" / "best_pneumonia_cnn.keras")
+        "CXR_CHECKPOINT_PATH",
+        str(BASE_DIR / "saved_models" / "best_pneumonia_cnn.keras"),
     )
-    
+
     SAVE_MODEL_PATH: str = os.getenv(
-        "CXR_SAVE_MODEL_PATH",
-        str(BASE_DIR / "saved_models" / "pneumonia_cnn_v1.keras")
+        "CXR_SAVE_MODEL_PATH", str(BASE_DIR / "saved_models" / "pneumonia_cnn_v1.keras")
     )
-    
+
     # Report and output paths
-    PLOT_PATH: str = os.getenv(
-        "CXR_PLOT_PATH",
-        str(BASE_DIR / "training_history.png")
-    )
-    
+    PLOT_PATH: str = os.getenv("CXR_PLOT_PATH", str(BASE_DIR / "training_history.png"))
+
     CONFUSION_MATRIX_PATH: str = os.getenv(
         "CXR_CONFUSION_MATRIX_PATH",
-        str(BASE_DIR / "reports" / "confusion_matrix_val.png")
+        str(BASE_DIR / "reports" / "confusion_matrix_val.png"),
     )
-    
+
     HISTORY_CSV_PATH: str = os.getenv(
-        "CXR_HISTORY_CSV_PATH",
-        str(BASE_DIR / "training_history.csv")
+        "CXR_HISTORY_CSV_PATH", str(BASE_DIR / "training_history.csv")
     )
-    
+
     # MLflow configuration
-    MLFLOW_EXPERIMENT: str = os.getenv(
-        "CXR_MLFLOW_EXPERIMENT",
-        "pneumonia-detector"
-    )
-    
+    MLFLOW_EXPERIMENT: str = os.getenv("CXR_MLFLOW_EXPERIMENT", "pneumonia-detector")
+
     MLFLOW_TRACKING_URI: Optional[str] = os.getenv("CXR_MLFLOW_TRACKING_URI")
     MLFLOW_RUN_NAME: Optional[str] = os.getenv("CXR_MLFLOW_RUN_NAME")
-    
+
     # Dummy data configuration
     DUMMY_DATA_BASE_DIR: str = os.getenv(
-        "CXR_DUMMY_DATA_BASE_DIR",
-        str(BASE_DIR / "data_train_engine")
+        "CXR_DUMMY_DATA_BASE_DIR", str(BASE_DIR / "data_train_engine")
     )
-    
-    DUMMY_DATA_IMAGES_PER_CLASS: int = int(os.getenv(
-        "CXR_DUMMY_DATA_IMAGES_PER_CLASS",
-        "5"
-    ))
-    
+
+    DUMMY_DATA_IMAGES_PER_CLASS: int = int(
+        os.getenv("CXR_DUMMY_DATA_IMAGES_PER_CLASS", "5")
+    )
+
     DUMMY_IMAGE_WIDTH: int = int(os.getenv("CXR_DUMMY_IMAGE_WIDTH", "60"))
     DUMMY_IMAGE_HEIGHT: int = int(os.getenv("CXR_DUMMY_IMAGE_HEIGHT", "30"))
-    
+
     # Training configuration
     RANDOM_SEED: int = int(os.getenv("CXR_RANDOM_SEED", "42"))
-    
+
     # Early stopping and learning rate configuration
     EARLY_STOPPING_PATIENCE: int = int(os.getenv("CXR_EARLY_STOPPING_PATIENCE", "10"))
     REDUCE_LR_FACTOR: float = float(os.getenv("CXR_REDUCE_LR_FACTOR", "0.2"))
     REDUCE_LR_PATIENCE: int = int(os.getenv("CXR_REDUCE_LR_PATIENCE", "5"))
     REDUCE_LR_MIN_LR: float = float(os.getenv("CXR_REDUCE_LR_MIN_LR", "1e-5"))
-    
+
     # Model registry configuration
     MODEL_REGISTRY_PATH: str = os.getenv(
-        "CXR_MODEL_REGISTRY_PATH",
-        str(BASE_DIR / "model_registry")
+        "CXR_MODEL_REGISTRY_PATH", str(BASE_DIR / "model_registry")
     )
-    
+
     # Performance log rotation configuration
     MAX_LOG_FILE_SIZE_MB: int = int(os.getenv("CXR_MAX_LOG_FILE_SIZE_MB", "100"))
     MAX_LOG_FILES_PER_MODEL: int = int(os.getenv("CXR_MAX_LOG_FILES_PER_MODEL", "10"))
     LOG_RETENTION_DAYS: int = int(os.getenv("CXR_LOG_RETENTION_DAYS", "30"))
-    
+
     @classmethod
     def ensure_directories(cls) -> None:
         """Ensure all required directories exist."""
@@ -98,7 +87,7 @@ class Config:
             Path(cls.DUMMY_DATA_BASE_DIR),
             Path(cls.MODEL_REGISTRY_PATH),
         ]
-        
+
         for directory in directories:
             try:
                 directory.mkdir(parents=True, exist_ok=True)
@@ -112,7 +101,7 @@ class Config:
                     f"Failed to create directory '{directory}'. "
                     f"Check disk space and filesystem status. Original error: {e}"
                 ) from e
-    
+
     @classmethod
     def get_env_info(cls) -> dict:
         """Get information about environment variable usage."""

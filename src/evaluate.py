@@ -42,7 +42,7 @@ def evaluate_predictions(
         Optional path to save the computed metrics as a CSV file.
     num_classes:
         Number of classes in the predictions. Set >1 for multi-class CSVs.
-    
+
     Raises
     ------
     ValueError
@@ -50,9 +50,12 @@ def evaluate_predictions(
     """
     # Input validation
     import math
+
     if not (0 <= threshold <= 1) or math.isnan(threshold):
-        raise ValueError(f"Threshold must be between 0 and 1 (inclusive), got {threshold}")
-    
+        raise ValueError(
+            f"Threshold must be between 0 and 1 (inclusive), got {threshold}"
+        )
+
     df = pd.read_csv(pred_csv)
     if "label" not in df.columns:
         if label_csv is None:
@@ -62,7 +65,9 @@ def evaluate_predictions(
 
     # Check for empty dataset
     if df.empty:
-        raise ValueError("Cannot evaluate empty dataset. Check input CSV file contents.")
+        raise ValueError(
+            "Cannot evaluate empty dataset. Check input CSV file contents."
+        )
 
     y_true = df["label"].values
     if num_classes == 1:
@@ -85,8 +90,9 @@ def evaluate_predictions(
         except (ValueError, ZeroDivisionError) as e:
             # Handle cases where ROC-AUC cannot be computed (e.g., all probabilities are zero)
             import warnings
+
             warnings.warn(f"ROC-AUC calculation failed: {e}. Setting ROC-AUC to NaN.")
-            roc_auc = float('nan')
+            roc_auc = float("nan")
 
     cm = confusion_matrix(y_true, y_pred, normalize="true" if normalize_cm else None)
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")

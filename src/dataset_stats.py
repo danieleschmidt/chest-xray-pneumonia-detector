@@ -83,7 +83,9 @@ def print_stats(counts: Dict[str, int], *, sort_by: str = "name") -> None:
     print(f"Total images: {total}")
 
 
-def plot_bar(counts: Dict[str, int], output_path: str, *, sort_by: str = "name") -> None:
+def plot_bar(
+    counts: Dict[str, int], output_path: str, *, sort_by: str = "name"
+) -> None:
     """Save a horizontal bar chart of ``counts`` to ``output_path``.
 
     Parameters
@@ -173,15 +175,17 @@ def main(argv: Iterable[str] | None = None) -> None:
 
     try:
         counts = count_images_per_class(args.input_dir, args.extensions)
-    except (FileNotFoundError, NotADirectoryError, ValueError) as exc:  # pragma: no cover - CLI exit
+    except (
+        FileNotFoundError,
+        NotADirectoryError,
+        ValueError,
+    ) as exc:  # pragma: no cover - CLI exit
         parser.error(str(exc))
 
     print_stats(counts, sort_by=args.sort_by)
     if args.json_output:
         ordered = {cls: num for cls, num in _sort_items(counts, args.sort_by)}
-        Path(args.json_output).write_text(
-            json.dumps(ordered, indent=2)
-        )
+        Path(args.json_output).write_text(json.dumps(ordered, indent=2))
     if args.csv_output:
         csv_lines = ["class,count"]
         for cls, count in _sort_items(counts, args.sort_by):

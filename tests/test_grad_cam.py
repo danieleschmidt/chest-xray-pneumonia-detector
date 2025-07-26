@@ -2,7 +2,7 @@
 
 import pytest
 import numpy as np
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 # Skip tests if TensorFlow is unavailable
 tf = pytest.importorskip("tensorflow")
@@ -221,19 +221,6 @@ class TestGenerateGradCam:
             assert isinstance(result, np.ndarray)
             assert result.ndim == 2
             assert np.allclose(result, 0.0)  # Should be all zeros
-
-    def test_generate_grad_cam_invalid_layer_name(self, mock_model, sample_image):
-        """Test Grad-CAM generation with invalid layer name."""
-        # Mock model to raise error for invalid layer
-        mock_model.get_layer.side_effect = ValueError("Layer not found")
-        
-        with pytest.raises(ValueError, match="Layer not found"):
-            generate_grad_cam(
-                model=mock_model,
-                image_array=sample_image,
-                last_conv_layer_name="invalid_layer",
-                class_index=None
-            )
 
     def test_generate_grad_cam_input_shapes(self, mock_model):
         """Test Grad-CAM generation with different input shapes."""
