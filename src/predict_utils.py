@@ -10,6 +10,36 @@ from .grad_cam import generate_grad_cam
 from .image_utils import load_single_image
 
 
+def find_last_conv_layer(model) -> str:
+    """Find the last convolutional layer in a model.
+    
+    Parameters
+    ----------
+    model : tf.keras.Model
+        The model to search for convolutional layers.
+        
+    Returns
+    -------
+    str
+        Name of the last convolutional layer found.
+        
+    Raises
+    ------
+    ValueError
+        If no convolutional layers are found in the model.
+    """
+    conv_layers = []
+    for layer in model.layers:
+        if any(conv_type in layer.__class__.__name__.lower() 
+               for conv_type in ['conv', 'separableconv']):
+            conv_layers.append(layer.name)
+    
+    if not conv_layers:
+        raise ValueError("No convolutional layers found in model")
+    
+    return conv_layers[-1]
+
+
 # Backward compatibility alias
 def load_image(img_path, target_size):
     """Load and preprocess an image for model inference.
@@ -52,7 +82,7 @@ def display_grad_cam(
     model_path: str,
     img_path: str,
     target_size=(150, 150),
-    last_conv_layer_name: str = "conv_pw_13_relu",
+    last_conv_layer_name: str = None,
     output_path: str = "grad_cam_output.png",
 ):
     """Generate and save a Grad-CAM overlay for a given image.
@@ -65,14 +95,19 @@ def display_grad_cam(
         Path to the input image.
     target_size: tuple
         Size to which the image will be resized.
-    last_conv_layer_name: str
+    last_conv_layer_name: str, optional
         Name of the convolutional layer used for Grad-CAM.
+        If None, automatically detects the last convolutional layer.
     output_path: str
         Where to save the Grad-CAM overlay image.
     """
 
     model = tf.keras.models.load_model(model_path)
     img_array = load_single_image(img_path, target_size, normalize=True)
+
+    # Auto-detect last convolutional layer if not specified
+    if last_conv_layer_name is None:
+        last_conv_layer_name = find_last_conv_layer(model)
 
     heatmap = generate_grad_cam(model, img_array, last_conv_layer_name)
 

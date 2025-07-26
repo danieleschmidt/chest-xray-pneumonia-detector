@@ -60,6 +60,10 @@ def evaluate_predictions(
         labels = pd.read_csv(label_csv)
         df = df.merge(labels, on="filepath")
 
+    # Check for empty dataset
+    if df.empty:
+        raise ValueError("Cannot evaluate empty dataset. Check input CSV file contents.")
+
     y_true = df["label"].values
     if num_classes == 1:
         y_probs = df["prediction"].values
@@ -76,7 +80,13 @@ def evaluate_predictions(
         recall = recall_score(y_true, y_pred, average="weighted", zero_division=0)
         f1 = f1_score(y_true, y_pred, average="weighted", zero_division=0)
         y_true_cat = pd.get_dummies(y_true, drop_first=False).values
-        roc_auc = roc_auc_score(y_true_cat, y_probs, multi_class="ovr")
+        try:
+            roc_auc = roc_auc_score(y_true_cat, y_probs, multi_class="ovr")
+        except (ValueError, ZeroDivisionError) as e:
+            # Handle cases where ROC-AUC cannot be computed (e.g., all probabilities are zero)
+            import warnings
+            warnings.warn(f"ROC-AUC calculation failed: {e}. Setting ROC-AUC to NaN.")
+            roc_auc = float('nan')
 
     cm = confusion_matrix(y_true, y_pred, normalize="true" if normalize_cm else None)
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")

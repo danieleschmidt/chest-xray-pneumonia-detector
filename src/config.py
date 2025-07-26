@@ -100,7 +100,18 @@ class Config:
         ]
         
         for directory in directories:
-            directory.mkdir(parents=True, exist_ok=True)
+            try:
+                directory.mkdir(parents=True, exist_ok=True)
+            except PermissionError as e:
+                raise PermissionError(
+                    f"Permission denied to create directory '{directory}'. "
+                    f"Check permissions for path and parent directories. Original error: {e}"
+                ) from e
+            except OSError as e:
+                raise OSError(
+                    f"Failed to create directory '{directory}'. "
+                    f"Check disk space and filesystem status. Original error: {e}"
+                ) from e
     
     @classmethod
     def get_env_info(cls) -> dict:

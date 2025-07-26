@@ -127,6 +127,30 @@ class TestConfig:
         save_model_path = Path(Config.SAVE_MODEL_PATH)
         
         # Paths should be valid Path objects
+        
+    def test_ensure_directories_permission_denied(self):
+        """Test handling of permission denied errors when creating directories."""
+        with patch('pathlib.Path.mkdir') as mock_mkdir:
+            # Simulate permission denied error
+            mock_mkdir.side_effect = PermissionError("Permission denied: '/restricted/path'")
+            
+            with pytest.raises(PermissionError) as exc_info:
+                Config.ensure_directories()
+            
+            assert "Permission denied to create directory" in str(exc_info.value)
+            assert "Check permissions for path" in str(exc_info.value)
+
+    def test_ensure_directories_other_os_error(self):
+        """Test handling of other OS errors when creating directories.""" 
+        with patch('pathlib.Path.mkdir') as mock_mkdir:
+            # Simulate disk full error
+            mock_mkdir.side_effect = OSError("No space left on device")
+            
+            with pytest.raises(OSError) as exc_info:
+                Config.ensure_directories()
+            
+            assert "Failed to create directory" in str(exc_info.value)
+            assert "No space left on device" in str(exc_info.value)
         assert checkpoint_path.name == "best_pneumonia_cnn.keras"
         assert save_model_path.name == "pneumonia_cnn_v1.keras"
 

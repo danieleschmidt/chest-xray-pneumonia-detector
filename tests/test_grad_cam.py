@@ -114,6 +114,48 @@ class TestGenerateGradCam:
             assert result.ndim == 2
             assert np.all(result >= 0) and np.all(result <= 1)
 
+    def test_generate_grad_cam_invalid_layer_name(self, mock_model, sample_image):
+        """Test Grad-CAM generation with invalid layer name."""
+        # Setup model to raise ValueError when invalid layer requested
+        mock_model.get_layer.side_effect = ValueError("No such layer: invalid_layer")
+        
+        with pytest.raises(ValueError) as exc_info:
+            generate_grad_cam(
+                model=mock_model,
+                image_array=sample_image,
+                last_conv_layer_name="invalid_layer",
+                class_index=None
+            )
+        
+        assert "Layer 'invalid_layer' not found in model" in str(exc_info.value)
+        assert "Available layers:" in str(exc_info.value)
+
+    def test_generate_grad_cam_layer_validation_lists_available_layers(self, sample_image):
+        """Test that layer validation provides helpful layer names."""
+        # Create a real model with known layer names for testing
+        mock_model = Mock()
+        mock_model.get_layer.side_effect = ValueError("No such layer: nonexistent")
+        mock_model.layers = [
+            Mock(name="input_layer"), 
+            Mock(name="conv2d_1"), 
+            Mock(name="conv2d_2"),
+            Mock(name="output_layer")
+        ]
+        
+        with pytest.raises(ValueError) as exc_info:
+            generate_grad_cam(
+                model=mock_model,
+                image_array=sample_image,
+                last_conv_layer_name="nonexistent",
+                class_index=None
+            )
+        
+        error_message = str(exc_info.value)
+        assert "Layer 'nonexistent' not found in model" in error_message
+        assert "Available layers:" in error_message
+        assert "conv2d_1" in error_message
+        assert "conv2d_2" in error_message
+
     def test_generate_grad_cam_explicit_class_index(self, mock_model, sample_image):
         """Test Grad-CAM generation with explicit class index."""
         with patch('tensorflow.keras.models.Model') as mock_keras_model, \

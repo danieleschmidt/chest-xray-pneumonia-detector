@@ -40,8 +40,8 @@ def apply_contrast(x: tf.Tensor, contrast_range_param: float) -> tf.Tensor:
         lower=1.0 - contrast_range_param,
         upper=1.0 + contrast_range_param,
         seed=(
-            np.random.randint(100),
-            np.random.randint(100),
+            np.random.randint(10000) & 0xFF,  # Efficient single random call with bit masking
+            (np.random.randint(10000) >> 8) & 0xFF,
         ),  # Provide a seed tuple for stateless_random_contrast
     )
 
