@@ -3,21 +3,16 @@
 import pytest
 import tempfile
 import os
-import subprocess
-import sys
 import pandas as pd
 import numpy as np
-from pathlib import Path
-from PIL import Image, ImageDraw, ImageFilter
-from unittest.mock import patch, Mock
-import shutil
+from PIL import Image
+from unittest.mock import patch
 import json
 import time
 
 pytest.importorskip("tensorflow")
 
 from src.synthetic_medical_data_generator import (
-    SyntheticMedicalDataGenerator,
     MedicalImageConfiguration,
     DatasetMetadata,
     generate_synthetic_chest_xray,
@@ -295,7 +290,7 @@ class TestSyntheticMedicalDataIntegration:
         
         # Test batch generation
         train_batch = next(train_gen)
-        val_batch = next(val_gen)
+        next(val_gen)
         
         assert train_batch[0].shape[1:] == (150, 150, 3)  # Batch of images
         assert len(train_batch[1]) == train_batch[0].shape[0]  # Labels match batch size

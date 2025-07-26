@@ -4,7 +4,7 @@ import pytest
 import tempfile
 import os
 import numpy as np
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch, Mock
 from PIL import Image
 
 pytest.importorskip("tensorflow")
@@ -158,7 +158,7 @@ class TestDisplayGradCam:
              patch('tensorflow.image.resize') as mock_tf_resize, \
              patch('tensorflow.keras.preprocessing.image.load_img') as mock_load_img, \
              patch('tensorflow.keras.preprocessing.image.img_to_array') as mock_img_to_array, \
-             patch('matplotlib.pyplot.imshow') as mock_imshow, \
+             patch('matplotlib.pyplot.imshow'), \
              patch('matplotlib.pyplot.savefig') as mock_savefig, \
              patch('matplotlib.pyplot.close') as mock_close:
             

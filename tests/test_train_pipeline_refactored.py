@@ -1,11 +1,7 @@
 """Tests for refactored train_pipeline functions."""
 
 import pytest
-import numpy as np
-import tempfile
-import os
 from unittest.mock import MagicMock, patch, call
-from dataclasses import dataclass
 
 pytest.importorskip("tensorflow")
 pytest.importorskip("mlflow")
@@ -106,7 +102,7 @@ class TestSetupMLflowTracking:
         mock_context = MagicMock()
         mock_mlflow.start_run.return_value.__enter__.return_value = mock_context
         
-        with _setup_mlflow_tracking(training_args) as context:
+        with _setup_mlflow_tracking(training_args):
             pass
         
         # Verify MLflow configuration
@@ -115,7 +111,7 @@ class TestSetupMLflowTracking:
         mock_mlflow.start_run.assert_called_once_with(run_name="test_run")
         
         # Verify parameter logging
-        expected_calls = [
+        [
             call({"batch_size": 32}),
             call({"epochs_stage1": 10}),
             call({"use_attention_model": False}),

@@ -7,10 +7,8 @@ import subprocess
 import sys
 import pandas as pd
 import numpy as np
-from pathlib import Path
 from PIL import Image
 from unittest.mock import patch, Mock
-import shutil
 
 pytest.importorskip("tensorflow")
 

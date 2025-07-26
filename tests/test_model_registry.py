@@ -1,13 +1,10 @@
 """Tests for model versioning and A/B testing framework."""
 
 import pytest
-import json
 import tempfile
 import os
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch, call
-from dataclasses import dataclass
-from pathlib import Path
+from unittest.mock import patch
 
 pytest.importorskip("tensorflow")
 pytest.importorskip("mlflow")
@@ -168,7 +165,6 @@ class TestABTestConfig:
         
         # Test that SHA256 is used instead of MD5 for security
         # This test verifies the hash function produces deterministic results
-        import hashlib
         user_id = "test_user_123"
         
         # Verify we get the same result multiple times (deterministic)
@@ -180,8 +176,8 @@ class TestABTestConfig:
         # Two similar user IDs should have very different hash values
         similar_user_1 = "user_12345"
         similar_user_2 = "user_12346" 
-        result_1 = config.should_use_treatment(user_id=similar_user_1)
-        result_2 = config.should_use_treatment(user_id=similar_user_2)
+        config.should_use_treatment(user_id=similar_user_1)
+        config.should_use_treatment(user_id=similar_user_2)
         # With good hash distribution, these should likely be different
         # (this is probabilistic but very likely with SHA256)
 

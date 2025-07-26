@@ -3,10 +3,9 @@
 import pytest
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import tempfile
 import os
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 from dataclasses import dataclass
 
 pytest.importorskip("tensorflow")

@@ -1,7 +1,5 @@
 """Tests for centralized image loading utilities."""
 import numpy as np
-import tempfile
-import os
 from unittest.mock import patch, MagicMock
 import pytest
 
@@ -127,7 +125,7 @@ class TestCreateImageDataGenerator:
             mock_datagen.flow_from_directory.return_value = mock_generator
             mock_datagen_class.return_value = mock_datagen
             
-            result = create_image_data_generator(
+            create_image_data_generator(
                 directory='val_dir',
                 target_size=(150, 150),
                 batch_size=32,

@@ -81,13 +81,13 @@ class TrainingArgs:
 
 
 def create_dummy_data(
-    base_dir: str = None, 
+    base_dir: str = None,
     num_images_per_class: int = None,
     image_width: int = None,
-    image_height: int = None
+    image_height: int = None,
 ):
     """Creates dummy directories and placeholder image files for training and validation.
-    
+
     Parameters
     ----------
     base_dir : str, optional
@@ -104,7 +104,7 @@ def create_dummy_data(
     num_images_per_class = num_images_per_class or config.DUMMY_DATA_IMAGES_PER_CLASS
     image_width = image_width or config.DUMMY_IMAGE_WIDTH
     image_height = image_height or config.DUMMY_IMAGE_HEIGHT
-    
+
     print(f"Creating dummy data under '{base_dir}'...")
     # Use 'NORMAL' and 'PNEUMONIA' for class names to match expected scenario
     class_names = ["NORMAL", "PNEUMONIA"]
@@ -133,12 +133,14 @@ def create_dummy_data(
                     open(
                         os.path.join(path, f"dummy_{s}_{class_name}_{i+1}.jpg"), "a"
                     ).close()
-    print(f"Dummy data created with {num_images_per_class} images per class ({image_width}x{image_height}).")
+    print(
+        f"Dummy data created with {num_images_per_class} images per class ({image_width}x{image_height})."
+    )
 
 
 def cleanup_dummy_data(base_dir: str = None):
     """Removes the dummy data directories.
-    
+
     Parameters
     ----------
     base_dir : str, optional
@@ -155,20 +157,20 @@ def cleanup_dummy_data(base_dir: str = None):
 
 def _add_data_args(parser: argparse.ArgumentParser) -> None:
     """Add data-related command line arguments to the parser.
-    
+
     Configures arguments for dataset paths, image preprocessing,
     and batch configuration used during model training.
-    
+
     Parameters
     ----------
     parser : argparse.ArgumentParser
         Command line argument parser to add data arguments to.
-        
+
     Notes
     -----
     Arguments added:
     - --train_dir: Path to training data directory
-    - --val_dir: Path to validation data directory  
+    - --val_dir: Path to validation data directory
     - --use_dummy_data: Flag to generate synthetic test data
     - --img_size: Image dimensions (height, width)
     - --batch_size: Number of images per training batch
@@ -181,21 +183,23 @@ def _add_data_args(parser: argparse.ArgumentParser) -> None:
         default=True,
         help="Generate small dummy dataset for testing",
     )
-    parser.add_argument("--img_size", type=int, nargs=2, default=[150, 150], metavar=("H", "W"))
+    parser.add_argument(
+        "--img_size", type=int, nargs=2, default=[150, 150], metavar=("H", "W")
+    )
     parser.add_argument("--batch_size", type=int, default=2)
 
 
 def _add_model_args(parser: argparse.ArgumentParser) -> None:
     """Add model architecture and training arguments to the parser.
-    
+
     Configures arguments for model hyperparameters, architecture choices,
     and training duration settings.
-    
+
     Parameters
     ----------
     parser : argparse.ArgumentParser
         Command line argument parser to add model arguments to.
-        
+
     Notes
     -----
     Arguments added:
@@ -215,7 +219,9 @@ def _add_model_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--use_attention_model", action="store_true")
     parser.add_argument("--use_transfer_learning", action="store_true", default=True)
     parser.add_argument("--base_model_name", default="MobileNetV2")
-    parser.add_argument("--learning_rate", type=float, default=1e-3, help="Initial learning rate")
+    parser.add_argument(
+        "--learning_rate", type=float, default=1e-3, help="Initial learning rate"
+    )
     parser.add_argument(
         "--dropout_rate",
         type=float,
@@ -228,7 +234,12 @@ def _add_model_args(parser: argparse.ArgumentParser) -> None:
 
 
 def _add_augmentation_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--rotation_range", type=int, default=20, help="Degree range for random rotations")
+    parser.add_argument(
+        "--rotation_range",
+        type=int,
+        default=20,
+        help="Degree range for random rotations",
+    )
     parser.add_argument(
         "--brightness_range",
         type=float,
@@ -237,31 +248,95 @@ def _add_augmentation_args(parser: argparse.ArgumentParser) -> None:
         metavar=("LOW", "HIGH"),
         help="Brightness range as two floats",
     )
-    parser.add_argument("--contrast_range", type=float, default=0.0, help="Random contrast adjustment range (0 disables)")
-    parser.add_argument("--zoom_range", type=float, default=0.2, help="Zoom range for random zoom augmentation")
+    parser.add_argument(
+        "--contrast_range",
+        type=float,
+        default=0.0,
+        help="Random contrast adjustment range (0 disables)",
+    )
+    parser.add_argument(
+        "--zoom_range",
+        type=float,
+        default=0.2,
+        help="Zoom range for random zoom augmentation",
+    )
     parser.add_argument(
         "--random_flip",
         choices=["horizontal", "vertical", "horizontal_and_vertical", "none"],
         default="horizontal",
         help="Type of random flip to apply",
     )
-    parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
+    parser.add_argument(
+        "--seed", type=int, default=42, help="Random seed for reproducibility"
+    )
 
 
 def _add_io_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--checkpoint_path", default="saved_models/best_pneumonia_cnn.keras", help="Where to save the best model checkpoint")
-    parser.add_argument("--save_model_path", default="saved_models/pneumonia_cnn_v1.keras", help="Path to save the final trained model")
-    parser.add_argument("--mlflow_experiment", default="pneumonia-detector", help="MLflow experiment name")
-    parser.add_argument("--mlflow_run_name", default=None, help="Optional MLflow run name")
-    parser.add_argument("--mlflow_tracking_uri", default=None, help="Optional MLflow tracking URI")
-    parser.add_argument("--plot_path", default="training_history.png", help="File path for the training history plot")
-    parser.add_argument("--cm_path", default="reports/confusion_matrix_val.png", help="File path for the validation confusion matrix")
-    parser.add_argument("--resume_checkpoint", default=None, help="Optional checkpoint to resume training from")
-    parser.add_argument("--history_csv", default="training_history.csv", help="Where to save the raw training history as CSV")
-    parser.add_argument("--early_stopping_patience", type=int, default=10, help="Epochs with no improvement before stopping")
-    parser.add_argument("--reduce_lr_factor", type=float, default=0.2, help="Factor to reduce learning rate by")
-    parser.add_argument("--reduce_lr_patience", type=int, default=5, help="Epochs with no improvement before reducing LR")
-    parser.add_argument("--reduce_lr_min_lr", type=float, default=1e-5, help="Lower bound on learning rate during ReduceLROnPlateau")
+    parser.add_argument(
+        "--checkpoint_path",
+        default="saved_models/best_pneumonia_cnn.keras",
+        help="Where to save the best model checkpoint",
+    )
+    parser.add_argument(
+        "--save_model_path",
+        default="saved_models/pneumonia_cnn_v1.keras",
+        help="Path to save the final trained model",
+    )
+    parser.add_argument(
+        "--mlflow_experiment",
+        default="pneumonia-detector",
+        help="MLflow experiment name",
+    )
+    parser.add_argument(
+        "--mlflow_run_name", default=None, help="Optional MLflow run name"
+    )
+    parser.add_argument(
+        "--mlflow_tracking_uri", default=None, help="Optional MLflow tracking URI"
+    )
+    parser.add_argument(
+        "--plot_path",
+        default="training_history.png",
+        help="File path for the training history plot",
+    )
+    parser.add_argument(
+        "--cm_path",
+        default="reports/confusion_matrix_val.png",
+        help="File path for the validation confusion matrix",
+    )
+    parser.add_argument(
+        "--resume_checkpoint",
+        default=None,
+        help="Optional checkpoint to resume training from",
+    )
+    parser.add_argument(
+        "--history_csv",
+        default="training_history.csv",
+        help="Where to save the raw training history as CSV",
+    )
+    parser.add_argument(
+        "--early_stopping_patience",
+        type=int,
+        default=10,
+        help="Epochs with no improvement before stopping",
+    )
+    parser.add_argument(
+        "--reduce_lr_factor",
+        type=float,
+        default=0.2,
+        help="Factor to reduce learning rate by",
+    )
+    parser.add_argument(
+        "--reduce_lr_patience",
+        type=int,
+        default=5,
+        help="Epochs with no improvement before reducing LR",
+    )
+    parser.add_argument(
+        "--reduce_lr_min_lr",
+        type=float,
+        default=1e-5,
+        help="Lower bound on learning rate during ReduceLROnPlateau",
+    )
     parser.add_argument(
         "--class_weights",
         type=float,
@@ -468,14 +543,14 @@ def _train(model, train_generator, val_generator, class_weights, args: TrainingA
 
 def _calculate_metrics(model, val_generator, args: TrainingArgs):
     """Calculate comprehensive evaluation metrics for model predictions.
-    
+
     Evaluates the trained model on validation data and computes precision, recall,
     F1-score, ROC-AUC, and confusion matrix. Handles both binary and multiclass
     classification scenarios with appropriate metric calculations.
-    
+
     Uses memory-efficient batch-wise prediction to handle large validation sets
     without loading all predictions into memory at once.
-    
+
     Parameters
     ----------
     model : tf.keras.Model
@@ -484,14 +559,14 @@ def _calculate_metrics(model, val_generator, args: TrainingArgs):
         Validation data generator providing image batches and labels.
     args : TrainingArgs
         Training configuration containing num_classes and other parameters.
-        
+
     Returns
     -------
     tuple
         A tuple containing (precision, recall, f1, roc_auc, confusion_matrix).
         For multiclass problems, precision/recall/f1 are weighted averages.
         ROC-AUC may be NaN if computation fails.
-        
+
     Notes
     -----
     - Binary classification uses threshold 0.5 for prediction labels
@@ -504,13 +579,13 @@ def _calculate_metrics(model, val_generator, args: TrainingArgs):
     pred_steps = num_samples // val_generator.batch_size
     if num_samples % val_generator.batch_size:
         pred_steps += 1
-    
+
     # Memory-efficient batch-wise prediction
     predictions_list = []
     for step in range(pred_steps):
         batch_preds = model.predict(val_generator[step])
         predictions_list.append(batch_preds)
-    
+
     preds = np.concatenate(predictions_list, axis=0)[:num_samples]
     true_labels = val_generator.classes[:num_samples]
 
@@ -541,22 +616,22 @@ def _calculate_metrics(model, val_generator, args: TrainingArgs):
     cm = confusion_matrix(true_labels, pred_labels)
 
     return {
-        'precision': precision,
-        'recall': recall,
-        'f1_score': f1,
-        'roc_auc': roc_auc,
-        'predictions': preds,
-        'true_labels': true_labels,
-        'confusion_matrix': cm
+        "precision": precision,
+        "recall": recall,
+        "f1_score": f1,
+        "roc_auc": roc_auc,
+        "predictions": preds,
+        "true_labels": true_labels,
+        "confusion_matrix": cm,
     }
 
 
 def _plot_confusion_matrix(cm: np.ndarray, save_path: str) -> None:
     """Generate and save a visual confusion matrix plot.
-    
+
     Creates a heatmap visualization of the confusion matrix with proper
     labeling, color mapping, and formatting for model evaluation reports.
-    
+
     Parameters
     ----------
     cm : numpy.ndarray
@@ -564,7 +639,7 @@ def _plot_confusion_matrix(cm: np.ndarray, save_path: str) -> None:
     save_path : str
         File path where the confusion matrix plot will be saved.
         Supports common image formats (PNG, JPEG, PDF).
-        
+
     Notes
     -----
     - Uses seaborn heatmap for professional visualization
@@ -582,13 +657,15 @@ def _plot_confusion_matrix(cm: np.ndarray, save_path: str) -> None:
     plt.close()
 
 
-def _plot_training_history(history: tf.keras.callbacks.History, epochs: int, save_path: str) -> None:
+def _plot_training_history(
+    history: tf.keras.callbacks.History, epochs: int, save_path: str
+) -> None:
     """Generate and save training history visualization plots.
-    
+
     Creates dual subplot visualization showing training/validation loss
     and accuracy curves over epochs for monitoring model convergence
     and detecting overfitting.
-    
+
     Parameters
     ----------
     history : tf.keras.callbacks.History
@@ -597,7 +674,7 @@ def _plot_training_history(history: tf.keras.callbacks.History, epochs: int, sav
         Number of training epochs completed.
     save_path : str
         File path where the training history plot will be saved.
-        
+
     Notes
     -----
     - Left subplot shows loss curves (training vs validation)
@@ -636,10 +713,10 @@ def _plot_training_history(history: tf.keras.callbacks.History, epochs: int, sav
 
 def _save_artifacts(model, history, args: TrainingArgs):
     """Save trained model and associated training artifacts.
-    
+
     Persists the trained model, training history, and configuration
     to the output directory for future inference and analysis.
-    
+
     Parameters
     ----------
     model : tf.keras.Model
@@ -648,13 +725,13 @@ def _save_artifacts(model, history, args: TrainingArgs):
         Training history object containing epoch-wise metrics.
     args : TrainingArgs
         Training configuration containing output paths and parameters.
-        
+
     Side Effects
     ------------
     - Saves model in Keras format to {output_dir}/model.keras
     - Saves training history as pickle to {output_dir}/history.pkl
     - Creates output directory if it doesn't exist
-    
+
     Notes
     -----
     - Uses Keras native format for optimal compatibility
@@ -673,15 +750,15 @@ def _evaluate_refactored(model, val_generator, history, args: TrainingArgs):
     """Orchestrate the complete evaluation process using refactored functions."""
     # Calculate metrics
     metrics = _calculate_metrics(model, val_generator, args)
-    
+
     # Log metrics to MLflow
-    mlflow.log_metric("precision", metrics['precision'])
-    mlflow.log_metric("recall", metrics['recall'])
-    mlflow.log_metric("f1", metrics['f1_score'])
-    mlflow.log_metric("roc_auc", metrics['roc_auc'])
+    mlflow.log_metric("precision", metrics["precision"])
+    mlflow.log_metric("recall", metrics["recall"])
+    mlflow.log_metric("f1", metrics["f1_score"])
+    mlflow.log_metric("roc_auc", metrics["roc_auc"])
 
     # Plot and save confusion matrix
-    _plot_confusion_matrix(metrics['confusion_matrix'], args.cm_path)
+    _plot_confusion_matrix(metrics["confusion_matrix"], args.cm_path)
     mlflow.log_artifact(args.cm_path)
 
     # Plot and save training history
@@ -700,22 +777,22 @@ def _evaluate(model, val_generator, history, args: TrainingArgs):
 
 def _setup_training_environment(args: TrainingArgs):
     """Set up the training environment including seeds, directories, and data generators.
-    
+
     Initializes random seeds for reproducibility, ensures required directories exist,
     and loads training/validation data generators based on the provided arguments.
-    
+
     Parameters
     ----------
     args : TrainingArgs
         Training configuration containing seed, data paths, and generator settings.
-        
+
     Returns
     -------
     tuple
         A tuple containing (train_generator, val_generator, dummy_base_dir).
         dummy_base_dir is None if real data is used, otherwise contains the path
         to generated dummy data for cleanup.
-        
+
     Notes
     -----
     - Sets NumPy, Python random, and TensorFlow random seeds for reproducibility
@@ -732,26 +809,26 @@ def _setup_training_environment(args: TrainingArgs):
 
     # Load data generators
     train_gen, val_gen, dummy_base = _load_generators(args)
-    
+
     return train_gen, val_gen, dummy_base
 
 
 def _setup_mlflow_tracking(args: TrainingArgs):
     """Set up MLflow experiment tracking and parameter logging.
-    
+
     Configures MLflow tracking URI, creates experiment, starts run, and logs
     all training parameters for experiment tracking and reproducibility.
-    
+
     Parameters
     ----------
     args : TrainingArgs
         Training configuration containing MLflow settings and all parameters to log.
-        
+
     Returns
     -------
     mlflow.ActiveRun
         MLflow run context manager for experiment tracking.
-        
+
     Notes
     -----
     - Only sets tracking URI if explicitly provided in args
@@ -761,9 +838,9 @@ def _setup_mlflow_tracking(args: TrainingArgs):
     if args.mlflow_tracking_uri:
         mlflow.set_tracking_uri(args.mlflow_tracking_uri)
     mlflow.set_experiment(args.mlflow_experiment)
-    
+
     run_context = mlflow.start_run(run_name=args.mlflow_run_name)
-    
+
     # Log all training parameters
     mlflow.log_params(
         {
@@ -790,22 +867,24 @@ def _setup_mlflow_tracking(args: TrainingArgs):
             "reduce_lr_min_lr": args.reduce_lr_min_lr,
         }
     )
-    
+
     # Log optional parameters if provided
     if args.class_weights is not None:
         mlflow.log_param("class_weights_manual", args.class_weights)
     if args.resume_checkpoint:
         mlflow.log_param("resume_checkpoint", args.resume_checkpoint)
-    
+
     return run_context
 
 
-def _execute_training_workflow(model, train_gen, val_gen, class_weights, args: TrainingArgs):
+def _execute_training_workflow(
+    model, train_gen, val_gen, class_weights, args: TrainingArgs
+):
     """Execute the core training workflow including model loading, training, and evaluation.
-    
+
     Handles checkpoint resumption, executes model training with the provided generators
     and class weights, and performs comprehensive model evaluation.
-    
+
     Parameters
     ----------
     model : tf.keras.Model
@@ -818,7 +897,7 @@ def _execute_training_workflow(model, train_gen, val_gen, class_weights, args: T
         Class weight mapping for handling class imbalance during training.
     args : TrainingArgs
         Training configuration containing checkpoint paths and training settings.
-        
+
     Notes
     -----
     - Attempts to load checkpoint if resume_checkpoint is provided and file exists
@@ -840,15 +919,15 @@ def _execute_training_workflow(model, train_gen, val_gen, class_weights, args: T
 
 def _cleanup_training_resources(dummy_base: Optional[str]) -> None:
     """Clean up training resources including temporary dummy data.
-    
+
     Removes temporary dummy data directories created during training if they exist.
     Safe to call with None dummy_base when real data was used.
-    
+
     Parameters
     ----------
     dummy_base : str or None
         Path to dummy data base directory to clean up. If None, no cleanup is performed.
-        
+
     Notes
     -----
     - Only performs cleanup if dummy_base is not None
@@ -861,17 +940,17 @@ def _cleanup_training_resources(dummy_base: Optional[str]) -> None:
 
 def train_pipeline(args: TrainingArgs) -> None:
     """Run the full training pipeline based on ``args``.
-    
+
     Orchestrates the complete model training workflow including environment setup,
     MLflow tracking, model creation and training, and resource cleanup. This is the
     main entry point for the training pipeline.
-    
+
     Parameters
     ----------
     args : TrainingArgs
         Complete training configuration including data paths, model parameters,
         training hyperparameters, and experiment tracking settings.
-        
+
     Notes
     -----
     - Follows a structured workflow: setup → tracking → training → cleanup
@@ -888,10 +967,10 @@ def train_pipeline(args: TrainingArgs) -> None:
         # Create model with input shape
         input_shape = (*args.img_size, 3)
         model = _create_model(args, input_shape)
-        
+
         # Compute class weights for handling imbalance
         class_weights = _compute_class_weights(train_gen, args)
-        
+
         # Execute training workflow
         _execute_training_workflow(model, train_gen, val_gen, class_weights, args)
 
@@ -901,12 +980,19 @@ def train_pipeline(args: TrainingArgs) -> None:
 
 def main() -> None:
     args = _parse_args(argv=None)
-    
+
     # Validate input paths for security
-    from .input_validation import validate_directory_path, validate_file_path, ValidationError
+    from .input_validation import (
+        validate_directory_path,
+        validate_file_path,
+        ValidationError,
+    )
+
     try:
         if args.train_dir:
-            args.train_dir = validate_directory_path(args.train_dir, create_if_missing=True)
+            args.train_dir = validate_directory_path(
+                args.train_dir, create_if_missing=True
+            )
         if args.val_dir:
             args.val_dir = validate_directory_path(args.val_dir, create_if_missing=True)
         if args.checkpoint_path:
@@ -914,17 +1000,25 @@ def main() -> None:
             checkpoint_dir = os.path.dirname(args.checkpoint_path)
             if checkpoint_dir:
                 validate_directory_path(checkpoint_dir, create_if_missing=True)
-            args.checkpoint_path = validate_file_path(args.checkpoint_path, must_exist=False, allowed_extensions=['.keras', '.h5'])
+            args.checkpoint_path = validate_file_path(
+                args.checkpoint_path,
+                must_exist=False,
+                allowed_extensions=[".keras", ".h5"],
+            )
         if args.save_model_path:
             # Validate parent directory and create if needed
             model_dir = os.path.dirname(args.save_model_path)
             if model_dir:
                 validate_directory_path(model_dir, create_if_missing=True)
-            args.save_model_path = validate_file_path(args.save_model_path, must_exist=False, allowed_extensions=['.keras', '.h5'])
+            args.save_model_path = validate_file_path(
+                args.save_model_path,
+                must_exist=False,
+                allowed_extensions=[".keras", ".h5"],
+            )
     except ValidationError as e:
         print(f"❌ Input validation error: {e}")
         return
-    
+
     try:
         train_pipeline(args)
     except Exception as exc:  # pragma: no cover - CLI surface

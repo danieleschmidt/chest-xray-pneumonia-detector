@@ -5,8 +5,7 @@ import tempfile
 import os
 import pandas as pd
 import numpy as np
-from unittest.mock import patch, Mock
-from pathlib import Path
+from unittest.mock import patch
 
 pytest.importorskip("tensorflow")
 
@@ -220,7 +219,7 @@ class TestEvaluatePredictions:
         with patch('matplotlib.pyplot.savefig'), \
              patch('matplotlib.pyplot.close'):
             
-            metrics = evaluate_predictions(
+            evaluate_predictions(
                 pred_csv=pred_csv,
                 output_png=output_png,
                 metrics_csv=metrics_csv,

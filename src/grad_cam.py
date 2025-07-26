@@ -25,7 +25,7 @@ def generate_grad_cam(
         Must be a valid layer name that exists in the model.
     class_index:
         Optional target class index. If ``None`` the predicted class is used.
-        
+
     Raises
     ------
     ValueError

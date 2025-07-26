@@ -9,7 +9,7 @@ from typing import Tuple, Optional, List, Union, Callable
 import numpy as np
 import tensorflow as tf
 from PIL import Image
-from tensorflow.keras.preprocessing.image import ImageDataGenerator, DirectoryIterator
+from tensorflow.keras.preprocessing.image import DirectoryIterator
 
 # Local imports
 from .image_utils import create_image_data_generator
@@ -18,7 +18,7 @@ from .image_utils import create_image_data_generator
 # Helper function for contrast adjustment
 def apply_contrast(x: tf.Tensor, contrast_range_param: float) -> tf.Tensor:
     """Applies random contrast adjustment to an image.
-    
+
     Parameters
     ----------
     x : tf.Tensor
@@ -26,7 +26,7 @@ def apply_contrast(x: tf.Tensor, contrast_range_param: float) -> tf.Tensor:
     contrast_range_param : float
         Contrast adjustment range parameter. Creates contrast range of
         [1-contrast_range_param, 1+contrast_range_param].
-        
+
     Returns
     -------
     tf.Tensor
@@ -40,7 +40,8 @@ def apply_contrast(x: tf.Tensor, contrast_range_param: float) -> tf.Tensor:
         lower=1.0 - contrast_range_param,
         upper=1.0 + contrast_range_param,
         seed=(
-            np.random.randint(10000) & 0xFF,  # Efficient single random call with bit masking
+            np.random.randint(10000)
+            & 0xFF,  # Efficient single random call with bit masking
             (np.random.randint(10000) >> 8) & 0xFF,
         ),  # Provide a seed tuple for stateless_random_contrast
     )
@@ -102,14 +103,16 @@ def create_data_generators(
         "brightness_range": brightness_range,
         "horizontal_flip": random_flip in ("horizontal", "horizontal_and_vertical"),
         "vertical_flip": random_flip in ("vertical", "horizontal_and_vertical"),
-        "fill_mode": "nearest"
+        "fill_mode": "nearest",
     }
 
     # Custom preprocessing function for contrast adjustment
     custom_preprocessing: Optional[Callable[[tf.Tensor], tf.Tensor]] = None
     if contrast_range != 0.0:
+
         def contrast_preprocessing(x: tf.Tensor) -> tf.Tensor:
             return apply_contrast(x, contrast_range_param=contrast_range)
+
         custom_preprocessing = contrast_preprocessing
 
     # Create training generator with augmentation
@@ -120,7 +123,7 @@ def create_data_generators(
         class_mode=class_mode,
         augment=True,
         augmentation_params=train_augmentation_params,
-        custom_preprocessing_function=custom_preprocessing
+        custom_preprocessing_function=custom_preprocessing,
     )
 
     # Create validation generator without augmentation
@@ -129,17 +132,17 @@ def create_data_generators(
         target_size=target_size,
         batch_size=val_batch_size,
         class_mode=class_mode,
-        augment=False
+        augment=False,
     )
 
     return train_generator, validation_generator
 
 
 def create_tf_datasets(
-    train_dir: str, 
-    val_dir: str, 
-    image_size: Tuple[int, int] = (150, 150), 
-    batch_size: int = 32
+    train_dir: str,
+    val_dir: str,
+    image_size: Tuple[int, int] = (150, 150),
+    batch_size: int = 32,
 ) -> Tuple[tf.data.Dataset, tf.data.Dataset]:
     """Load datasets using ``image_dataset_from_directory`` with basic
     normalization.
@@ -159,7 +162,7 @@ def create_tf_datasets(
     -------
     tuple[tf.data.Dataset, tf.data.Dataset]
         ``(train_ds, val_ds)`` TensorFlow ``Dataset`` objects.
-        
+
     Raises
     ------
     FileNotFoundError
@@ -202,16 +205,18 @@ def create_tf_datasets(
     return train_ds, val_ds
 
 
-def create_dummy_images_for_generator(base_dir: str, num_images_per_class: int = 5) -> None:
+def create_dummy_images_for_generator(
+    base_dir: str, num_images_per_class: int = 5
+) -> None:
     """Creates dummy directories and placeholder image files for ImageDataGenerator testing.
-    
+
     Parameters
     ----------
     base_dir : str
         Base directory path where dummy image structure will be created.
     num_images_per_class : int, default=5
         Number of dummy images to create per class.
-        
+
     Notes
     -----
     Creates two classes: 'class_a' (red images) and 'class_b' (blue images).
@@ -255,7 +260,7 @@ def create_dummy_images_for_generator(base_dir: str, num_images_per_class: int =
 
 def cleanup_dummy_data_for_generator(base_dir: str) -> None:
     """Removes the dummy data directories created for ImageDataGenerator.
-    
+
     Parameters
     ----------
     base_dir : str
@@ -267,5 +272,3 @@ def cleanup_dummy_data_for_generator(base_dir: str) -> None:
         print(f"Dummy data '{base_dir}' cleaned up.")
     else:
         print(f"Directory '{base_dir}' not found, no cleanup needed.")
-
-

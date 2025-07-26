@@ -1,10 +1,8 @@
 """Tests for dependency security scanning functionality."""
 
 import pytest
-import subprocess
 import json
-from unittest.mock import patch, MagicMock, mock_open
-from dataclasses import asdict
+from unittest.mock import patch, MagicMock
 import tempfile
 import os
 
@@ -386,7 +384,6 @@ class TestCLIInterface:
         )
         mock_scan.return_value = mock_result
         
-        from src.dependency_security_scan import main
         
         with patch('sys.argv', ['security-scan']):
             main()
@@ -432,7 +429,6 @@ class TestCLIInterface:
     @patch('builtins.print')
     def test_cli_help(self, mock_print):
         """Test CLI help functionality."""
-        from src.dependency_security_scan import main
         
         with patch('sys.argv', ['security-scan', '--help']):
             with pytest.raises(SystemExit):

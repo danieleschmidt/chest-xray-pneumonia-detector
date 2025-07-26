@@ -19,7 +19,6 @@ import os
 import shutil
 import hashlib
 import threading
-import glob
 from datetime import datetime, timedelta
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -38,18 +37,20 @@ logger = logging.getLogger(__name__)
 
 class ModelValidationError(Exception):
     """Raised when model metadata fails validation."""
+
     pass
 
 
 class ModelPromotionError(Exception):
     """Raised when model promotion fails."""
+
     pass
 
 
 @dataclass
 class ModelMetadata:
     """Comprehensive metadata for a registered model.
-    
+
     Attributes
     ----------
     model_id : str
@@ -83,6 +84,7 @@ class ModelMetadata:
     checksum : str, optional
         SHA256 checksum of the model file for integrity verification.
     """
+
     model_id: str
     version: str
     accuracy: float
@@ -111,16 +113,16 @@ class ModelMetadata:
         """Validate model metadata for correctness and safety."""
         if not self.model_id or not self.model_id.strip():
             raise ModelValidationError("Model ID cannot be empty")
-        
+
         if not self.version or not self.version.strip():
             raise ModelValidationError("Version cannot be empty")
-        
+
         # Validate semantic version format
         try:
             ModelVersion(self.version)
         except ModelValidationError:
             raise ModelValidationError(f"Invalid version format: {self.version}")
-        
+
         # Validate metric ranges
         if not 0 <= self.accuracy <= 1:
             raise ModelValidationError("Accuracy must be between 0 and 1")
@@ -128,7 +130,7 @@ class ModelMetadata:
             raise ModelValidationError("F1 score must be between 0 and 1")
         if not 0 <= self.roc_auc <= 1:
             raise ModelValidationError("ROC AUC must be between 0 and 1")
-        
+
         # Validate status
         valid_statuses = ["staged", "production", "archived", "failed"]
         if self.status not in valid_statuses:
@@ -138,22 +140,22 @@ class ModelMetadata:
         """Serialize metadata to JSON string."""
         data = asdict(self)
         # Convert datetime to ISO format
-        data['training_date'] = self.training_date.isoformat()
+        data["training_date"] = self.training_date.isoformat()
         return json.dumps(data, indent=2)
 
     @classmethod
-    def from_json(cls, json_str: str) -> 'ModelMetadata':
+    def from_json(cls, json_str: str) -> "ModelMetadata":
         """Deserialize metadata from JSON string."""
         data = json.loads(json_str)
         # Convert ISO format back to datetime
-        data['training_date'] = datetime.fromisoformat(data['training_date'])
+        data["training_date"] = datetime.fromisoformat(data["training_date"])
         return cls(**data)
 
     def calculate_checksum(self) -> str:
         """Calculate SHA256 checksum of the model file."""
         if not os.path.exists(self.model_path):
             raise FileNotFoundError(f"Model file not found: {self.model_path}")
-        
+
         sha256_hash = hashlib.sha256()
         with open(self.model_path, "rb") as f:
             for byte_block in iter(lambda: f.read(4096), b""):
@@ -163,10 +165,10 @@ class ModelMetadata:
 
 class ModelVersion:
     """Semantic version handling for models."""
-    
+
     def __init__(self, version: str):
         """Initialize semantic version.
-        
+
         Parameters
         ----------
         version : str
@@ -177,38 +179,50 @@ class ModelVersion:
 
     def _parse_version(self):
         """Parse and validate semantic version string."""
-        parts = self.version.split('.')
+        parts = self.version.split(".")
         if len(parts) != 3:
-            raise ModelValidationError(f"Invalid version format: {self.version}. Expected format: major.minor.patch")
-        
+            raise ModelValidationError(
+                f"Invalid version format: {self.version}. Expected format: major.minor.patch"
+            )
+
         try:
             self.major = int(parts[0])
             self.minor = int(parts[1])
             self.patch = int(parts[2])
         except ValueError:
-            raise ModelValidationError(f"Invalid version format: {self.version}. All parts must be integers")
+            raise ModelValidationError(
+                f"Invalid version format: {self.version}. All parts must be integers"
+            )
 
-    def __lt__(self, other: 'ModelVersion') -> bool:
+    def __lt__(self, other: "ModelVersion") -> bool:
         """Less than comparison for version ordering."""
-        return (self.major, self.minor, self.patch) < (other.major, other.minor, other.patch)
+        return (self.major, self.minor, self.patch) < (
+            other.major,
+            other.minor,
+            other.patch,
+        )
 
-    def __eq__(self, other: 'ModelVersion') -> bool:
+    def __eq__(self, other: "ModelVersion") -> bool:
         """Equality comparison for versions."""
-        return (self.major, self.minor, self.patch) == (other.major, other.minor, other.patch)
+        return (self.major, self.minor, self.patch) == (
+            other.major,
+            other.minor,
+            other.patch,
+        )
 
     def __str__(self) -> str:
         """String representation of version."""
         return self.version
 
-    def increment_major(self) -> 'ModelVersion':
+    def increment_major(self) -> "ModelVersion":
         """Create new version with incremented major version."""
         return ModelVersion(f"{self.major + 1}.0.0")
 
-    def increment_minor(self) -> 'ModelVersion':
+    def increment_minor(self) -> "ModelVersion":
         """Create new version with incremented minor version."""
         return ModelVersion(f"{self.major}.{self.minor + 1}.0")
 
-    def increment_patch(self) -> 'ModelVersion':
+    def increment_patch(self) -> "ModelVersion":
         """Create new version with incremented patch version."""
         return ModelVersion(f"{self.major}.{self.minor}.{self.patch + 1}")
 
@@ -216,7 +230,7 @@ class ModelVersion:
 @dataclass
 class ABTestConfig:
     """Configuration for A/B testing experiments.
-    
+
     Attributes
     ----------
     experiment_name : str
@@ -240,6 +254,7 @@ class ABTestConfig:
     confidence_level : float, default 0.95
         Statistical confidence level for significance testing.
     """
+
     experiment_name: str
     control_model_version: str
     treatment_model_version: str
@@ -257,7 +272,7 @@ class ABTestConfig:
             self.start_date = datetime.now()
         if self.end_date is None:
             self.end_date = self.start_date + timedelta(days=self.duration_days)
-        
+
         # Validate traffic split
         if not 0 <= self.traffic_split <= 1:
             raise ModelValidationError("Traffic split must be between 0 and 1")
@@ -269,14 +284,14 @@ class ABTestConfig:
 
     def should_use_treatment(self, user_id: str) -> bool:
         """Determine if a user should receive the treatment model.
-        
+
         Uses deterministic hashing to ensure consistent routing for the same user.
-        
+
         Parameters
         ----------
         user_id : str
             Unique identifier for the user/request.
-            
+
         Returns
         -------
         bool
@@ -289,18 +304,18 @@ class ABTestConfig:
 
 class ModelRegistry:
     """Production-ready model registry with versioning and A/B testing.
-    
+
     This class provides a comprehensive model management system designed for
     medical AI applications. It handles model registration, version tracking,
     promotion workflows, A/B testing, and performance monitoring.
-    
+
     Features:
     - Thread-safe operations for concurrent access
     - Atomic file operations with rollback capabilities
     - Integration with MLflow for experiment tracking
     - Comprehensive audit logging for regulatory compliance
     - Performance metrics collection and analysis
-    
+
     Parameters
     ----------
     registry_path : str
@@ -308,22 +323,22 @@ class ModelRegistry:
     mlflow_tracking_uri : str, optional
         MLflow tracking server URI for integration.
     """
-    
+
     def __init__(self, registry_path: str, mlflow_tracking_uri: Optional[str] = None):
         """Initialize model registry."""
         self.registry_path = Path(registry_path)
         self.mlflow_tracking_uri = mlflow_tracking_uri
-        
+
         # Thread safety
         self._lock = threading.RLock()
-        
+
         # Initialize directory structure
         self._initialize_registry()
-        
+
         # Load existing metadata
         self._metadata_cache = self._load_metadata()
         self._ab_tests = self._load_ab_tests()
-        
+
         logger.info(f"Model registry initialized at {registry_path}")
 
     def _initialize_registry(self):
@@ -335,14 +350,14 @@ class ModelRegistry:
             self.registry_path / "ab_tests",
             self.registry_path / "performance_logs",
         ]
-        
+
         for directory in directories:
             directory.mkdir(parents=True, exist_ok=True)
-        
+
         # Initialize metadata file if it doesn't exist
         metadata_file = self.registry_path / "metadata.json"
         if not metadata_file.exists():
-            with open(metadata_file, 'w') as f:
+            with open(metadata_file, "w") as f:
                 json.dump({}, f)
 
     def _get_write_lock(self):
@@ -353,17 +368,19 @@ class ModelRegistry:
         """Load model metadata from storage."""
         metadata_file = self.registry_path / "metadata.json"
         try:
-            with open(metadata_file, 'r') as f:
+            with open(metadata_file, "r") as f:
                 data = json.load(f)
-            
+
             # Convert to ModelMetadata objects
             result = {}
             for model_id, versions in data.items():
                 result[model_id] = {}
                 for version, metadata_dict in versions.items():
-                    metadata_dict['training_date'] = datetime.fromisoformat(metadata_dict['training_date'])
+                    metadata_dict["training_date"] = datetime.fromisoformat(
+                        metadata_dict["training_date"]
+                    )
                     result[model_id][version] = ModelMetadata(**metadata_dict)
-            
+
             return result
         except (FileNotFoundError, json.JSONDecodeError):
             return {}
@@ -372,22 +389,22 @@ class ModelRegistry:
         """Save model metadata to storage with thread safety."""
         with self._lock:  # Ensure thread-safe access to metadata cache
             metadata_file = self.registry_path / "metadata.json"
-            
+
             # Convert to serializable format
             data = {}
             for model_id, versions in self._metadata_cache.items():
                 data[model_id] = {}
                 for version, metadata in versions.items():
                     metadata_dict = asdict(metadata)
-                    metadata_dict['training_date'] = metadata.training_date.isoformat()
+                    metadata_dict["training_date"] = metadata.training_date.isoformat()
                     data[model_id][version] = metadata_dict
-            
+
             # Atomic write with backup
-            temp_file = metadata_file.with_suffix('.tmp')
+            temp_file = metadata_file.with_suffix(".tmp")
             try:
-                with open(temp_file, 'w') as f:
+                with open(temp_file, "w") as f:
                     json.dump(data, f, indent=2)
-                
+
                 # Atomic rename
                 temp_file.replace(metadata_file)
                 logger.debug(f"Metadata saved successfully to {metadata_file}")
@@ -402,16 +419,18 @@ class ModelRegistry:
         """Load active A/B tests from storage."""
         ab_tests_file = self.registry_path / "ab_tests" / "active_tests.json"
         try:
-            with open(ab_tests_file, 'r') as f:
+            with open(ab_tests_file, "r") as f:
                 data = json.load(f)
-            
+
             # Convert to ABTestConfig objects
             result = []
             for test_data in data:
-                test_data['start_date'] = datetime.fromisoformat(test_data['start_date'])
-                test_data['end_date'] = datetime.fromisoformat(test_data['end_date'])
+                test_data["start_date"] = datetime.fromisoformat(
+                    test_data["start_date"]
+                )
+                test_data["end_date"] = datetime.fromisoformat(test_data["end_date"])
                 result.append(ABTestConfig(**test_data))
-            
+
             return result
         except (FileNotFoundError, json.JSONDecodeError):
             return []
@@ -419,31 +438,31 @@ class ModelRegistry:
     def _save_ab_tests(self):
         """Save A/B tests to storage."""
         ab_tests_file = self.registry_path / "ab_tests" / "active_tests.json"
-        
+
         # Convert to serializable format
         data = []
         for test in self._ab_tests:
             test_dict = asdict(test)
-            test_dict['start_date'] = test.start_date.isoformat()
-            test_dict['end_date'] = test.end_date.isoformat()
+            test_dict["start_date"] = test.start_date.isoformat()
+            test_dict["end_date"] = test.end_date.isoformat()
             data.append(test_dict)
-        
-        with open(ab_tests_file, 'w') as f:
+
+        with open(ab_tests_file, "w") as f:
             json.dump(data, f, indent=2)
 
     def register_model(self, metadata: ModelMetadata) -> str:
         """Register a new model version in the registry.
-        
+
         Parameters
         ----------
         metadata : ModelMetadata
             Complete metadata for the model to register.
-            
+
         Returns
         -------
         str
             Path to the registered model file in the registry.
-            
+
         Raises
         ------
         ModelValidationError
@@ -455,41 +474,41 @@ class ModelRegistry:
             # Validate model file exists
             if not os.path.exists(metadata.model_path):
                 raise FileNotFoundError(f"Model file not found: {metadata.model_path}")
-            
+
             # Calculate checksum for integrity
             metadata.checksum = metadata.calculate_checksum()
-            
+
             # Determine registry path for this model
             model_filename = f"{metadata.model_id}_v{metadata.version}.keras"
             registry_model_path = self.registry_path / "models" / model_filename
-            
+
             # Copy model file to registry
             shutil.copy2(metadata.model_path, registry_model_path)
-            
+
             # Update metadata with registry path
             metadata.model_path = str(registry_model_path)
-            
+
             # Add to cache
             if metadata.model_id not in self._metadata_cache:
                 self._metadata_cache[metadata.model_id] = {}
             self._metadata_cache[metadata.model_id][metadata.version] = metadata
-            
+
             # Save metadata
             self._save_metadata()
-            
+
             logger.info(f"Registered model {metadata.model_id} v{metadata.version}")
             return str(registry_model_path)
 
     def promote_to_production(self, model_id: str, version: str) -> None:
         """Promote a model version to production status.
-        
+
         Parameters
         ----------
         model_id : str
             Model identifier.
         version : str
             Version to promote.
-            
+
         Raises
         ------
         ModelPromotionError
@@ -497,34 +516,41 @@ class ModelRegistry:
         """
         with self._lock:
             # Validate model exists
-            if model_id not in self._metadata_cache or version not in self._metadata_cache[model_id]:
-                raise ModelPromotionError(f"Model {model_id} v{version} not found in registry")
-            
+            if (
+                model_id not in self._metadata_cache
+                or version not in self._metadata_cache[model_id]
+            ):
+                raise ModelPromotionError(
+                    f"Model {model_id} v{version} not found in registry"
+                )
+
             metadata = self._metadata_cache[model_id][version]
-            
+
             # Validate model file integrity
             current_checksum = metadata.calculate_checksum()
             if metadata.checksum != current_checksum:
-                raise ModelPromotionError(f"Model file integrity check failed for {model_id} v{version}")
-            
+                raise ModelPromotionError(
+                    f"Model file integrity check failed for {model_id} v{version}"
+                )
+
             # Demote any existing production models
             for v, m in self._metadata_cache[model_id].items():
                 if m.is_production:
                     m.is_production = False
                     m.status = "archived"
-            
+
             # Promote this version
             metadata.is_production = True
             metadata.status = "production"
-            
+
             # Save changes
             self._save_metadata()
-            
+
             logger.info(f"Promoted model {model_id} v{version} to production")
 
     def rollback_model(self, model_id: str, target_version: str) -> None:
         """Rollback production model to a previous version.
-        
+
         Parameters
         ----------
         model_id : str
@@ -537,12 +563,12 @@ class ModelRegistry:
 
     def get_production_model(self, model_id: str) -> Optional[ModelMetadata]:
         """Get the current production model for a given model ID.
-        
+
         Parameters
         ----------
         model_id : str
             Model identifier.
-            
+
         Returns
         -------
         ModelMetadata or None
@@ -551,21 +577,21 @@ class ModelRegistry:
         with self._lock:  # Ensure thread-safe cache access
             if model_id not in self._metadata_cache:
                 return None
-            
+
             for metadata in self._metadata_cache[model_id].values():
                 if metadata.is_production:
                     return metadata
-            
+
             return None
 
     def list_models(self, model_id: Optional[str] = None) -> List[ModelMetadata]:
         """List all registered models or versions of a specific model.
-        
+
         Parameters
         ----------
         model_id : str, optional
             If provided, only return versions of this model.
-            
+
         Returns
         -------
         List[ModelMetadata]
@@ -573,20 +599,20 @@ class ModelRegistry:
         """
         with self._lock:  # Ensure thread-safe cache access
             result = []
-            
+
             if model_id:
                 if model_id in self._metadata_cache:
                     result.extend(self._metadata_cache[model_id].values())
             else:
                 for versions in self._metadata_cache.values():
                     result.extend(versions.values())
-            
+
             # Sort by model_id and version
             return sorted(result, key=lambda m: (m.model_id, ModelVersion(m.version)))
 
     def start_ab_test(self, model_id: str, config: ABTestConfig) -> None:
         """Start an A/B test for the specified model.
-        
+
         Parameters
         ----------
         model_id : str
@@ -596,25 +622,36 @@ class ModelRegistry:
         """
         with self._lock:
             # Validate both model versions exist
-            if (model_id not in self._metadata_cache or 
-                config.control_model_version not in self._metadata_cache[model_id] or
-                config.treatment_model_version not in self._metadata_cache[model_id]):
-                raise ModelValidationError("Both control and treatment model versions must be registered")
-            
+            if (
+                model_id not in self._metadata_cache
+                or config.control_model_version not in self._metadata_cache[model_id]
+                or config.treatment_model_version not in self._metadata_cache[model_id]
+            ):
+                raise ModelValidationError(
+                    "Both control and treatment model versions must be registered"
+                )
+
             # Stop any existing A/B tests for this model
-            self._ab_tests = [test for test in self._ab_tests 
-                            if not (test.control_model_version.startswith(model_id) or 
-                                   test.treatment_model_version.startswith(model_id))]
-            
+            self._ab_tests = [
+                test
+                for test in self._ab_tests
+                if not (
+                    test.control_model_version.startswith(model_id)
+                    or test.treatment_model_version.startswith(model_id)
+                )
+            ]
+
             # Add new test
             self._ab_tests.append(config)
             self._save_ab_tests()
-            
-            logger.info(f"Started A/B test {config.experiment_name} for model {model_id}")
+
+            logger.info(
+                f"Started A/B test {config.experiment_name} for model {model_id}"
+            )
 
     def list_active_ab_tests(self) -> List[ABTestConfig]:
         """List all active A/B tests.
-        
+
         Returns
         -------
         List[ABTestConfig]
@@ -622,16 +659,18 @@ class ModelRegistry:
         """
         return [test for test in self._ab_tests if test.is_active()]
 
-    def get_model_for_inference(self, model_id: str, user_id: Optional[str] = None) -> ModelMetadata:
+    def get_model_for_inference(
+        self, model_id: str, user_id: Optional[str] = None
+    ) -> ModelMetadata:
         """Get the appropriate model for inference, considering A/B tests.
-        
+
         Parameters
         ----------
         model_id : str
             Model identifier.
         user_id : str, optional
             User ID for A/B test routing. If None, returns production model.
-            
+
         Returns
         -------
         ModelMetadata
@@ -640,29 +679,37 @@ class ModelRegistry:
         # Check for active A/B tests
         if user_id:
             for test in self.list_active_ab_tests():
-                if (model_id in test.control_model_version or 
-                    model_id in test.treatment_model_version):
-                    
+                if (
+                    model_id in test.control_model_version
+                    or model_id in test.treatment_model_version
+                ):
+
                     if test.should_use_treatment(user_id):
                         version = test.treatment_model_version
                     else:
                         version = test.control_model_version
-                    
+
                     with self._lock:  # Ensure thread-safe cache access
                         return self._metadata_cache[model_id][version]
-        
+
         # Return production model
         production_model = self.get_production_model(model_id)
         if production_model is None:
             raise ModelPromotionError(f"No production model found for {model_id}")
-        
+
         return production_model
 
-    def record_inference_metrics(self, model_id: str, version: str, user_id: str,
-                               prediction_confidence: float, inference_time_ms: float,
-                               correct_prediction: Optional[bool] = None) -> None:
+    def record_inference_metrics(
+        self,
+        model_id: str,
+        version: str,
+        user_id: str,
+        prediction_confidence: float,
+        inference_time_ms: float,
+        correct_prediction: Optional[bool] = None,
+    ) -> None:
         """Record inference metrics for performance tracking.
-        
+
         Parameters
         ----------
         model_id : str
@@ -687,68 +734,78 @@ class ModelRegistry:
             "inference_time_ms": inference_time_ms,
             "correct_prediction": correct_prediction,
         }
-        
+
         # Log to performance file with rotation
-        log_file = self.registry_path / "performance_logs" / f"{model_id}_v{version}.jsonl"
-        
+        log_file = (
+            self.registry_path / "performance_logs" / f"{model_id}_v{version}.jsonl"
+        )
+
         # Check if log rotation is needed before writing
         self._rotate_log_if_needed(log_file)
-        
-        with open(log_file, 'a') as f:
+
+        with open(log_file, "a") as f:
             f.write(f"{json.dumps(metrics)}\n")
 
-    def get_model_performance_summary(self, model_id: str, version: str) -> Dict[str, Any]:
+    def get_model_performance_summary(
+        self, model_id: str, version: str
+    ) -> Dict[str, Any]:
         """Get performance summary for a model version.
-        
+
         Parameters
         ----------
         model_id : str
             Model identifier.
         version : str
             Model version.
-            
+
         Returns
         -------
         Dict[str, Any]
             Performance summary metrics.
         """
-        log_file = self.registry_path / "performance_logs" / f"{model_id}_v{version}.jsonl"
-        
+        log_file = (
+            self.registry_path / "performance_logs" / f"{model_id}_v{version}.jsonl"
+        )
+
         if not log_file.exists():
             return {"total_inferences": 0}
-        
+
         total_inferences = 0
         confidence_sum = 0
         time_sum = 0
         correct_predictions = 0
         total_with_ground_truth = 0
-        
-        with open(log_file, 'r') as f:
+
+        with open(log_file, "r") as f:
             for line in f:
                 metrics = json.loads(line)
                 total_inferences += 1
                 confidence_sum += metrics["prediction_confidence"]
                 time_sum += metrics["inference_time_ms"]
-                
+
                 if metrics["correct_prediction"] is not None:
                     total_with_ground_truth += 1
                     if metrics["correct_prediction"]:
                         correct_predictions += 1
-        
+
         summary = {
             "total_inferences": total_inferences,
-            "avg_confidence": confidence_sum / total_inferences if total_inferences > 0 else 0,
-            "avg_inference_time_ms": time_sum / total_inferences if total_inferences > 0 else 0,
+            "avg_confidence": (
+                confidence_sum / total_inferences if total_inferences > 0 else 0
+            ),
+            "avg_inference_time_ms": (
+                time_sum / total_inferences if total_inferences > 0 else 0
+            ),
         }
-        
+
         if total_with_ground_truth > 0:
             summary["accuracy"] = correct_predictions / total_with_ground_truth
-        
+
         return summary
 
     def _rotate_log_if_needed(self, log_file: Path) -> None:
         """Rotate log file if it exceeds size limit.
-        
+
         Parameters
         ----------
         log_file : Path
@@ -756,15 +813,15 @@ class ModelRegistry:
         """
         if not log_file.exists():
             return
-            
+
         # Check file size
         file_size_mb = log_file.stat().st_size / (1024 * 1024)
         if file_size_mb >= Config.MAX_LOG_FILE_SIZE_MB:
             self._perform_log_rotation(log_file)
-    
+
     def _perform_log_rotation(self, log_file: Path) -> None:
         """Perform log file rotation with backup files.
-        
+
         Parameters
         ----------
         log_file : Path
@@ -775,44 +832,44 @@ class ModelRegistry:
                 # Get base name without extension
                 base_name = log_file.stem
                 log_dir = log_file.parent
-                
+
                 # Find existing backup files
                 backup_pattern = f"{base_name}.*.jsonl"
                 backup_files = sorted(log_dir.glob(backup_pattern))
-                
+
                 # Remove old backup files if we exceed the limit
                 while len(backup_files) >= Config.MAX_LOG_FILES_PER_MODEL:
                     oldest_backup = backup_files.pop(0)
                     oldest_backup.unlink()
                     logger.info(f"Removed old log backup: {oldest_backup}")
-                
+
                 # Rotate existing backup files
                 for i, backup_file in enumerate(reversed(backup_files)):
                     # Extract current backup number
-                    parts = backup_file.stem.split('.')
+                    parts = backup_file.stem.split(".")
                     if len(parts) >= 2 and parts[-1].isdigit():
                         current_num = int(parts[-1])
                         new_num = current_num + 1
                         new_name = f"{base_name}.{new_num}.jsonl"
                     else:
                         new_name = f"{base_name}.2.jsonl"
-                    
+
                     new_backup_path = log_dir / new_name
                     backup_file.rename(new_backup_path)
-                
+
                 # Move current log to backup
                 backup_path = log_dir / f"{base_name}.1.jsonl"
                 log_file.rename(backup_path)
-                
+
                 logger.info(f"Rotated log file {log_file} to {backup_path}")
-                
+
             except Exception as e:
                 logger.error(f"Failed to rotate log file {log_file}: {e}")
                 # Continue operation even if rotation fails
-    
+
     def cleanup_old_logs(self, days: int = None) -> None:
         """Clean up old log files based on retention policy.
-        
+
         Parameters
         ----------
         days : int, optional
@@ -820,52 +877,54 @@ class ModelRegistry:
         """
         if days is None:
             days = Config.LOG_RETENTION_DAYS
-            
+
         cutoff_time = datetime.now() - timedelta(days=days)
         performance_logs_dir = self.registry_path / "performance_logs"
-        
+
         if not performance_logs_dir.exists():
             return
-        
+
         deleted_count = 0
         with self._lock:  # Ensure thread safety
             try:
                 for log_file in performance_logs_dir.glob("*.jsonl"):
                     # Check file modification time
                     file_mtime = datetime.fromtimestamp(log_file.stat().st_mtime)
-                    
+
                     if file_mtime < cutoff_time:
                         log_file.unlink()
                         deleted_count += 1
                         logger.info(f"Deleted old log file: {log_file}")
-                        
+
                 if deleted_count > 0:
-                    logger.info(f"Cleaned up {deleted_count} old log files older than {days} days")
-                    
+                    logger.info(
+                        f"Cleaned up {deleted_count} old log files older than {days} days"
+                    )
+
             except Exception as e:
                 logger.error(f"Failed to cleanup old logs: {e}")
-    
+
     def get_log_statistics(self) -> Dict[str, Any]:
         """Get statistics about performance logs.
-        
+
         Returns
         -------
         Dict[str, Any]
             Statistics including total files, total size, oldest/newest files.
         """
         performance_logs_dir = self.registry_path / "performance_logs"
-        
+
         if not performance_logs_dir.exists():
             return {"total_files": 0, "total_size_mb": 0}
-        
+
         log_files = list(performance_logs_dir.glob("*.jsonl"))
-        
+
         if not log_files:
             return {"total_files": 0, "total_size_mb": 0}
-        
+
         total_size = sum(f.stat().st_size for f in log_files)
         file_times = [f.stat().st_mtime for f in log_files]
-        
+
         stats = {
             "total_files": len(log_files),
             "total_size_mb": round(total_size / (1024 * 1024), 2),
@@ -874,8 +933,8 @@ class ModelRegistry:
             "config": {
                 "max_file_size_mb": Config.MAX_LOG_FILE_SIZE_MB,
                 "max_files_per_model": Config.MAX_LOG_FILES_PER_MODEL,
-                "retention_days": Config.LOG_RETENTION_DAYS
-            }
+                "retention_days": Config.LOG_RETENTION_DAYS,
+            },
         }
-        
+
         return stats

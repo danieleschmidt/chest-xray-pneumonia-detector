@@ -1,9 +1,9 @@
 """Generate Grad-CAM overlays for images using a trained model."""
 
 import argparse
+import sys
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.preprocessing import image
 import matplotlib.pyplot as plt
 
 from .grad_cam import generate_grad_cam
@@ -12,17 +12,17 @@ from .image_utils import load_single_image
 
 def find_last_conv_layer(model) -> str:
     """Find the last convolutional layer in a model.
-    
+
     Parameters
     ----------
     model : tf.keras.Model
         The model to search for convolutional layers.
-        
+
     Returns
     -------
     str
         Name of the last convolutional layer found.
-        
+
     Raises
     ------
     ValueError
@@ -30,43 +30,45 @@ def find_last_conv_layer(model) -> str:
     """
     conv_layers = []
     for layer in model.layers:
-        if any(conv_type in layer.__class__.__name__.lower() 
-               for conv_type in ['conv', 'separableconv']):
+        if any(
+            conv_type in layer.__class__.__name__.lower()
+            for conv_type in ["conv", "separableconv"]
+        ):
             conv_layers.append(layer.name)
-    
+
     if not conv_layers:
         raise ValueError("No convolutional layers found in model")
-    
+
     return conv_layers[-1]
 
 
 # Backward compatibility alias
 def load_image(img_path, target_size):
     """Load and preprocess an image for model inference.
-    
+
     Deprecated: Use image_utils.load_single_image instead.
     This function is maintained for backward compatibility.
-    
+
     Parameters
     ----------
     img_path : str
         Path to the image file to load. Supported formats include PNG, JPEG, BMP.
     target_size : tuple of int
         Target dimensions (height, width) to resize the image to.
-        
+
     Returns
     -------
     numpy.ndarray
         Preprocessed image array with shape (1, height, width, channels)
         and pixel values normalized to [0, 1].
-        
+
     Raises
     ------
     FileNotFoundError
         If the image file does not exist at the specified path.
     PIL.UnidentifiedImageError
         If the file is not a valid image format.
-        
+
     Examples
     --------
     >>> img_array = load_image('chest_xray.png', (150, 150))
@@ -150,9 +152,15 @@ if __name__ == "__main__":
         help="Size to which the image will be resized",
     )
     args = parser.parse_args()
-    
+
     # Validate input paths for security
-    from .input_validation import validate_model_path, validate_image_path, validate_file_path, ValidationError
+    from .input_validation import (
+        validate_model_path,
+        validate_image_path,
+        validate_file_path,
+        ValidationError,
+    )
+
     try:
         args.model_path = validate_model_path(args.model_path, must_exist=True)
         args.img_path = validate_image_path(args.img_path, must_exist=True)
@@ -160,7 +168,7 @@ if __name__ == "__main__":
         args.output_path = validate_file_path(args.output_path, must_exist=False)
     except ValidationError as e:
         print(f"❌ Input validation error: {e}")
-        return
+        sys.exit(1)
 
     display_grad_cam(
         model_path=args.model_path,
