@@ -84,6 +84,13 @@ def create_data_generators(
     Returns:
         tuple: (train_generator, validation_generator)
     """
+    # Validate input parameters
+    if contrast_range < 0.0 or contrast_range > 1.0:
+        raise ValueError(
+            f"contrast_range must be between 0.0 and 1.0, got {contrast_range}. "
+            f"Valid range creates contrast adjustment of [1-contrast_range, 1+contrast_range]."
+        )
+    
     if not os.path.exists(train_dir):
         raise FileNotFoundError(
             f"Training directory '{train_dir}' not found. "
