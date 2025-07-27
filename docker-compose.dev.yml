@@ -1,0 +1,93 @@
+version: '3.8'
+
+# Development overrides for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  app:
+    build:
+      target: development
+    environment:
+      - APP_ENV=development
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - RELOAD=true
+    volumes:
+      - .:/app:cached
+      - /app/node_modules
+    ports:
+      - "8080:8080"
+      - "8888:8888"  # Jupyter Lab
+    command: >
+      bash -c "
+        pip install -e . &&
+        python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8080 --reload
+      "
+
+  # Development tools
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: cxr-jupyter
+    ports:
+      - "8888:8888"
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=development
+    volumes:
+      - .:/app:cached
+      - jupyter_data:/home/jovyan/.jupyter
+    command: >
+      bash -c "
+        pip install -e . &&
+        jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+        --NotebookApp.token=development
+      "
+    networks:
+      - cxr-network
+
+  # Code quality checks
+  linting:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: cxr-linting
+    volumes:
+      - .:/app:cached
+    command: >
+      bash -c "
+        echo 'Running code quality checks...' &&
+        python -m ruff check src/ tests/ &&
+        python -m black --check src/ tests/ &&
+        python -m mypy src/ &&
+        python -m bandit -r src/ &&
+        echo 'All checks passed!'
+      "
+    profiles:
+      - tools
+
+  # Testing service
+  testing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: cxr-testing
+    environment:
+      - PYTHONPATH=/app/src
+      - ENVIRONMENT=test
+    volumes:
+      - .:/app:cached
+    command: >
+      bash -c "
+        echo 'Running test suite...' &&
+        python -m pytest tests/ -v --cov=src --cov-report=html --cov-report=term-missing
+      "
+    profiles:
+      - tools
+
+volumes:
+  jupyter_data:

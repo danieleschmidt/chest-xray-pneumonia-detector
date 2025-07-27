@@ -1,0 +1,101 @@
+{
+  "name": "chest-xray-pneumonia-detector",
+  "version": "0.2.0",
+  "description": "AI-powered pneumonia detection from chest X-ray images",
+  "main": "index.js",
+  "scripts": {
+    "setup": "python -m pip install -e . && pre-commit install",
+    "install": "python -m pip install -r requirements.txt -r requirements-dev.txt",
+    "install:prod": "python -m pip install -r requirements.txt",
+    "test": "python -m pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=html",
+    "test:integration": "python -m pytest tests/integration/ -v --timeout=300",
+    "test:security": "python -m bandit -r src/ && python -m safety check",
+    "test:watch": "python -m pytest-watch tests/",
+    "lint": "python -m ruff check src/ tests/ && python -m black --check src/ tests/",
+    "lint:fix": "python -m ruff check --fix src/ tests/ && python -m black src/ tests/",
+    "format": "python -m black src/ tests/ && python -m isort src/ tests/",
+    "type-check": "python -m mypy src/",
+    "security": "python -m bandit -r src/ -f json -o .artifacts/bandit-report.json && python -m safety check --json --output .artifacts/safety-report.json",
+    "audit": "python -m pip-audit --format=json --output=.artifacts/pip-audit-report.json",
+    "clean": "find . -type f -name '*.pyc' -delete && find . -type d -name '__pycache__' -delete && rm -rf .pytest_cache .ruff_cache .mypy_cache build/ dist/ *.egg-info/",
+    "build": "python -m build",
+    "build:docker": "docker build -t chest-xray-pneumonia-detector .",
+    "build:production": "docker build -f docker/Dockerfile.production -t chest-xray-pneumonia-detector:production .",
+    "docs": "python -m sphinx-build -b html docs/ docs/_build/html",
+    "docs:serve": "python -m http.server 8000 --directory docs/_build/html",
+    "docs:api": "python -m sphinx-apidoc -o docs/api src/",
+    "train": "python -m src.train_engine --use_dummy_data",
+    "train:real": "python -m src.train_engine --train_dir data/train --val_dir data/val",
+    "inference": "python -m src.inference --model_path saved_models/pneumonia_cnn_v1.keras --data_dir data/test",
+    "evaluate": "python -m src.evaluate --pred_csv predictions.csv --label_csv labels.csv",
+    "gradcam": "python -m src.predict_utils --model_path saved_models/pneumonia_cnn_v1.keras --img_path sample.jpg",
+    "dataset:split": "python -m src.data_split --input_dir raw_data --output_dir data",
+    "dataset:stats": "python -m src.dataset_stats data/",
+    "serve:mlflow": "mlflow server --host 0.0.0.0 --port 5000",
+    "serve:api": "uvicorn src.api.main:app --host 0.0.0.0 --port 8080 --reload",
+    "serve:production": "gunicorn src.api.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8080",
+    "jupyter": "jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root",
+    "benchmark": "python -m src.performance_benchmark",
+    "validate:model": "python -m src.model_architecture_validation",
+    "scan:security": "python -m src.dependency_security_scan",
+    "generate:data": "python -m src.synthetic_medical_data_generator",
+    "model:registry": "python -m src.model_management_cli",
+    "version": "python -m src.version_cli",
+    "precommit": "pre-commit run --all-files",
+    "ci:setup": "python -m pip install -e . && pre-commit install",
+    "ci:test": "python -m pytest tests/ --cov=src --cov-report=xml --cov-report=term --timeout=300",
+    "ci:lint": "python -m ruff check src/ tests/ && python -m black --check src/ tests/ && python -m mypy src/",
+    "ci:security": "python -m bandit -r src/ -f json -o bandit-report.json && python -m safety check && python -m pip-audit",
+    "ci:build": "python -m build && docker build -t test-image .",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "k8s:deploy": "kubectl apply -f k8s/",
+    "k8s:delete": "kubectl delete -f k8s/",
+    "monitoring:start": "docker-compose -f docker-compose.monitoring.yml up -d",
+    "monitoring:stop": "docker-compose -f docker-compose.monitoring.yml down"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/chest-xray-pneumonia-detector.git"
+  },
+  "keywords": [
+    "machine-learning",
+    "medical-ai",
+    "pneumonia-detection",
+    "chest-xray",
+    "tensorflow",
+    "computer-vision",
+    "healthcare",
+    "hipaa-compliant"
+  ],
+  "author": "Your Organization",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/your-org/chest-xray-pneumonia-detector/issues"
+  },
+  "homepage": "https://github.com/your-org/chest-xray-pneumonia-detector#readme",
+  "engines": {
+    "node": ">=14.0.0",
+    "python": ">=3.8.0"
+  },
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.3"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.py": [
+      "python -m black",
+      "python -m ruff check --fix",
+      "python -m mypy"
+    ],
+    "*.{json,yaml,yml,md}": [
+      "prettier --write"
+    ]
+  }
+}

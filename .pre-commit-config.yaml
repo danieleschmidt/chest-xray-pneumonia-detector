@@ -1,0 +1,132 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-symlinks
+      - id: check-added-large-files
+        args: ['--maxkb=50000']  # 50MB limit for medical images
+      - id: debug-statements
+      - id: check-docstring-first
+      - id: requirements-txt-fixer
+      - id: mixed-line-ending
+
+  - repo: https://github.com/psf/black
+    rev: 23.7.0
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--line-length=88, --target-version=py38]
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.287
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix, --line-length=88]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: ["--profile", "black", "--line-length", "88"]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.5.1
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-requests, types-Pillow]
+        args: [--ignore-missing-imports, --no-strict-optional]
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: ['-c', 'pyproject.toml']
+        additional_dependencies: ['bandit[toml]']
+
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+    rev: v1.3.2
+    hooks:
+      - id: python-safety-dependencies-check
+        files: requirements.*\.txt$
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.32.0
+    hooks:
+      - id: yamllint
+        args: [-c=.yamllint.yml]
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.37.0
+    hooks:
+      - id: markdownlint
+        args: [--config=.markdownlint.json]
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.5
+    hooks:
+      - id: shellcheck
+
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        args: [--ignore, DL3008, --ignore, DL3009]
+
+  - repo: local
+    hooks:
+      - id: pytest-check
+        name: pytest-check
+        entry: python -m pytest tests/ --tb=short -q
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
+
+      - id: medical-data-validation
+        name: Medical Data Validation
+        entry: python -c "
+import sys
+import re
+# Check for potential PHI in code
+phi_patterns = [
+    r'\b\d{3}-\d{2}-\d{4}\b',  # SSN
+    r'\b\d{10}\b',  # Phone numbers
+    r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',  # Email
+]
+for file_path in sys.argv[1:]:
+    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+        content = f.read()
+        for pattern in phi_patterns:
+            if re.search(pattern, content):
+                print(f'WARNING: Potential PHI found in {file_path}')
+                sys.exit(1)
+"
+        language: system
+        files: \.(py|md|txt|json|yaml|yml)$
+        exclude: ^(tests/|docs/|\..*/)
+
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: [pytest-check, medical-data-validation]
+  submodules: false

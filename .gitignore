@@ -172,4 +172,121 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Application specific
 predictions.csv
+*.keras
+*.h5
+*.pkl
+*.joblib
+saved_models/
+reports/
+logs/
+.artifacts/
+data/train/
+data/val/
+data/test/
+!data/README.md
+
+# Medical data (HIPAA compliance)
+*.dcm
+*.dicom
+patient_data/
+phi_data/
+anonymized_data/
+
+# ML/AI specific
+mlruns/
+models/
+checkpoints/
+tensorboard_logs/
+wandb/
+neptune/
+experiments/
+
+# Jupyter Notebook
+*.ipynb_checkpoints
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Kubernetes
+k8s/secrets/
+k8s/config/
+
+# Monitoring
+prometheus_data/
+grafana_data/
+
+# Secrets and credentials
+.env
+.env.local
+.env.production
+secrets/
+credentials/
+certs/
+*.pem
+*.key
+*.crt
+
+# Cache and temporary files
+.cache/
+*.tmp
+*.temp
+temp/
+tmp/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.idea/
+*.swp
+*.swo
+*~
+
+# Performance profiling
+*.prof
+profile_*
+
+# Large files
+*.zip
+*.tar.gz
+*.tar.bz2
+*.7z
+*.rar
+
+# Documentation build
+docs/_build/
+docs/build/
+site/
+
+# Testing artifacts
+.coverage*
+htmlcov/
+coverage.xml
+*.cover
+.pytest_cache/
+test_results/
+test_reports/
+
+# Security scan results
+bandit-report.*
+safety-report.*
+security-scan-*

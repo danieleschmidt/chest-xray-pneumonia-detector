@@ -1,0 +1,97 @@
+{
+  "name": "Chest X-Ray Pneumonia Detector",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    "args": {
+      "VARIANT": "3.11-bullseye"
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": false,
+        "python.linting.ruffEnabled": true,
+        "python.formatting.provider": "black",
+        "python.formatting.blackArgs": ["--line-length=88"],
+        "python.linting.ruffArgs": ["--line-length=88"],
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.testing.pytestArgs": ["tests"],
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": true,
+          "source.fixAll.ruff": true
+        },
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/.pytest_cache": true,
+          "**/.ruff_cache": true,
+          "**/mlruns": true,
+          "**/saved_models": true
+        }
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.black-formatter",
+        "charliermarsh.ruff",
+        "ms-python.pylint",
+        "ms-toolsai.jupyter",
+        "ms-python.flake8",
+        "ms-vscode.test-adapter-converter",
+        "hbenl.vscode-test-explorer",
+        "ms-vscode.makefile-tools",
+        "ms-azuretools.vscode-docker",
+        "redhat.vscode-yaml",
+        "ms-vscode.vscode-json",
+        "github.vscode-github-actions",
+        "github.copilot",
+        "github.copilot-chat",
+        "ms-vscode-remote.remote-containers"
+      ]
+    }
+  },
+  "forwardPorts": [
+    5000,
+    8080,
+    8888,
+    9090
+  ],
+  "portsAttributes": {
+    "5000": {
+      "label": "MLflow UI",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "FastAPI Application",
+      "onAutoForward": "openPreview"
+    },
+    "8888": {
+      "label": "Jupyter Lab",
+      "onAutoForward": "notify"
+    },
+    "9090": {
+      "label": "Prometheus Metrics",
+      "onAutoForward": "ignore"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "remoteUser": "vscode",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "workspaceFolder": "/workspace",
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ]
+}

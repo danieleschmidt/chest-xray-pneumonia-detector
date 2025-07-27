@@ -1,0 +1,199 @@
+version: '3.8'
+
+services:
+  # Main application service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+      args:
+        BUILD_DATE: ${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}
+        VCS_REF: ${VCS_REF:-$(git rev-parse --short HEAD)}
+        VERSION: ${VERSION:-0.2.0}
+    image: chest-xray-pneumonia-detector:latest
+    container_name: cxr-detector-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - APP_ENV=production
+      - PYTHONPATH=/app/src
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/cxr_db
+      - MONGODB_URL=mongodb://mongo:27017/cxr_metadata
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./data:/app/data:ro
+      - ./saved_models:/app/saved_models:rw
+      - ./logs:/app/logs:rw
+      - ./reports:/app/reports:rw
+    depends_on:
+      - postgres
+      - mongo
+      - redis
+      - mlflow
+    networks:
+      - cxr-network
+    healthcheck:
+      test: ["CMD", "python", "healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # MLflow tracking server
+  mlflow:
+    image: python:3.11-slim
+    container_name: cxr-mlflow
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=postgresql://postgres:password@postgres:5432/mlflow_db
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
+    volumes:
+      - mlflow_artifacts:/mlflow/artifacts
+      - ./requirements.txt:/tmp/requirements.txt
+    command: >
+      bash -c "
+        pip install mlflow psycopg2-binary &&
+        mlflow server 
+        --backend-store-uri postgresql://postgres:password@postgres:5432/mlflow_db
+        --default-artifact-root /mlflow/artifacts
+        --host 0.0.0.0
+        --port 5000
+      "
+    depends_on:
+      - postgres
+    networks:
+      - cxr-network
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: cxr-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=cxr_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - cxr-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB for metadata storage
+  mongo:
+    image: mongo:7
+    container_name: cxr-mongo
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_DATABASE=cxr_metadata
+    volumes:
+      - mongo_data:/data/db
+      - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+    ports:
+      - "27017:27017"
+    networks:
+      - cxr-network
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: cxr-redis
+    restart: unless-stopped
+    command: redis-server --requirepass password
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - cxr-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: cxr-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - cxr-network
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: cxr-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - cxr-network
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: cxr-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - cxr-network
+
+volumes:
+  postgres_data:
+  mongo_data:
+  redis_data:
+  mlflow_artifacts:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  cxr-network:
+    driver: bridge
+
+# Override for development
+# Use: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+---
+# docker-compose.dev.yml content would go in a separate file
