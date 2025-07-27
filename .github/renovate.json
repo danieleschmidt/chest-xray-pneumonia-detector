@@ -1,0 +1,189 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    "docker:enableMajor",
+    "group:monorepos",
+    "group:recommended",
+    "workarounds:all"
+  ],
+  "timezone": "UTC",
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependencies"],
+  "reviewers": ["@maintainer-team"],
+  "assignees": ["@primary-maintainer"],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "semanticCommits": "enabled",
+  "commitMessagePrefix": "chore(deps):",
+  "rebaseWhen": "behind-base-branch",
+  "platformAutomerge": false,
+  "ignoreTests": false,
+  "respectLatest": true,
+  "rangeStrategy": "pin",
+  "packageRules": [
+    {
+      "description": "Pin Python dependencies",
+      "matchManagers": ["pip_requirements", "pip_setup", "pipenv"],
+      "rangeStrategy": "pin"
+    },
+    {
+      "description": "Auto-merge patch updates for production dependencies",
+      "matchUpdateTypes": ["patch"],
+      "matchDepTypes": ["dependencies"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true,
+      "requiredStatusChecks": null
+    },
+    {
+      "description": "Auto-merge patch and minor updates for dev dependencies",
+      "matchUpdateTypes": ["patch", "minor"],
+      "matchDepTypes": ["devDependencies"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Group Python dependencies",
+      "matchManagers": ["pip_requirements", "pip_setup"],
+      "groupName": "Python dependencies",
+      "groupSlug": "python-deps"
+    },
+    {
+      "description": "Group Docker base images",
+      "matchManagers": ["dockerfile"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Docker base images",
+      "groupSlug": "docker-base"
+    },
+    {
+      "description": "Group GitHub Actions",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "groupSlug": "github-actions",
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Security updates - high priority",
+      "matchPackagePatterns": [".*"],
+      "vulnerabilityAlerts": {
+        "enabled": true
+      },
+      "osvVulnerabilityAlerts": true,
+      "prPriority": 10,
+      "labels": ["security", "dependencies"],
+      "reviewers": ["@security-team"],
+      "automerge": false
+    },
+    {
+      "description": "Major updates require manual review",
+      "matchUpdateTypes": ["major"],
+      "prPriority": -10,
+      "labels": ["major-update"],
+      "reviewers": ["@senior-team"],
+      "automerge": false,
+      "schedule": ["before 6am on first day of month"]
+    },
+    {
+      "description": "Python ecosystem packages",
+      "matchPackageNames": [
+        "tensorflow",
+        "keras",
+        "numpy",
+        "scipy",
+        "scikit-learn",
+        "pandas",
+        "matplotlib",
+        "opencv-python",
+        "pillow"
+      ],
+      "groupName": "ML/Data Science packages",
+      "groupSlug": "ml-packages",
+      "schedule": ["before 6am on monday"],
+      "prPriority": 5,
+      "reviewers": ["@ml-team"],
+      "labels": ["ml-dependencies"]
+    },
+    {
+      "description": "Testing packages",
+      "matchPackageNames": [
+        "pytest",
+        "pytest-cov",
+        "pytest-mock",
+        "coverage",
+        "tox"
+      ],
+      "groupName": "Testing packages",
+      "groupSlug": "testing-packages",
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Linting and formatting packages",
+      "matchPackageNames": [
+        "ruff",
+        "black",
+        "bandit",
+        "mypy",
+        "pre-commit"
+      ],
+      "groupName": "Code quality packages",
+      "groupSlug": "code-quality",
+      "automerge": true,
+      "automergeType": "pr"
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "schedule": ["at any time"]
+  },
+  "osvVulnerabilityAlerts": true,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update Python version in Dockerfile",
+      "fileMatch": ["(^|/)Dockerfile$"],
+      "matchStrings": ["FROM python:(?<currentValue>\\d+\\.\\d+)-(?<suffix>.*)"],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "python",
+      "versioningTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Python version in GitHub Actions",
+      "fileMatch": ["^\\.github/workflows/.*\\.ya?ml$"],
+      "matchStrings": ["python-version:\\s*['\"](?<currentValue>\\d+\\.\\d+)['\"]"],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "python/cpython",
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    }
+  ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on sunday"],
+    "recreateClosed": true,
+    "rebaseWhen": "behind-base-branch"
+  },
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "🤖 Dependency Dashboard",
+  "dependencyDashboardHeader": "This issue lists Renovate updates and detected dependencies. Read the [Dependency Dashboard](https://docs.renovatebot.com/key-concepts/dashboard/) docs to learn more.",
+  "dependencyDashboardFooter": "Generated by [Renovate Bot](https://renovatebot.com)",
+  "prBodyTemplate": "{{{header}}}{{{table}}}{{{notes}}}{{{changelogs}}}{{{controls}}}{{{footer}}}",
+  "prBodyColumns": [
+    "Package",
+    "Type",
+    "Update",
+    "Change",
+    "Pending"
+  ],
+  "prBodyNotes": [
+    "📅 **Schedule**: {{{schedule}}}",
+    "🔀 **Automerge**: {{{automerge}}}",
+    "♻ **Rebasing**: {{{rebase}}}",
+    "🔍 **Reviews**: {{{reviewers}}}",
+    "📊 **Adoption**: {{{adoption}}}",
+    "📈 **SourceGraph**: {{{sourceUrl}}}"
+  ]
+}

@@ -1,0 +1,149 @@
+groups:
+  - name: pneumonia_detector_alerts
+    rules:
+      # High error rate
+      - alert: HighErrorRate
+        expr: rate(pneumonia_detector_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: pneumonia-detector
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }} errors per second over the last 5 minutes"
+
+      # Very high error rate
+      - alert: CriticalErrorRate
+        expr: rate(pneumonia_detector_errors_total[5m]) > 0.5
+        for: 1m
+        labels:
+          severity: critical
+          service: pneumonia-detector
+        annotations:
+          summary: "Critical error rate detected"
+          description: "Error rate is {{ $value }} errors per second over the last 5 minutes"
+
+      # High inference latency
+      - alert: HighInferenceLatency
+        expr: histogram_quantile(0.95, rate(pneumonia_detector_inference_duration_seconds_bucket[5m])) > 2.0
+        for: 5m
+        labels:
+          severity: warning
+          service: pneumonia-detector
+        annotations:
+          summary: "High inference latency detected"
+          description: "95th percentile inference latency is {{ $value }} seconds"
+
+      # Service down
+      - alert: ServiceDown
+        expr: up{job="pneumonia-detector"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: pneumonia-detector
+        annotations:
+          summary: "Pneumonia detector service is down"
+          description: "The pneumonia detector service has been down for more than 1 minute"
+
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: pneumonia_detector_cpu_percent > 80
+        for: 10m
+        labels:
+          severity: warning
+          service: pneumonia-detector
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% for more than 10 minutes"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: pneumonia_detector_memory_percent > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: pneumonia-detector
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}% for more than 5 minutes"
+
+      # Critical memory usage
+      - alert: CriticalMemoryUsage
+        expr: pneumonia_detector_memory_percent > 95
+        for: 2m
+        labels:
+          severity: critical
+          service: pneumonia-detector
+        annotations:
+          summary: "Critical memory usage"
+          description: "Memory usage is {{ $value }}% for more than 2 minutes"
+
+      # Low disk space
+      - alert: LowDiskSpace
+        expr: (100 - pneumonia_detector_disk_percent) < 10
+        for: 5m
+        labels:
+          severity: warning
+          service: pneumonia-detector
+        annotations:
+          summary: "Low disk space"
+          description: "Only {{ $value }}% disk space remaining"
+
+      # Very low disk space
+      - alert: CriticalDiskSpace
+        expr: (100 - pneumonia_detector_disk_percent) < 5
+        for: 1m
+        labels:
+          severity: critical
+          service: pneumonia-detector
+        annotations:
+          summary: "Critical disk space"
+          description: "Only {{ $value }}% disk space remaining"
+
+  - name: inference_performance_alerts
+    rules:
+      # No recent inferences (service might be stuck)
+      - alert: NoRecentInferences
+        expr: increase(pneumonia_detector_inference_total[10m]) == 0
+        for: 10m
+        labels:
+          severity: warning
+          service: pneumonia-detector
+        annotations:
+          summary: "No recent inferences"
+          description: "No inferences have been processed in the last 10 minutes"
+
+      # Inference queue building up (if we implement queuing)
+      - alert: InferenceQueueBuildup
+        expr: pneumonia_detector_queue_size > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: pneumonia-detector
+        annotations:
+          summary: "Inference queue building up"
+          description: "Inference queue size is {{ $value }}"
+
+  - name: ml_model_alerts
+    rules:
+      # Model load failure (if we track this)
+      - alert: ModelLoadFailure
+        expr: increase(pneumonia_detector_model_load_errors_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          service: pneumonia-detector
+        annotations:
+          summary: "Model load failure"
+          description: "Model failed to load {{ $value }} times in the last 5 minutes"
+
+      # Model drift detection (placeholder - would need actual implementation)
+      - alert: ModelDriftDetected
+        expr: pneumonia_detector_model_drift_score > 0.1
+        for: 0m
+        labels:
+          severity: warning
+          service: pneumonia-detector
+        annotations:
+          summary: "Model drift detected"
+          description: "Model drift score is {{ $value }}"
