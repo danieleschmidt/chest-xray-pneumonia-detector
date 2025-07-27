@@ -1,0 +1,43 @@
+# Development overrides for docker-compose
+# This file is automatically loaded when running docker-compose commands
+# Use this for local development customizations
+
+version: '3.8'
+
+services:
+  dev:
+    environment:
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - TESTING=true
+    volumes:
+      # Mount source code for live development
+      - .:/app
+      # Named volumes for persistence
+      - dev-venv:/app/.venv
+      - dev-cache:/app/.cache
+    ports:
+      # Additional ports for development tools
+      - "8000:8000"   # FastAPI dev server
+      - "8080:8080"   # Alternative HTTP port
+    command: ["tail", "-f", "/dev/null"]
+
+  # Override MLflow for development
+  mlflow:
+    environment:
+      - BACKEND_STORE_URI=sqlite:///mlflow.db
+    volumes:
+      - ./mlruns:/mlflow/artifacts
+    command: >
+      bash -c "
+        pip install mlflow &&
+        mlflow server
+          --backend-store-uri sqlite:///mlflow.db
+          --artifacts-destination /mlflow/artifacts
+          --host 0.0.0.0
+          --port 5000
+      "
+
+volumes:
+  dev-venv:
+  dev-cache:

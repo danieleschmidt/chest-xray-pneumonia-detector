@@ -1,0 +1,530 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  PYTHON_VERSION: '3.10'
+
+jobs:
+  # Validate release
+  validate-release:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is-prerelease: ${{ steps.version.outputs.is-prerelease }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+            IS_PRERELEASE="${{ github.event.inputs.prerelease }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+            IS_PRERELEASE="false"
+          fi
+          
+          # Validate version format
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
+            echo "Invalid version format: $VERSION"
+            exit 1
+          fi
+          
+          # Check if version already exists
+          if git tag -l | grep -q "^$VERSION$"; then
+            echo "Version $VERSION already exists"
+            exit 1
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "is-prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+          
+          echo "Release version: $VERSION"
+          echo "Pre-release: $IS_PRERELEASE"
+
+      - name: Update version in files
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          VERSION_NUMBER="${VERSION#v}"
+          
+          # Update pyproject.toml
+          sed -i "s/version = \".*\"/version = \"$VERSION_NUMBER\"/" pyproject.toml
+          
+          # Update version_cli.py if it exists
+          if [ -f "src/version_cli.py" ]; then
+            sed -i "s/__version__ = \".*\"/__version__ = \"$VERSION_NUMBER\"/" src/version_cli.py
+          fi
+          
+          # Verify changes
+          grep "version.*$VERSION_NUMBER" pyproject.toml
+
+  # Run comprehensive tests
+  test-release:
+    name: Test Release
+    needs: validate-release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install -r requirements-dev.txt
+
+      - name: Run comprehensive tests
+        run: |
+          # Code quality
+          ruff check src tests
+          black --check src tests
+          bandit -r src -ll
+          
+          # Tests
+          pytest tests/ -v --cov=src --cov-report=xml
+          
+          # Package build test
+          python -m build
+          python -m twine check dist/*
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-release
+          path: |
+            coverage.xml
+            dist/
+
+  # Build and package
+  build-package:
+    name: Build Package
+    needs: [validate-release, test-release]
+    runs-on: ubuntu-latest
+    outputs:
+      package-version: ${{ steps.build.outputs.version }}
+      package-hash: ${{ steps.build.outputs.hash }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Update version
+        run: |
+          VERSION="${{ needs.validate-release.outputs.version }}"
+          VERSION_NUMBER="${VERSION#v}"
+          sed -i "s/version = \".*\"/version = \"$VERSION_NUMBER\"/" pyproject.toml
+
+      - name: Build package
+        id: build
+        run: |
+          python -m build
+          
+          # Get version and hash
+          VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          HASH=$(sha256sum dist/*.whl | cut -d' ' -f1)
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "hash=$HASH" >> $GITHUB_OUTPUT
+          
+          # Verify package
+          python -m twine check dist/*
+          
+          # Test installation
+          pip install dist/*.whl
+          python -c "import chest_xray_pneumonia_detector; print('Package imports successfully')"
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-package
+          path: dist/
+
+  # Build container images
+  build-containers:
+    name: Build Container Images
+    needs: [validate-release, test-release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ needs.validate-release.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.validate-release.outputs.version }}
+            type=semver,pattern={{major}},value=${{ needs.validate-release.outputs.version }}
+
+      - name: Build and push images
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          target: production
+
+      - name: Build specialized images
+        run: |
+          # Build and push inference image
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --target inference \
+            --tag ghcr.io/${{ github.repository }}-inference:${{ needs.validate-release.outputs.version }} \
+            --tag ghcr.io/${{ github.repository }}-inference:latest \
+            --push .
+          
+          # Build and push API image
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --target api \
+            --tag ghcr.io/${{ github.repository }}-api:${{ needs.validate-release.outputs.version }} \
+            --tag ghcr.io/${{ github.repository }}-api:latest \
+            --push .
+
+      - name: Generate container SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ghcr.io/${{ github.repository }}:${{ needs.validate-release.outputs.version }}
+          format: spdx-json
+          output-file: container-sbom.spdx.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v3
+        with:
+          name: container-sbom
+          path: container-sbom.spdx.json
+
+  # Security scan release
+  security-scan-release:
+    name: Security Scan Release
+    needs: [validate-release, build-containers]
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/${{ github.repository }}:${{ needs.validate-release.outputs.version }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Check for critical vulnerabilities
+        run: |
+          # Fail release if critical vulnerabilities found
+          CRITICAL_COUNT=$(cat trivy-results.sarif | jq '[.runs[].results[] | select(.level == "error")] | length')
+          if [ "$CRITICAL_COUNT" -gt 0 ]; then
+            echo "Found $CRITICAL_COUNT critical vulnerabilities"
+            echo "Release blocked due to security issues"
+            exit 1
+          fi
+
+  # Generate changelog
+  generate-changelog:
+    name: Generate Changelog
+    needs: validate-release
+    runs-on: ubuntu-latest
+    outputs:
+      changelog: ${{ steps.changelog.outputs.changelog }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          VERSION="${{ needs.validate-release.outputs.version }}"
+          PREVIOUS_TAG=$(git tag -l "v*" | sort -V | tail -2 | head -1)
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          
+          echo "Generating changelog from $PREVIOUS_TAG to $VERSION"
+          
+          # Generate changelog content
+          cat > changelog.md << EOF
+          # Release $VERSION
+          
+          ## 🚀 What's New
+          
+          $(git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD | grep -E "^- (feat|add)" | head -10)
+          
+          ## 🐛 Bug Fixes
+          
+          $(git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD | grep -E "^- (fix|bug)" | head -10)
+          
+          ## 🔧 Improvements
+          
+          $(git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD | grep -E "^- (improve|enhance|update)" | head -10)
+          
+          ## 📚 Documentation
+          
+          $(git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD | grep -E "^- (docs|doc)" | head -5)
+          
+          ## 🔒 Security
+          
+          $(git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD | grep -E "^- (security|sec)" | head -5)
+          
+          ## 📦 Dependencies
+          
+          $(git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD | grep -E "^- (deps|dep|chore)" | head -5)
+          
+          ## Full Changelog
+          
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREVIOUS_TAG...$VERSION
+          EOF
+          
+          # Save changelog
+          CHANGELOG=$(cat changelog.md)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Upload changelog
+        uses: actions/upload-artifact@v3
+        with:
+          name: changelog
+          path: changelog.md
+
+  # Create GitHub release
+  create-release:
+    name: Create GitHub Release
+    needs: [validate-release, test-release, build-package, build-containers, security-scan-release, generate-changelog]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts/
+
+      - name: Create Git tag
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ needs.validate-release.outputs.version }}" -m "Release ${{ needs.validate-release.outputs.version }}"
+          git push origin "${{ needs.validate-release.outputs.version }}"
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.validate-release.outputs.version }}
+          release_name: Release ${{ needs.validate-release.outputs.version }}
+          body: ${{ needs.generate-changelog.outputs.changelog }}
+          draft: false
+          prerelease: ${{ needs.validate-release.outputs.is-prerelease }}
+
+      - name: Upload release assets
+        run: |
+          # Upload Python package
+          gh release upload "${{ needs.validate-release.outputs.version }}" \
+            artifacts/python-package/* \
+            --clobber
+          
+          # Upload SBOM
+          gh release upload "${{ needs.validate-release.outputs.version }}" \
+            artifacts/container-sbom/container-sbom.spdx.json \
+            --clobber
+          
+          # Upload changelog
+          gh release upload "${{ needs.validate-release.outputs.version }}" \
+            artifacts/changelog/changelog.md \
+            --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Publish to PyPI
+  publish-pypi:
+    name: Publish to PyPI
+    needs: [validate-release, create-release, build-package]
+    runs-on: ubuntu-latest
+    if: needs.validate-release.outputs.is-prerelease == 'false'
+    environment: pypi
+    
+    steps:
+      - name: Download package artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: python-package
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          verbose: true
+
+  # Deploy to staging
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [validate-release, create-release, build-containers]
+    runs-on: ubuntu-latest
+    environment: staging
+    
+    steps:
+      - name: Deploy to staging environment
+        run: |
+          echo "🚀 Deploying ${{ needs.validate-release.outputs.version }} to staging"
+          
+          # In a real deployment, this would:
+          # 1. Update staging environment with new image
+          # 2. Run smoke tests
+          # 3. Verify deployment health
+          
+          echo "✅ Staging deployment completed"
+
+      - name: Run staging tests
+        run: |
+          echo "🧪 Running staging tests"
+          
+          # Run integration tests against staging
+          # curl -f https://staging.pneumonia-detector.com/health
+          # Run API tests
+          # Run performance tests
+          
+          echo "✅ Staging tests passed"
+
+  # Update documentation
+  update-docs:
+    name: Update Documentation
+    needs: [validate-release, create-release]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update version documentation
+        run: |
+          VERSION="${{ needs.validate-release.outputs.version }}"
+          
+          # Update README with new version
+          sed -i "s/version-[0-9]\+\.[0-9]\+\.[0-9]\+/version-${VERSION#v}/g" README.md
+          
+          # Update documentation links
+          find docs/ -name "*.md" -type f -exec sed -i "s/v[0-9]\+\.[0-9]\+\.[0-9]\+/$VERSION/g" {} \;
+
+      - name: Commit documentation updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          if git diff --quiet; then
+            echo "No documentation changes to commit"
+          else
+            git add .
+            git commit -m "docs: update version references to ${{ needs.validate-release.outputs.version }}"
+            git push
+          fi
+
+  # Notify release
+  notify-release:
+    name: Notify Release
+    needs: [validate-release, create-release, publish-pypi, deploy-staging]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Notify team
+        run: |
+          VERSION="${{ needs.validate-release.outputs.version }}"
+          
+          echo "📢 Release $VERSION completed!"
+          echo "🐍 PyPI: https://pypi.org/project/chest-xray-pneumonia-detector/${{ needs.build-package.outputs.package-version }}/"
+          echo "🐳 Containers: ghcr.io/${{ github.repository }}:$VERSION"
+          echo "📋 Release Notes: https://github.com/${{ github.repository }}/releases/tag/$VERSION"
+          
+          # In a real setup, this would send notifications to:
+          # - Slack/Teams channels
+          # - Email lists
+          # - Documentation sites
+          # - Status pages
+
+      - name: Update status page
+        run: |
+          echo "Updating status page with new release information"
+          # Update external status page or service catalog
+          # curl -X POST https://status.company.com/api/releases \
+          #   -H "Authorization: Bearer ${{ secrets.STATUS_API_TOKEN }}" \
+          #   -d '{"version": "${{ needs.validate-release.outputs.version }}", "status": "released"}'

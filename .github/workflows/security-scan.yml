@@ -1,0 +1,377 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  # Static Application Security Testing (SAST)
+  sast:
+    name: Static Application Security Testing
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit[toml] semgrep safety
+
+      - name: Run Bandit security scan
+        run: |
+          bandit -r src -f json -o bandit-results.json
+          bandit -r src -f txt
+
+      - name: Upload Bandit results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: bandit-results
+          path: bandit-results.json
+
+      - name: Run Semgrep security scan
+        run: |
+          semgrep --config=auto --json --output=semgrep-results.json src/
+          semgrep --config=auto src/
+
+      - name: Upload Semgrep results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: semgrep-results
+          path: semgrep-results.json
+
+  # Dependency vulnerability scanning
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety pip-audit
+          pip install -r requirements.txt
+
+      - name: Run Safety check
+        run: |
+          safety check --json --output safety-results.json || true
+          safety check
+
+      - name: Run pip-audit
+        run: |
+          pip-audit --desc --format=json --output=pip-audit-results.json || true
+          pip-audit --desc
+
+      - name: Upload Safety results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: safety-results
+          path: safety-results.json
+
+      - name: Upload pip-audit results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: pip-audit-results
+          path: pip-audit-results.json
+
+  # Secret scanning
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install git-secrets
+        run: |
+          git clone https://github.com/awslabs/git-secrets.git
+          cd git-secrets && make install
+
+      - name: Configure git-secrets
+        run: |
+          git secrets --register-aws
+          git secrets --install
+          git secrets --scan-history
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # Container security scanning
+  container-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build container image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: production
+          push: false
+          tags: |
+            pneumonia-detector:latest
+            pneumonia-detector:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: pneumonia-detector:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run Trivy config scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          format: 'sarif'
+          output: 'trivy-config-results.sarif'
+
+      - name: Upload Trivy config results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-config-results.sarif'
+
+      - name: Run Grype vulnerability scanner
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+          grype pneumonia-detector:${{ github.sha }} -o json > grype-results.json
+          grype pneumonia-detector:${{ github.sha }}
+
+      - name: Upload Grype results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: grype-results
+          path: grype-results.json
+
+  # Infrastructure as Code scanning
+  iac-scan:
+    name: Infrastructure as Code Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: dockerfile,github_actions,secrets
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+
+      - name: Upload Checkov scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: checkov-results.sarif
+
+      - name: Scan Docker files with Hadolint
+        run: |
+          docker run --rm -i hadolint/hadolint < Dockerfile
+
+  # SBOM generation and scanning
+  sbom-scan:
+    name: SBOM Generation and Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Generate Python SBOM
+        run: |
+          pip install cyclonedx-bom
+          cyclonedx-py -o sbom-python.json
+
+      - name: Build container for SBOM
+        run: |
+          docker build --target production -t pneumonia-detector:sbom .
+
+      - name: Generate container SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: pneumonia-detector:sbom
+          format: spdx-json
+          output-file: sbom-container.spdx.json
+
+      - name: Scan SBOM with Grype
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+          grype sbom:sbom-container.spdx.json -o json > sbom-vulnerabilities.json
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom-artifacts
+          path: |
+            sbom-python.json
+            sbom-container.spdx.json
+            sbom-vulnerabilities.json
+
+  # License compliance check
+  license-scan:
+    name: License Compliance Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-licenses
+          pip install -r requirements.txt
+
+      - name: Check licenses
+        run: |
+          pip-licenses --format=json --output-file=licenses.json
+          pip-licenses --format=plain
+
+      - name: Upload license report
+        uses: actions/upload-artifact@v3
+        with:
+          name: license-report
+          path: licenses.json
+
+  # Security report generation
+  security-report:
+    name: Generate Security Report
+    needs: [sast, dependency-scan, secret-scan, container-scan, iac-scan, sbom-scan, license-scan]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Generate security report
+        run: |
+          echo "# Security Scan Report" > security-report.md
+          echo "" >> security-report.md
+          echo "Generated on: $(date)" >> security-report.md
+          echo "Commit: ${{ github.sha }}" >> security-report.md
+          echo "" >> security-report.md
+          
+          echo "## Job Results" >> security-report.md
+          echo "- SAST: ${{ needs.sast.result }}" >> security-report.md
+          echo "- Dependency Scan: ${{ needs.dependency-scan.result }}" >> security-report.md
+          echo "- Secret Scan: ${{ needs.secret-scan.result }}" >> security-report.md
+          echo "- Container Scan: ${{ needs.container-scan.result }}" >> security-report.md
+          echo "- IaC Scan: ${{ needs.iac-scan.result }}" >> security-report.md
+          echo "- SBOM Scan: ${{ needs.sbom-scan.result }}" >> security-report.md
+          echo "- License Scan: ${{ needs.license-scan.result }}" >> security-report.md
+          echo "" >> security-report.md
+          
+          echo "## Artifacts Generated" >> security-report.md
+          echo "- Bandit results: bandit-results.json" >> security-report.md
+          echo "- Semgrep results: semgrep-results.json" >> security-report.md
+          echo "- Safety results: safety-results.json" >> security-report.md
+          echo "- Trivy results: trivy-results.sarif" >> security-report.md
+          echo "- SBOM: sbom-container.spdx.json" >> security-report.md
+          echo "- License report: licenses.json" >> security-report.md
+          
+          # Count vulnerabilities if files exist
+          if [ -f bandit-results/bandit-results.json ]; then
+            BANDIT_ISSUES=$(jq '.results | length' bandit-results/bandit-results.json || echo "0")
+            echo "- Bandit issues found: $BANDIT_ISSUES" >> security-report.md
+          fi
+          
+          if [ -f safety-results/safety-results.json ]; then
+            SAFETY_VULNS=$(jq '.vulnerabilities | length' safety-results/safety-results.json || echo "0")
+            echo "- Safety vulnerabilities found: $SAFETY_VULNS" >> security-report.md
+          fi
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-report
+          path: security-report.md
+
+      - name: Comment on PR (if applicable)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            try {
+              const report = fs.readFileSync('security-report.md', 'utf8');
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## 🔒 Security Scan Results\n\n${report}`
+              });
+            } catch (error) {
+              console.log('Could not read security report:', error);
+            }

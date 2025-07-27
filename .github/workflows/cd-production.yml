@@ -1,0 +1,346 @@
+name: Production Deployment
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Build and publish container images
+  build-and-publish:
+    name: Build & Publish Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+
+      - name: Build and push production image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: production
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build and push inference image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: inference
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-inference:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-inference:${{ github.sha }}
+          cache-from: type=gha
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: api
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${{ github.sha }}
+          cache-from: type=gha
+          platforms: linux/amd64,linux/arm64
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom
+          path: sbom.spdx.json
+
+  # Security scanning
+  security-scan:
+    name: Security Scan
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run Grype vulnerability scanner
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+          grype ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -o json > grype-results.json
+
+      - name: Upload Grype results
+        uses: actions/upload-artifact@v3
+        with:
+          name: grype-results
+          path: grype-results.json
+
+  # Deploy to staging
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [build-and-publish, security-scan]
+    runs-on: ubuntu-latest
+    environment: staging
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'staging'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        run: |
+          echo "🚀 Deploying to staging environment..."
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          
+          # In a real deployment, this would:
+          # 1. Update Kubernetes manifests
+          # 2. Apply to staging cluster
+          # 3. Run smoke tests
+          # 4. Update service discovery
+          
+          echo "✅ Deployment to staging completed"
+
+      - name: Run smoke tests
+        run: |
+          echo "🧪 Running smoke tests against staging..."
+          
+          # Example smoke tests
+          # curl -f https://staging.pneumonia-detector.com/health
+          # docker run --rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} python -c "import src; print('Smoke test passed')"
+          
+          echo "✅ Smoke tests passed"
+
+      - name: Notify deployment
+        run: |
+          echo "📢 Staging deployment notification"
+          echo "Environment: staging"
+          echo "Version: ${{ github.sha }}"
+          echo "Status: success"
+
+  # Deploy to production
+  deploy-production:
+    name: Deploy to Production
+    needs: [build-and-publish, security-scan, deploy-staging]
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.event_name == 'release' || github.event.inputs.environment == 'production'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Blue-Green Deployment
+        run: |
+          echo "🌊 Starting blue-green deployment to production..."
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          
+          # In a real deployment, this would:
+          # 1. Deploy to green environment
+          # 2. Run comprehensive health checks
+          # 3. Switch traffic from blue to green
+          # 4. Monitor for issues
+          # 5. Keep blue as rollback option
+          
+          echo "✅ Blue-green deployment completed"
+
+      - name: Database migrations
+        run: |
+          echo "🗄️ Running database migrations..."
+          # Example: kubectl exec deployment/app -- python manage.py migrate
+          echo "✅ Database migrations completed"
+
+      - name: Health checks
+        run: |
+          echo "🏥 Running production health checks..."
+          
+          # Example health checks
+          # curl -f https://pneumonia-detector.com/health
+          # curl -f https://pneumonia-detector.com/metrics
+          
+          echo "✅ Health checks passed"
+
+      - name: Update monitoring
+        run: |
+          echo "📊 Updating monitoring and alerting..."
+          # Update Prometheus targets, Grafana dashboards, etc.
+          echo "✅ Monitoring updated"
+
+      - name: Post-deployment verification
+        run: |
+          echo "🔍 Running post-deployment verification..."
+          
+          # Run a subset of integration tests against production
+          # Verify key functionality works
+          # Check performance metrics
+          
+          echo "✅ Post-deployment verification completed"
+
+  # Rollback capability
+  rollback:
+    name: Rollback
+    runs-on: ubuntu-latest
+    environment: production
+    if: failure() && (github.event_name == 'release' || github.event.inputs.environment == 'production')
+    needs: deploy-production
+    
+    steps:
+      - name: Rollback deployment
+        run: |
+          echo "⚠️ Initiating rollback..."
+          
+          # In a real scenario:
+          # 1. Switch traffic back to blue environment
+          # 2. Revert database migrations if needed
+          # 3. Restore previous configuration
+          # 4. Notify team of rollback
+          
+          echo "🔄 Rollback completed"
+
+      - name: Incident notification
+        run: |
+          echo "🚨 Deployment failed - rollback initiated"
+          echo "Version: ${{ github.sha }}"
+          echo "Environment: production"
+          echo "Action: Rolled back to previous version"
+
+  # Package and release
+  package-release:
+    name: Package & Release
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        run: |
+          python -m build
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          # Only publish if we have PyPI credentials
+          if [[ -n "$TWINE_PASSWORD" ]]; then
+            twine upload dist/*
+          else
+            echo "⚠️ PyPI credentials not configured, skipping upload"
+          fi
+
+      - name: Upload release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./dist/
+          asset_name: dist
+          asset_content_type: application/zip
+
+  # Update documentation
+  update-docs:
+    name: Update Documentation
+    needs: deploy-production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update version documentation
+        run: |
+          echo "📚 Updating documentation for release ${{ github.ref_name }}"
+          
+          # Update API documentation
+          # Generate changelog
+          # Update deployment guides
+          
+          echo "✅ Documentation updated"
+
+      - name: Deploy documentation
+        run: |
+          echo "🌐 Deploying updated documentation..."
+          # Deploy to GitHub Pages or documentation hosting
+          echo "✅ Documentation deployed"

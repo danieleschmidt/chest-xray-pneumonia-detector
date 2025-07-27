@@ -172,4 +172,59 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Project specific
 predictions.csv
+*.keras
+*.h5
+training_history.png
+training_history.csv
+gradcam.png
+reports/
+saved_models/
+checkpoints/
+mlruns/
+data/
+notebooks/
+
+# Docker
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# MLflow
+mlflow.db
+
+# Jupyter
+*.ipynb_checkpoints
+
+# Coverage
+.coverage.*
+htmlcov/
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Package management
+*.lock
