@@ -1,0 +1,252 @@
+# Comprehensive Logging Configuration for Chest X-Ray Pneumonia Detector
+# This configuration supports multiple logging backends and formats
+
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  standard:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+  
+  detailed:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+  
+  json:
+    class: 'pythonjsonlogger.jsonlogger.JsonFormatter'
+    format: '%(asctime)s %(name)s %(levelname)s %(funcName)s %(lineno)d %(message)s'
+  
+  structured:
+    class: 'pythonjsonlogger.jsonlogger.JsonFormatter'
+    format: '%(asctime)s %(name)s %(levelname)s %(module)s %(funcName)s %(lineno)d %(process)d %(thread)d %(message)s'
+  
+  performance:
+    format: '%(asctime)s - PERF - %(name)s - %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+  
+  security:
+    class: 'pythonjsonlogger.jsonlogger.JsonFormatter'
+    format: '%(asctime)s %(name)s SECURITY %(levelname)s %(message)s %(user)s %(ip_address)s %(action)s'
+  
+  audit:
+    class: 'pythonjsonlogger.jsonlogger.JsonFormatter'
+    format: '%(asctime)s AUDIT %(user)s %(action)s %(resource)s %(result)s %(ip_address)s %(user_agent)s'
+
+filters:
+  security_filter:
+    class: 'src.monitoring.logging_config.SecurityFilter'
+  
+  performance_filter:
+    class: 'src.monitoring.logging_config.PerformanceFilter'
+  
+  pii_filter:
+    class: 'src.monitoring.logging_config.PIIFilter'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: standard
+    stream: ext://sys.stdout
+    filters: [pii_filter]
+  
+  file_app:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: detailed
+    filename: logs/app.log
+    maxBytes: 50MB
+    backupCount: 10
+    encoding: utf8
+    filters: [pii_filter]
+  
+  file_error:
+    class: logging.handlers.RotatingFileHandler
+    level: ERROR
+    formatter: detailed
+    filename: logs/error.log
+    maxBytes: 50MB
+    backupCount: 10
+    encoding: utf8
+  
+  file_performance:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: performance
+    filename: logs/performance.log
+    maxBytes: 100MB
+    backupCount: 5
+    encoding: utf8
+    filters: [performance_filter]
+  
+  file_security:
+    class: logging.handlers.RotatingFileHandler
+    level: WARNING
+    formatter: security
+    filename: logs/security.log
+    maxBytes: 50MB
+    backupCount: 20
+    encoding: utf8
+    filters: [security_filter]
+  
+  file_audit:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: audit
+    filename: logs/audit.log
+    maxBytes: 100MB
+    backupCount: 30
+    encoding: utf8
+  
+  file_json:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: json
+    filename: logs/app.json
+    maxBytes: 100MB
+    backupCount: 7
+    encoding: utf8
+    filters: [pii_filter]
+  
+  syslog:
+    class: logging.handlers.SysLogHandler
+    level: WARNING
+    formatter: structured
+    address: ['localhost', 514]
+    facility: local0
+  
+  network:
+    class: logging.handlers.HTTPHandler
+    level: ERROR
+    host: 'log-aggregator:8080'
+    url: '/logs'
+    method: POST
+    formatter: json
+
+loggers:
+  # Root logger
+  '':
+    level: INFO
+    handlers: [console, file_app, file_error, file_json]
+    propagate: false
+  
+  # Application loggers
+  src:
+    level: INFO
+    handlers: [console, file_app, file_json]
+    propagate: false
+  
+  src.data_loader:
+    level: INFO
+    handlers: [file_app, file_performance]
+    propagate: true
+  
+  src.model_builder:
+    level: INFO
+    handlers: [file_app, file_performance]
+    propagate: true
+  
+  src.train_engine:
+    level: INFO
+    handlers: [file_app, file_performance]
+    propagate: true
+  
+  src.inference:
+    level: INFO
+    handlers: [file_app, file_performance]
+    propagate: true
+  
+  src.monitoring:
+    level: DEBUG
+    handlers: [file_app, file_performance]
+    propagate: true
+  
+  # Performance logging
+  performance:
+    level: INFO
+    handlers: [file_performance]
+    propagate: false
+  
+  # Security logging
+  security:
+    level: WARNING
+    handlers: [file_security, syslog]
+    propagate: false
+  
+  # Audit logging
+  audit:
+    level: INFO
+    handlers: [file_audit, syslog]
+    propagate: false
+  
+  # External libraries
+  tensorflow:
+    level: WARNING
+    handlers: [file_app]
+    propagate: false
+  
+  urllib3:
+    level: WARNING
+    handlers: [file_app]
+    propagate: false
+  
+  requests:
+    level: WARNING
+    handlers: [file_app]
+    propagate: false
+  
+  mlflow:
+    level: INFO
+    handlers: [file_app]
+    propagate: false
+  
+  # Database logging
+  sqlalchemy:
+    level: WARNING
+    handlers: [file_app]
+    propagate: false
+  
+  # HTTP access logging
+  uvicorn.access:
+    level: INFO
+    handlers: [file_audit]
+    propagate: false
+  
+  # Error tracking
+  error_tracking:
+    level: ERROR
+    handlers: [network, file_error]
+    propagate: false
+
+# Environment-specific overrides
+dev:
+  loggers:
+    '':
+      level: DEBUG
+      handlers: [console]
+    src:
+      level: DEBUG
+      handlers: [console, file_app]
+
+test:
+  loggers:
+    '':
+      level: WARNING
+      handlers: [console]
+    src:
+      level: INFO
+      handlers: [console]
+
+production:
+  loggers:
+    '':
+      level: INFO
+      handlers: [file_app, file_error, file_json, syslog]
+    src:
+      level: INFO
+      handlers: [file_app, file_json]
+    security:
+      level: INFO  # More verbose security logging in production
+    performance:
+      level: INFO

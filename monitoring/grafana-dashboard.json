@@ -1,0 +1,336 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Chest X-Ray Pneumonia Detector - Operations Dashboard",
+    "tags": ["pneumonia-detector", "ml", "healthcare"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Service Health Overview",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"pneumonia-detector\"}",
+            "legendFormat": "Service Status"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {
+                "options": {
+                  "0": {
+                    "text": "DOWN",
+                    "color": "red"
+                  },
+                  "1": {
+                    "text": "UP",
+                    "color": "green"
+                  }
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": 0
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Inference Rate (per minute)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(pneumonia_detector_inference_total[1m]) * 60",
+            "legendFormat": "Inferences/min"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps",
+            "min": 0
+          }
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Error Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(pneumonia_detector_errors_total[5m]) * 100",
+            "legendFormat": "Error Rate %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "yellow",
+                  "value": 1
+                },
+                {
+                  "color": "red",
+                  "value": 5
+                }
+              ]
+            }
+          }
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 4,
+        "title": "Average Inference Latency",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(pneumonia_detector_inference_duration_seconds_bucket[5m]))",
+            "legendFormat": "Median Latency"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "min": 0,
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "yellow",
+                  "value": 1
+                },
+                {
+                  "color": "red",
+                  "value": 2
+                }
+              ]
+            }
+          }
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 18,
+          "y": 0
+        }
+      },
+      {
+        "id": 5,
+        "title": "Inference Latency Percentiles",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(pneumonia_detector_inference_duration_seconds_bucket[5m]))",
+            "legendFormat": "50th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.90, rate(pneumonia_detector_inference_duration_seconds_bucket[5m]))",
+            "legendFormat": "90th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(pneumonia_detector_inference_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(pneumonia_detector_inference_duration_seconds_bucket[5m]))",
+            "legendFormat": "99th percentile"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Seconds",
+            "min": 0
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 4
+        }
+      },
+      {
+        "id": 6,
+        "title": "Request Rate & Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(pneumonia_detector_inference_total[1m]) * 60",
+            "legendFormat": "Requests/min"
+          },
+          {
+            "expr": "rate(pneumonia_detector_errors_total[1m]) * 60",
+            "legendFormat": "Errors/min"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Rate per minute",
+            "min": 0
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 7,
+        "title": "System Resources",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "pneumonia_detector_cpu_percent",
+            "legendFormat": "CPU %"
+          },
+          {
+            "expr": "pneumonia_detector_memory_percent",
+            "legendFormat": "Memory %"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Percentage",
+            "min": 0,
+            "max": 100
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 12
+        }
+      },
+      {
+        "id": 8,
+        "title": "Memory Usage Details",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "pneumonia_detector_memory_used_bytes / 1024 / 1024 / 1024",
+            "legendFormat": "Memory Used (GB)"
+          },
+          {
+            "expr": "pneumonia_detector_model_memory_usage_mb / 1024",
+            "legendFormat": "Model Memory (GB)"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Gigabytes",
+            "min": 0
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        }
+      },
+      {
+        "id": 9,
+        "title": "Model Performance Metrics",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "pneumonia_detector_inference_total",
+            "legendFormat": "Total Inferences",
+            "format": "table",
+            "instant": true
+          },
+          {
+            "expr": "pneumonia_detector_errors_total",
+            "legendFormat": "Total Errors",
+            "format": "table",
+            "instant": true
+          },
+          {
+            "expr": "pneumonia_detector_model_load_time_seconds",
+            "legendFormat": "Model Load Time (s)",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "gridPos": {
+          "h": 6,
+          "w": 24,
+          "x": 0,
+          "y": 20
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "instance",
+          "type": "query",
+          "query": "label_values(up{job=\"pneumonia-detector\"}, instance)",
+          "refresh": 1,
+          "includeAll": true,
+          "allValue": ".*"
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "Prometheus",
+          "expr": "changes(pneumonia_detector_uptime_seconds[5m]) > 0",
+          "titleFormat": "Deployment",
+          "textFormat": "Service restarted"
+        }
+      ]
+    }
+  }
+}
