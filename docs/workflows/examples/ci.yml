@@ -1,0 +1,489 @@
+name: 🔬 Continuous Integration
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION_PRIMARY: "3.10"
+  PYTHON_VERSION_MATRIX: "3.8,3.9,3.10"
+  REGISTRY: ghcr.io
+  IMAGE_NAME: chest-xray-pneumonia-detector
+
+jobs:
+  # Pre-flight checks and basic validation
+  pre-flight:
+    name: 🚀 Pre-flight Checks
+    runs-on: ubuntu-latest
+    outputs:
+      should-run-tests: ${{ steps.changes.outputs.src == 'true' || steps.changes.outputs.tests == 'true' }}
+      should-build-docker: ${{ steps.changes.outputs.docker == 'true' || steps.changes.outputs.src == 'true' }}
+      python-version-matrix: ${{ env.PYTHON_VERSION_MATRIX }}
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 🔍 Check for Changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            src:
+              - 'src/**'
+              - 'requirements*.txt'
+              - 'pyproject.toml'
+            tests:
+              - 'tests/**'
+            docker:
+              - 'Dockerfile'
+              - 'docker-compose*.yml'
+            docs:
+              - 'docs/**'
+              - '*.md'
+      
+      - name: 📋 Job Summary
+        run: |
+          echo "## Pre-flight Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Source changes: ${{ steps.changes.outputs.src }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Test changes: ${{ steps.changes.outputs.tests }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker changes: ${{ steps.changes.outputs.docker }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Documentation changes: ${{ steps.changes.outputs.docs }}" >> $GITHUB_STEP_SUMMARY
+
+  # Code quality and linting
+  code-quality:
+    name: 🧹 Code Quality
+    runs-on: ubuntu-latest
+    needs: pre-flight
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION_PRIMARY }}
+          cache: 'pip'
+      
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff black bandit mypy
+          pip install -r requirements-dev.txt
+      
+      - name: 🎨 Check Code Formatting (Black)
+        run: black --check --diff src/ tests/
+      
+      - name: 🔍 Lint Code (Ruff)
+        run: ruff check src/ tests/ --output-format=github
+      
+      - name: 🛡️ Security Scan (Bandit)
+        run: bandit -r src/ -f json -o bandit-report.json -ll
+      
+      - name: 📝 Type Check (MyPy)
+        run: mypy src/ --ignore-missing-imports --no-strict-optional
+        continue-on-error: true
+      
+      - name: 📊 Upload Code Quality Reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: code-quality-reports
+          path: |
+            bandit-report.json
+            mypy-report.txt
+
+  # Security scanning
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    needs: pre-flight
+    permissions:
+      security-events: write
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION_PRIMARY }}
+          cache: 'pip'
+      
+      - name: 📦 Install Security Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety pip-audit bandit semgrep
+          pip install -r requirements.txt
+      
+      - name: 🔍 Dependency Vulnerability Scan (Safety)
+        run: |
+          safety check --json --output safety-report.json || true
+          safety check --output safety-report.txt || true
+      
+      - name: 🔍 Alternative Dependency Scan (pip-audit)
+        run: |
+          pip-audit --format=json --output=pip-audit-report.json || true
+      
+      - name: 🔍 Static Analysis (Semgrep)
+        run: |
+          semgrep --config=auto --json --output=semgrep-report.json src/ || true
+      
+      - name: 📤 Upload Security Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: |
+            safety-report.json
+            safety-report.txt
+            pip-audit-report.json
+            semgrep-report.json
+      
+      - name: 📊 Security Summary
+        run: |
+          echo "## Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f safety-report.json ]; then
+            VULN_COUNT=$(jq length safety-report.json)
+            echo "- Safety vulnerabilities: $VULN_COUNT" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f semgrep-report.json ]; then
+            ERROR_COUNT=$(jq '.results | map(select(.extra.severity == "ERROR")) | length' semgrep-report.json)
+            echo "- Semgrep errors: $ERROR_COUNT" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Test execution with matrix strategy
+  test:
+    name: 🧪 Test Suite (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    needs: [pre-flight, code-quality]
+    if: needs.pre-flight.outputs.should-run-tests == 'true'
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: 🐍 Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          pip install -e .
+      
+      - name: 🧪 Run Unit Tests
+        env:
+          DATABASE_URL: postgresql://test_user:test_pass@localhost/test_db
+        run: |
+          pytest tests/ -v \
+            --cov=src \
+            --cov-report=xml \
+            --cov-report=html \
+            --cov-report=term-missing \
+            --junit-xml=pytest-results.xml \
+            --tb=short
+      
+      - name: 📊 Upload Coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-${{ matrix.python-version }}
+          fail_ci_if_error: false
+      
+      - name: 📤 Upload Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ matrix.python-version }}
+          path: |
+            pytest-results.xml
+            htmlcov/
+            coverage.xml
+      
+      - name: 🎯 Coverage Gate Check
+        run: |
+          COVERAGE=$(python -c "import xml.etree.ElementTree as ET; print(ET.parse('coverage.xml').getroot().attrib['line-rate'])")
+          COVERAGE_PERCENT=$(python -c "print(int(float('$COVERAGE') * 100))")
+          echo "Coverage: $COVERAGE_PERCENT%"
+          if [ $COVERAGE_PERCENT -lt 85 ]; then
+            echo "❌ Coverage $COVERAGE_PERCENT% is below 85% threshold"
+            exit 1
+          else
+            echo "✅ Coverage $COVERAGE_PERCENT% meets threshold"
+          fi
+
+  # Performance and integration tests
+  integration-test:
+    name: 🔄 Integration Tests
+    runs-on: ubuntu-latest
+    needs: [pre-flight, test]
+    if: needs.pre-flight.outputs.should-run-tests == 'true'
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: mlflow
+          POSTGRES_USER: mlflow
+          POSTGRES_PASSWORD: mlflow
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION_PRIMARY }}
+          cache: 'pip'
+      
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          pip install -e .
+      
+      - name: 🚀 Start MLflow Server
+        run: |
+          mlflow server \
+            --backend-store-uri postgresql://mlflow:mlflow@localhost/mlflow \
+            --default-artifact-root ./mlruns \
+            --host 0.0.0.0 \
+            --port 5000 &
+          sleep 10
+        env:
+          MLFLOW_TRACKING_URI: http://localhost:5000
+      
+      - name: 🧪 Run Integration Tests
+        run: |
+          pytest tests/e2e/ -v \
+            --junit-xml=integration-results.xml \
+            --tb=short
+        env:
+          MLFLOW_TRACKING_URI: http://localhost:5000
+          DATABASE_URL: postgresql://mlflow:mlflow@localhost/mlflow
+      
+      - name: ⚡ Run Performance Tests
+        run: |
+          pytest tests/performance/ -v \
+            --junit-xml=performance-results.xml \
+            --tb=short
+        continue-on-error: true
+      
+      - name: 📤 Upload Integration Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: integration-test-results
+          path: |
+            integration-results.xml
+            performance-results.xml
+
+  # Docker image build and scan
+  docker-build:
+    name: 🐳 Docker Build & Scan
+    runs-on: ubuntu-latest
+    needs: [pre-flight, code-quality]
+    if: needs.pre-flight.outputs.should-build-docker == 'true'
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: 🔧 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: 🏷️ Extract Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha
+      
+      - name: 🏗️ Build Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: production
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=docker,dest=/tmp/image.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: 📤 Upload Docker Image
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-image
+          path: /tmp/image.tar
+      
+      - name: 🔍 Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy
+      
+      - name: 🔍 Load and Scan Docker Image
+        run: |
+          docker load --input /tmp/image.tar
+          IMAGE_ID=$(docker images --format "table {{.Repository}}:{{.Tag}}" | grep ${{ env.IMAGE_NAME }} | head -1)
+          echo "Scanning image: $IMAGE_ID"
+          
+          # Scan for vulnerabilities
+          trivy image --format json --output trivy-report.json $IMAGE_ID
+          trivy image --format table --severity HIGH,CRITICAL $IMAGE_ID
+      
+      - name: 📤 Upload Security Scan Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-security-scan
+          path: trivy-report.json
+      
+      - name: 🎯 Security Gate Check
+        run: |
+          HIGH_VULNS=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-report.json)
+          CRITICAL_VULNS=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-report.json)
+          
+          echo "High severity vulnerabilities: $HIGH_VULNS"
+          echo "Critical severity vulnerabilities: $CRITICAL_VULNS"
+          
+          if [ $CRITICAL_VULNS -gt 0 ]; then
+            echo "❌ Critical vulnerabilities found"
+            exit 1
+          elif [ $HIGH_VULNS -gt 5 ]; then
+            echo "⚠️ Too many high severity vulnerabilities ($HIGH_VULNS > 5)"
+            exit 1
+          else
+            echo "✅ Security scan passed"
+          fi
+
+  # SBOM Generation
+  sbom-generation:
+    name: 📋 SBOM Generation
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: always() && needs.docker-build.result == 'success'
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: 📥 Download Docker Image
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image
+          path: /tmp
+      
+      - name: 🔧 Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+      
+      - name: 📋 Generate SBOM
+        run: |
+          docker load --input /tmp/image.tar
+          IMAGE_ID=$(docker images --format "table {{.Repository}}:{{.Tag}}" | grep ${{ env.IMAGE_NAME }} | head -1)
+          
+          # Generate SBOM in multiple formats
+          syft $IMAGE_ID -o json > sbom.json
+          syft $IMAGE_ID -o spdx-json > sbom-spdx.json
+          syft $IMAGE_ID -o table > sbom.txt
+      
+      - name: 📤 Upload SBOM
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom-reports
+          path: |
+            sbom.json
+            sbom-spdx.json
+            sbom.txt
+
+  # Final status check and summary
+  ci-status:
+    name: ✅ CI Status Summary
+    runs-on: ubuntu-latest
+    needs: [pre-flight, code-quality, security-scan, test, integration-test, docker-build, sbom-generation]
+    if: always()
+    
+    steps:
+      - name: 📊 Generate CI Summary
+        run: |
+          echo "## 🔬 CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Job status summary
+          echo "### Job Status" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Pre-flight | ${{ needs.pre-flight.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Quality | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tests | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Integration Tests | ${{ needs.integration-test.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Build | ${{ needs.docker-build.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| SBOM Generation | ${{ needs.sbom-generation.result }} |" >> $GITHUB_STEP_SUMMARY
+          
+          # Overall status
+          if [[ "${{ needs.code-quality.result }}" == "success" && "${{ needs.test.result }}" == "success" ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ✅ Overall Status: PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "All required checks passed successfully!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ❌ Overall Status: FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "Some required checks failed. Please review the results above." >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: 🎯 Final Status Check
+        run: |
+          if [[ "${{ needs.code-quality.result }}" != "success" || "${{ needs.test.result }}" != "success" ]]; then
+            echo "❌ CI pipeline failed"
+            exit 1
+          else
+            echo "✅ CI pipeline passed"
+          fi
