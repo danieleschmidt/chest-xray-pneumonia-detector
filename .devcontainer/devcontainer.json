@@ -1,20 +1,32 @@
 {
-  "name": "🔬 Chest X-Ray Pneumonia Detector - Enhanced SDLC Environment",
-  "image": "mcr.microsoft.com/devcontainers/python:3.10-bullseye",
+  "name": "Chest X-Ray Pneumonia Detector Dev Environment",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  
+  "remoteEnv": {
+    "PYTHONPATH": "/workspace/src:${PYTHONPATH}",
+    "DEVELOPMENT_MODE": "true"
+  },
   
   "features": {
-    "ghcr.io/devcontainers/features/git:1": {
-      "version": "latest"
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.8",
+      "installTools": true
     },
-    "ghcr.io/devcontainers/features/github-cli:1": {
+    "ghcr.io/devcontainers/features/git:1": {
+      "ppa": true,
       "version": "latest"
     },
     "ghcr.io/devcontainers/features/docker-in-docker:2": {
       "version": "latest",
-      "dockerDashComposeVersion": "v2"
+      "enableNonRootDocker": "true"
     },
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "18"
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": "true",
+      "installOhMyZsh": "true",
+      "upgradePackages": "true"
     }
   },
   
@@ -22,108 +34,57 @@
     "vscode": {
       "extensions": [
         "ms-python.python",
+        "ms-python.vscode-pylance",
         "ms-python.black-formatter",
         "charliermarsh.ruff",
-        "ms-python.mypy-type-checker",
-        "ms-toolsai.jupyter",
-        "ms-toolsai.jupyter-keymap",
-        "ms-toolsai.jupyter-renderers",
-        "ms-vscode.makefile-tools",
-        "redhat.vscode-yaml",
-        "ms-vscode.vscode-json",
-        "tamasfe.even-better-toml",
-        "ms-vscode.docker",
-        "ms-azuretools.vscode-docker",
-        "github.vscode-github-actions",
-        "github.copilot",
-        "github.copilot-chat",
-        "ms-vscode.vscode-github-pullrequest",
+        "ms-python.pytest",
         "eamodio.gitlens",
-        "ms-vscode.test-adapter-converter",
-        "littlefoxteam.vscode-python-test-adapter",
-        "ms-vscode.remote-repositories",
-        "ms-vsliveshare.vsliveshare"
+        "github.vscode-pull-request-github",
+        "yzhang.markdown-all-in-one",
+        "ms-azuretools.vscode-docker",
+        "ms-toolsai.jupyter",
+        "redhat.vscode-yaml",
+        "ms-vscode.vscode-json"
       ],
+      
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "python.formatting.provider": "black",
-        "python.formatting.blackArgs": ["--line-length", "88"],
         "python.linting.enabled": true,
-        "python.linting.ruffEnabled": true,
         "python.linting.banditEnabled": true,
-        "python.linting.mypyEnabled": true,
+        "python.formatting.provider": "black",
+        "python.formatting.blackArgs": ["--line-length=88"],
         "python.testing.pytestEnabled": true,
-        "python.testing.pytestArgs": ["tests", "-v"],
         "python.testing.unittestEnabled": false,
-        "files.autoSave": "onFocusChange",
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
           "source.organizeImports": true,
-          "source.fixAll": true
+          "source.fixAll.ruff": true
         },
-        "files.associations": {
-          "*.yml": "yaml",
-          "*.yaml": "yaml",
-          "Dockerfile*": "dockerfile",
-          "*.toml": "toml",
-          ".github/workflows/*": "yaml"
-        },
-        "yaml.schemas": {
-          "https://json.schemastore.org/github-workflow.json": "/.github/workflows/*.yml",
-          "https://json.schemastore.org/dependabot-v2.json": "/.github/dependabot.yml"
-        },
-        "git.autofetch": true,
-        "git.enableSmartCommit": true,
-        "terminal.integrated.defaultProfile.linux": "bash",
-        "workbench.startupEditor": "readme"
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "telemetry.telemetryLevel": "off"
       }
     }
   },
   
-  "forwardPorts": [8000, 8888, 5000, 3000, 9090],
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  
+  "forwardPorts": [8000, 8888, 5000, 9090, 3000],
+  
   "portsAttributes": {
     "8000": {
-      "label": "🌐 API Server",
+      "label": "API Server",
       "onAutoForward": "notify"
     },
     "8888": {
-      "label": "📊 Jupyter Notebook",
-      "onAutoForward": "openBrowser"
+      "label": "Jupyter Lab",
+      "onAutoForward": "openPreview"
     },
     "5000": {
-      "label": "🚀 Development Server",
+      "label": "MLflow UI",
       "onAutoForward": "notify"
-    },
-    "3000": {
-      "label": "📈 Monitoring Dashboard",
-      "onAutoForward": "notify"
-    },
-    "9090": {
-      "label": "📊 Prometheus Metrics",
-      "onAutoForward": "silent"
     }
   },
   
-  "postCreateCommand": "bash scripts/setup-dev.sh && pre-commit install",
-  "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
-  
-  "remoteUser": "vscode",
-  "containerEnv": {
-    "PYTHONPATH": "/workspaces/repo/src",
-    "DEVELOPMENT": "true",
-    "JUPYTER_ENABLE_LAB": "yes",
-    "GIT_EDITOR": "code --wait"
-  },
-  
-  "mounts": [
-    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
-    "source=chest-xray-vscode-extensions,target=/home/vscode/.vscode-server/extensions,type=volume",
-    "source=chest-xray-python-cache,target=/home/vscode/.cache,type=volume"
-  ],
-  
-  "initializeCommand": "echo '🚀 Initializing Comprehensive SDLC Environment...'",
-  "onCreateCommand": "echo '📦 Setting up development dependencies...'",
-  "updateContentCommand": "echo '🔄 Updating development environment...'",
-  
-  "waitFor": "postCreateCommand"
+  "remoteUser": "vscode"
 }
