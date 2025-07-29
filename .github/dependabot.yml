@@ -1,0 +1,65 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    reviewers:
+      - "terragon-labs/security-team"
+    assignees:
+      - "terragon-labs/maintainers"
+    open-pull-requests-limit: 5
+    target-branch: "main"
+    # Security updates only for production dependencies
+    allow:
+      - dependency-type: "direct"
+        update-type: "security"
+      - dependency-type: "indirect"
+        update-type: "security"
+    ignore:
+      # Ignore major version updates for stable ML frameworks
+      - dependency-name: "tensorflow"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "scikit-learn"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "pandas"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "1"
+      time: "06:00"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    reviewers:
+      - "terragon-labs/devops-team"
+    assignees:
+      - "terragon-labs/maintainers"
+    open-pull-requests-limit: 3
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "06:00"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+    reviewers:
+      - "terragon-labs/devops-team"
+    assignees:
+      - "terragon-labs/maintainers"
+    open-pull-requests-limit: 2

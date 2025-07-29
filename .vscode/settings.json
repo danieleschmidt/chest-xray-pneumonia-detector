@@ -1,0 +1,94 @@
+{
+    "python.defaultInterpreterPath": "./venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+        "tests",
+        "--tb=short",
+        "-v"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.banditEnabled": true,
+    "python.linting.banditArgs": [
+        "-r",
+        "src",
+        "-ll"
+    ],
+    "python.formatting.provider": "black",
+    "python.formatting.blackArgs": [
+        "--line-length=88"
+    ],
+    "python.linting.ruffEnabled": true,
+    "python.linting.ruffArgs": [
+        "--line-length=88"
+    ],
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.completeFunctionParens": true,
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true,
+        "source.fixAll.ruff": true
+    },
+    "files.associations": {
+        "*.yml": "yaml",
+        "*.yaml": "yaml",
+        "Dockerfile*": "dockerfile",
+        "*.toml": "toml"
+    },
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/.pytest_cache": true,
+        "**/.coverage": true,
+        "**/htmlcov": true,
+        "**/.mypy_cache": true,
+        "**/.ruff_cache": true,
+        "**/dist": true,
+        "**/build": true,
+        "**/*.egg-info": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/*.code-search": true,
+        "**/__pycache__": true,
+        "**/.pytest_cache": true,
+        "**/.mypy_cache": true,
+        "**/.ruff_cache": true,
+        "**/dist": true,
+        "**/build": true
+    },
+    "jupyter.askForKernelRestart": false,
+    "jupyter.interactiveWindow.textEditor.executeSelection": true,
+    "docker.showStartPage": false,
+    "yaml.schemas": {
+        "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": [
+            "docker-compose*.yml",
+            "docker-compose*.yaml"
+        ],
+        "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json": [
+            ".github/workflows/*.yml",
+            ".github/workflows/*.yaml"
+        ]
+    },
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#1f2937",
+        "activityBar.foreground": "#e5e7eb",
+        "statusBar.background": "#111827",
+        "statusBar.foreground": "#e5e7eb"
+    },
+    "extensions.recommendations": [
+        "ms-python.python",
+        "ms-python.black-formatter",
+        "charliermarsh.ruff",
+        "ms-toolsai.jupyter",
+        "ms-vscode.docker",
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml",
+        "ms-vscode.test-adapter-converter",
+        "ms-python.pytest"
+    ]
+}
