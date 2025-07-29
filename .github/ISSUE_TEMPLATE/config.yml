@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/terragon-labs/chest-xray-pneumonia-detector/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 📚 Documentation
+    url: https://chest-xray-detector.readthedocs.io
+    about: Check our comprehensive documentation
+  - name: 🔒 Security Issues
+    url: https://github.com/terragon-labs/chest-xray-pneumonia-detector/security/advisories/new
+    about: Please report security vulnerabilities privately
+  - name: 🏥 Medical AI Ethics
+    url: https://terragon-labs.com/medical-ai-ethics
+    about: Questions about medical AI ethics and responsible development

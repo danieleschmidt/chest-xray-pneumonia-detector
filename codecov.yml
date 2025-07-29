@@ -1,0 +1,81 @@
+coverage:
+  precision: 2
+  round: down
+  range: "70...95"
+  
+  status:
+    project:
+      default:
+        target: 85%
+        threshold: 2%
+        base: auto
+    patch:
+      default:
+        target: 80%
+        threshold: 5%
+        base: auto
+    changes: false
+
+parsers:
+  gcov:
+    branch_detection:
+      conditional: yes
+      loop: yes
+      macro: no
+      method: no
+  javascript:
+    enable_partials: no
+
+comment:
+  layout: "header, diff, flags, components, tree"
+  behavior: default
+  require_changes: false
+  require_base: no
+  require_head: yes
+
+github_checks:
+  annotations: true
+
+ignore:
+  - "tests/"
+  - "test_*.py"
+  - "**/conftest.py"
+  - "**/__init__.py"
+  - "scripts/"
+  - "docs/"
+  - "*.md"
+
+component_management:
+  default_rules:
+    statuses:
+      - type: project
+        target: 85%
+      - type: patch
+        target: 80%
+  individual_components:
+    - component_id: "core"
+      name: "Core ML Pipeline"
+      paths:
+        - "src/chest_xray_pneumonia_detector/"
+        - "src/model_builder.py"
+        - "src/train_engine.py"
+        - "src/inference.py"
+      statuses:
+        - type: project
+          target: 90%
+    - component_id: "data"
+      name: "Data Processing"
+      paths:
+        - "src/data_loader.py"
+        - "src/data_split.py"
+        - "src/image_utils.py"
+      statuses:
+        - type: project
+          target: 85%
+    - component_id: "monitoring"
+      name: "Monitoring & Observability"
+      paths:
+        - "src/monitoring/"
+      statuses:
+        - type: project
+          target: 80%

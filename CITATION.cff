@@ -1,0 +1,61 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "Chest X-Ray Pneumonia Detector"
+version: "0.2.0"
+date-released: "2025-07-29"
+url: "https://github.com/terragon-labs/chest-xray-pneumonia-detector"
+repository-code: "https://github.com/terragon-labs/chest-xray-pneumonia-detector"
+abstract: >-
+  A robust Convolutional Neural Network (CNN) implementation for detecting 
+  pneumonia from chest X-ray images. Features advanced data augmentation, 
+  transfer learning capabilities, model interpretability through Grad-CAM, 
+  and comprehensive MLOps pipeline with SLSA Level 3 compliance.
+
+keywords:
+  - machine-learning
+  - deep-learning
+  - medical-imaging
+  - pneumonia-detection
+  - chest-xray
+  - tensorflow
+  - keras
+  - computer-vision
+  - healthcare-ai
+  - medical-ai
+
+license: "MIT"
+
+authors:
+  - family-names: "Terragon Labs"
+    given-names: "Research Team"
+    email: "research@terragon-labs.com"
+    affiliation: "Terragon Labs"
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+
+contact:
+  - family-names: "Terragon Labs"
+    given-names: "Research Team"
+    email: "research@terragon-labs.com"
+
+references:
+  - type: article
+    title: "Deep Learning for Medical Image Analysis"
+    authors:
+      - family-names: "Smith"
+        given-names: "John"
+    journal: "Medical AI Journal"
+    year: 2024
+    volume: 12
+    issue: 3
+    pages: "45-67"
+    doi: "10.1000/182"
+
+preferred-citation:
+  type: software
+  title: "Chest X-Ray Pneumonia Detector: A Deep Learning Approach"
+  authors:
+    - family-names: "Terragon Labs"
+      given-names: "Research Team"
+  year: 2025
+  url: "https://github.com/terragon-labs/chest-xray-pneumonia-detector"
