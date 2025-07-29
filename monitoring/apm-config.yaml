@@ -1,0 +1,374 @@
+# Advanced Application Performance Monitoring Configuration
+# Comprehensive observability setup for production-grade ML systems
+
+version: "3.8"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🔍 DISTRIBUTED TRACING CONFIGURATION
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+tracing:
+  jaeger:
+    enabled: true
+    agent_host: "localhost"
+    agent_port: 6831
+    collector_endpoint: "http://localhost:14268/api/traces"
+    service_name: "chest-xray-detector"
+    service_version: "${APP_VERSION:-2.0.0}"
+    environment: "${ENVIRONMENT:-development}"
+    
+    # Sampling configuration
+    sampling:
+      type: "probabilistic"
+      param: 0.1  # Sample 10% of traces in production
+      per_operation_strategies:
+        - operation: "health_check"
+          type: "ratelimiting"
+          max_traces_per_second: 1
+        - operation: "model_inference"
+          type: "probabilistic"
+          param: 0.5  # Sample 50% of inference requests
+        - operation: "batch_processing"
+          type: "probabilistic"
+          param: 1.0  # Sample all batch operations
+    
+    # Trace tags and baggage
+    tags:
+      - key: "service.name"
+        value: "chest-xray-detector"
+      - key: "service.version"
+        value: "${APP_VERSION:-2.0.0}"
+      - key: "deployment.environment"
+        value: "${ENVIRONMENT:-development}"
+      - key: "ml.model.version"
+        value: "${MODEL_VERSION:-unknown}"
+    
+    # Advanced tracing options
+    options:
+      max_tag_value_length: 1024
+      max_logs_per_span: 100
+      disable_tracing: false
+      enable_b3_propagation: true
+      enable_w3c_propagation: true
+
+  # OpenTelemetry configuration
+  opentelemetry:
+    enabled: true
+    endpoint: "http://localhost:4317"
+    protocol: "grpc"
+    
+    # Resource attributes
+    resource:
+      service.name: "chest-xray-detector"
+      service.version: "${APP_VERSION:-2.0.0}"
+      service.instance.id: "${HOSTNAME:-unknown}"
+      deployment.environment: "${ENVIRONMENT:-development}"
+      
+    # Instrumentation configuration
+    instrumentation:
+      http_requests: true
+      database_calls: true
+      external_api_calls: true
+      ml_inference: true
+      file_operations: true
+      
+    # Batch processor configuration
+    batch_processor:
+      max_export_batch_size: 512
+      export_timeout: 30s
+      schedule_delay: 5s
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 📊 METRICS AND APM
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+metrics:
+  prometheus:
+    enabled: true
+    port: 8090
+    path: "/metrics"
+    
+    # Custom metrics configuration
+    custom_metrics:
+      - name: "model_inference_duration_seconds"
+        type: "histogram"
+        description: "Time spent on model inference"
+        buckets: [0.001, 0.01, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+        labels: ["model_version", "batch_size", "image_type"]
+        
+      - name: "model_inference_total"
+        type: "counter"
+        description: "Total number of model inferences"
+        labels: ["model_version", "prediction", "confidence_bucket"]
+        
+      - name: "data_processing_duration_seconds"
+        type: "histogram"
+        description: "Time spent on data preprocessing"
+        buckets: [0.001, 0.01, 0.1, 0.5, 1.0, 2.0]
+        labels: ["preprocessing_type", "image_size"]
+        
+      - name: "model_accuracy_gauge"
+        type: "gauge"
+        description: "Current model accuracy"
+        labels: ["model_version", "dataset"]
+        
+      - name: "gpu_memory_usage_bytes"
+        type: "gauge"
+        description: "GPU memory usage"
+        labels: ["gpu_id", "process"]
+        
+      - name: "request_queue_size"
+        type: "gauge"
+        description: "Number of requests in processing queue"
+        labels: ["queue_type"]
+
+  # Application Performance Monitoring
+  apm:
+    elastic_apm:
+      enabled: true
+      server_url: "http://localhost:8200"
+      service_name: "chest-xray-detector"
+      service_version: "${APP_VERSION:-2.0.0}"
+      environment: "${ENVIRONMENT:-development}"
+      
+      # Transaction configuration
+      transactions:
+        sample_rate: 0.1
+        max_queue_size: 500
+        max_spans: 500
+        span_frames_min_duration: 5ms
+        
+      # Error tracking
+      errors:
+        capture_source: true
+        local_var_max_length: 1000
+        capture_body: "all"
+        
+      # Performance monitoring
+      performance:
+        capture_headers: true
+        capture_body: true
+        transaction_max_spans: 500
+        long_field_max_length: 10000
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🚨 ALERTING AND ANOMALY DETECTION
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+alerting:
+  enabled: true
+  
+  # ML-specific alerts
+  ml_alerts:
+    - name: "model_accuracy_degradation"
+      condition: "model_accuracy_gauge < 0.85"
+      severity: "critical"
+      description: "Model accuracy has dropped below acceptable threshold"
+      notification_channels: ["slack", "pagerduty"]
+      
+    - name: "inference_latency_high"
+      condition: "histogram_quantile(0.95, model_inference_duration_seconds) > 2.0"
+      severity: "warning"
+      description: "95th percentile inference latency exceeds 2 seconds"
+      notification_channels: ["slack"]
+      
+    - name: "gpu_memory_exhaustion"
+      condition: "gpu_memory_usage_bytes / gpu_memory_total_bytes > 0.9"
+      severity: "critical"
+      description: "GPU memory usage exceeds 90%"
+      notification_channels: ["slack", "pagerduty"]
+      
+    - name: "prediction_drift_detected"
+      condition: "rate(model_inference_total{prediction='pneumonia'}[1h]) > 0.8"
+      severity: "warning"
+      description: "Unusual spike in pneumonia predictions detected"
+      notification_channels: ["slack"]
+  
+  # System alerts
+  system_alerts:
+    - name: "high_error_rate"
+      condition: "rate(http_requests_total{status=~'5..'}[5m]) > 0.1"
+      severity: "critical"
+      description: "Error rate exceeds 10%"
+      
+    - name: "response_time_degradation"
+      condition: "histogram_quantile(0.95, http_request_duration_seconds) > 5.0"
+      severity: "warning"
+      description: "95th percentile response time exceeds 5 seconds"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 📈 BUSINESS METRICS AND KPIs
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+business_metrics:
+  enabled: true
+  
+  # Healthcare-specific KPIs
+  healthcare_kpis:
+    - name: "diagnostic_accuracy"
+      description: "Overall diagnostic accuracy"
+      calculation: "true_positives + true_negatives / total_predictions"
+      target: 0.92
+      
+    - name: "false_positive_rate"
+      description: "Rate of false positive diagnoses"
+      calculation: "false_positives / (false_positives + true_negatives)"
+      target: 0.05  # Max 5%
+      
+    - name: "false_negative_rate"
+      description: "Rate of missed pneumonia cases"
+      calculation: "false_negatives / (false_negatives + true_positives)"
+      target: 0.03  # Max 3%
+      
+    - name: "time_to_diagnosis"
+      description: "Average time from image upload to diagnosis"
+      calculation: "avg(diagnosis_completion_time - image_upload_time)"
+      target: 30  # 30 seconds
+      
+    - name: "system_availability"
+      description: "System uptime percentage"
+      calculation: "uptime / (uptime + downtime)"
+      target: 0.999  # 99.9%
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🔧 MONITORING INFRASTRUCTURE
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+infrastructure:
+  # Container monitoring
+  containers:
+    cadvisor:
+      enabled: true
+      port: 8080
+      collect_labels: true
+      
+    # Resource monitoring
+    resources:
+      cpu_monitoring: true
+      memory_monitoring: true
+      disk_monitoring: true
+      network_monitoring: true
+      gpu_monitoring: true
+  
+  # Log aggregation
+  logging:
+    fluentd:
+      enabled: true
+      forward_port: 24224
+      
+      # Log parsing and enrichment
+      parsing:
+        multiline_support: true
+        json_parsing: true
+        custom_parsers:
+          - name: "model_inference_logs"
+            pattern: '^\[(?<timestamp>[^\]]*)\] (?<level>\w+): Model inference - (?<details>.*)'
+            
+    # Log retention and rotation
+    retention:
+      default_retention_days: 30
+      audit_logs_retention_days: 90
+      error_logs_retention_days: 60
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🛡️ SECURITY MONITORING
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+security:
+  # Security event monitoring
+  siem:
+    enabled: true
+    
+    # Security metrics
+    security_metrics:
+      - name: "authentication_failures"
+        type: "counter"
+        description: "Number of authentication failures"
+        labels: ["source_ip", "user_agent"]
+        
+      - name: "api_rate_limit_violations"
+        type: "counter"
+        description: "API rate limit violations"
+        labels: ["client_id", "endpoint"]
+        
+      - name: "suspicious_requests"
+        type: "counter"
+        description: "Requests flagged as suspicious"
+        labels: ["rule_id", "severity"]
+  
+  # Audit logging
+  audit:
+    enabled: true
+    log_level: "INFO"
+    
+    # Events to audit
+    events:
+      - "user_authentication"
+      - "model_inference_request"
+      - "configuration_changes"
+      - "data_access"
+      - "admin_actions"
+      
+    # Compliance requirements
+    compliance:
+      hipaa_logging: true
+      gdpr_logging: true
+      retention_policy: "7_years"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 📊 DASHBOARDS AND VISUALIZATION
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+dashboards:
+  grafana:
+    enabled: true
+    
+    # Pre-configured dashboards
+    predefined_dashboards:
+      - name: "ML Model Performance"
+        file: "dashboards/ml-performance.json"
+        description: "Model accuracy, inference times, and prediction distributions"
+        
+      - name: "System Health"
+        file: "dashboards/system-health.json"
+        description: "CPU, memory, disk, and network metrics"
+        
+      - name: "API Performance"
+        file: "dashboards/api-performance.json"
+        description: "API response times, error rates, and throughput"
+        
+      - name: "Security Overview"
+        file: "dashboards/security-overview.json"
+        description: "Authentication, rate limiting, and security events"
+        
+      - name: "Business KPIs"
+        file: "dashboards/business-kpis.json"
+        description: "Healthcare-specific metrics and compliance indicators"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🔄 DEPLOYMENT AND ENVIRONMENT CONFIGURATION
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+deployment:
+  environments:
+    development:
+      tracing_sample_rate: 1.0
+      metric_collection_interval: 5s
+      log_level: "DEBUG"
+      
+    staging:
+      tracing_sample_rate: 0.5
+      metric_collection_interval: 10s
+      log_level: "INFO"
+      
+    production:
+      tracing_sample_rate: 0.1
+      metric_collection_interval: 15s
+      log_level: "WARN"
+      
+  # Feature flags for monitoring
+  feature_flags:
+    detailed_tracing: "${ENABLE_DETAILED_TRACING:-false}"
+    ml_performance_tracking: "${ENABLE_ML_PERF_TRACKING:-true}"
+    security_monitoring: "${ENABLE_SECURITY_MONITORING:-true}"
+    business_metrics: "${ENABLE_BUSINESS_METRICS:-true}"

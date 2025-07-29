@@ -1,0 +1,516 @@
+# SLSA Level 3 Supply Chain Security Configuration
+# Comprehensive supply chain security framework for advanced SDLC maturity
+
+apiVersion: slsa.dev/v1
+kind: ProvenanceConfiguration
+metadata:
+  name: chest-xray-detector-slsa-config
+  version: "1.0"
+  description: "SLSA Level 3 provenance generation and verification configuration"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🔐 SLSA LEVEL 3 REQUIREMENTS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+slsa_requirements:
+  level: 3
+  
+  # Source integrity requirements
+  source:
+    # Version control system requirements
+    vcs:
+      platform: "github"
+      repository: "organization/chest-xray-detector"
+      branch_protection:
+        required: true
+        enforce_admins: true
+        require_status_checks: true
+        require_up_to_date_branches: true
+        require_code_owner_reviews: true
+        required_approving_review_count: 2
+        dismiss_stale_reviews: true
+        restrict_pushes: true
+      
+    # Source verification
+    verification:
+      commit_signing: "required"
+      tag_signing: "required"
+      merge_commit_verification: true
+      
+  # Build integrity requirements
+  build:
+    # Isolated build environment
+    isolation:
+      ephemeral_environment: true
+      no_persistent_workers: true
+      network_isolated: false  # ML models may need external dependencies
+      
+    # Build process
+    process:
+      reproducible: true
+      parameterless: false  # ML training may require hyperparameters
+      hermetic: true
+      
+    # Builder requirements
+    builder:
+      id: "github-actions-hosted"
+      version: "ubuntu-22.04"
+      trusted: true
+      
+  # Provenance requirements
+  provenance:
+    completeness: "complete"
+    authenticity: "cryptographically_signed"
+    accuracy: "verified"
+    
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 📦 ARTIFACT PROVENANCE CONFIGURATION
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+artifacts:
+  # Container images
+  containers:
+    - name: "chest-xray-detector"
+      registry: "ghcr.io"
+      namespace: "organization"
+      
+      # Multi-architecture support
+      architectures:
+        - "linux/amd64"
+        - "linux/arm64"
+      
+      # Image signing configuration
+      signing:
+        enabled: true
+        tool: "cosign"
+        key_provider: "github_oidc"
+        policy_verification: true
+        
+      # SBOM generation
+      sbom:
+        enabled: true
+        format: "spdx-json"
+        include_dependencies: true
+        include_licenses: true
+        vulnerability_scan: true
+        
+      # Image scanning
+      security_scanning:
+        - tool: "trivy"
+          fail_on: "high"
+          ignore_unfixed: false
+        - tool: "grype"
+          fail_on: "medium"
+          
+  # Python packages
+  python_packages:
+    - name: "chest-xray-pneumonia-detector"
+      type: "wheel"
+      
+      # Package signing
+      signing:
+        enabled: true
+        tool: "sigstore"
+        keyless_signing: true
+        
+      # Dependency verification
+      dependencies:
+        pin_versions: true
+        verify_checksums: true
+        scan_vulnerabilities: true
+        license_compliance: true
+        
+  # ML Models
+  ml_models:
+    - name: "pneumonia-detector-v2.1"
+      format: "tensorflow_savedmodel"
+      
+      # Model provenance
+      provenance:
+        training_data_hash: "required"
+        training_script_hash: "required" 
+        hyperparameters: "recorded"
+        training_environment: "recorded"
+        
+      # Model validation
+      validation:
+        performance_metrics: "verified"
+        bias_testing: "required"
+        security_scan: "enabled"
+        
+      # Model signing
+      signing:
+        enabled: true
+        algorithm: "ecdsa-p256"
+        
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🔍 BUILD PROVENANCE GENERATION
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+provenance_generation:
+  # Provenance format
+  format: "slsa-provenance-v0.2"
+  
+  # Required fields
+  required_fields:
+    - "builder"
+    - "buildType"
+    - "invocation"
+    - "buildConfig"
+    - "metadata"
+    
+  # Builder information
+  builder:
+    id: "https://github.com/actions/runner"
+    version:
+      github_actions_runner: "${RUNNER_VERSION}"
+      ubuntu_version: "${RUNNER_OS_VERSION}"
+      
+  # Build type
+  buildType: "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.4.0"
+  
+  # Invocation details
+  invocation:
+    configSource:
+      uri: "git+https://github.com/organization/chest-xray-detector"
+      digest:
+        sha1: "${GITHUB_SHA}"
+      entryPoint: ".github/workflows/build.yml"
+      
+    parameters:
+      workflow_inputs: true
+      environment_variables: 
+        - "PYTHON_VERSION"
+        - "MODEL_VERSION"
+        - "BUILD_NUMBER"
+        
+    environment:
+      arch: "${RUNNER_ARCH}"
+      os: "${RUNNER_OS}"
+      variables:
+        GITHUB_ACTOR: "${GITHUB_ACTOR}"
+        GITHUB_EVENT_NAME: "${GITHUB_EVENT_NAME}"
+        GITHUB_REF: "${GITHUB_REF}"
+        GITHUB_REPOSITORY: "${GITHUB_REPOSITORY}"
+        GITHUB_RUN_ID: "${GITHUB_RUN_ID}"
+        GITHUB_SHA: "${GITHUB_SHA}"
+        
+  # Materials (dependencies)
+  materials:
+    - uri: "git+https://github.com/organization/chest-xray-detector"
+      digest:
+        sha1: "${GITHUB_SHA}"
+        
+    - uri: "https://files.pythonhosted.org/packages/"
+      digest:
+        sha256: "requirements.txt dependencies checksums"
+        
+    - uri: "https://registry.hub.docker.com/"
+      digest:
+        sha256: "base image digest"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🛡️ VERIFICATION POLICIES
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+verification_policies:
+  # Source verification
+  source_policy:
+    required_checks:
+      - name: "branch_protection"
+        severity: "critical"
+        
+      - name: "commit_signing"
+        severity: "critical"
+        
+      - name: "code_review"
+        severity: "high"
+        min_reviewers: 2
+        require_codeowner_review: true
+        
+      - name: "status_checks"
+        severity: "high"
+        required_checks:
+          - "build"
+          - "test"
+          - "security-scan"
+          - "dependency-scan"
+          
+  # Build verification
+  build_policy:
+    required_checks:
+      - name: "isolated_build"
+        severity: "critical"
+        
+      - name: "reproducible_build"
+        severity: "high"
+        tolerance: "10min"  # Allow for ML training variance
+        
+      - name: "hermetic_build"
+        severity: "high"
+        allowed_network_access:
+          - "pypi.org"
+          - "registry.hub.docker.com"
+          - "github.com"
+          
+  # Artifact verification
+  artifact_policy:
+    required_checks:
+      - name: "signature_verification"
+        severity: "critical"
+        
+      - name: "sbom_presence"
+        severity: "high"
+        
+      - name: "vulnerability_scan"
+        severity: "high"
+        max_severity: "medium"
+        
+      - name: "license_compliance"
+        severity: "medium"
+        allowed_licenses:
+          - "MIT"
+          - "Apache-2.0"
+          - "BSD-3-Clause"
+          - "BSD-2-Clause"
+          
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  
+# 🔐 CRYPTOGRAPHIC OPERATIONS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+cryptography:
+  # Signing configuration
+  signing:
+    # Artifact signing
+    artifacts:
+      algorithm: "ecdsa-p256"
+      key_management: "github_oidc"
+      
+    # Provenance signing
+    provenance:
+      algorithm: "rsa-pss-2048"
+      key_management: "sigstore"
+      timestamp_authority: "sigstore"
+      
+    # Code signing
+    code:
+      algorithm: "rsa-4096"
+      key_management: "hsm"
+      certificate_authority: "github"
+      
+  # Verification configuration
+  verification:
+    # Public key infrastructure
+    pki:
+      root_ca: "sigstore_root"
+      intermediate_ca: "github_intermediate"
+      
+    # Trust policies
+    trust_policies:
+      - name: "github_actions_builder"
+        subject: "https://github.com/organization/chest-xray-detector/.github/workflows/build.yml@refs/heads/main"
+        issuer: "https://token.actions.githubusercontent.com"
+        
+      - name: "approved_developers"
+        subjects:
+          - "developer1@organization.com"
+          - "developer2@organization.com"
+        issuer: "organization_ca"
+        
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 📊 COMPLIANCE AND AUDITING
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+compliance:
+  # Regulatory requirements
+  regulations:
+    - name: "SOX"
+      requirements:
+        - "audit_trail"
+        - "access_controls" 
+        - "change_management"
+        
+    - name: "HIPAA"
+      requirements:
+        - "data_encryption"
+        - "access_logging"
+        - "integrity_verification"
+        
+    - name: "FDA_21_CFR_Part_11"
+      requirements:
+        - "electronic_signatures"
+        - "audit_trails"
+        - "system_validation"
+        
+  # Audit configuration
+  auditing:
+    # Audit events
+    events:
+      - "build_initiated"
+      - "build_completed"
+      - "artifact_signed"
+      - "provenance_generated"
+      - "verification_performed"
+      - "policy_violation"
+      
+    # Audit storage
+    storage:
+      retention_period: "7_years"
+      immutable_storage: true
+      encryption_at_rest: true
+      
+    # Audit reporting
+    reporting:
+      format: "json"
+      frequency: "daily"
+      recipients:
+        - "compliance@organization.com"
+        - "security@organization.com"
+        
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🔄 INTEGRATION CONFIGURATION
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+integration:
+  # CI/CD integration
+  cicd:
+    platform: "github_actions"
+    
+    # Required workflow steps
+    required_steps:
+      - name: "checkout"
+        uses: "actions/checkout@v4"
+        with:
+          fetch-depth: 0
+          
+      - name: "setup-slsa-generator"
+        uses: "slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.4.0"
+        
+      - name: "build-and-sign"
+        run: "make build-signed"
+        
+      - name: "generate-sbom"
+        uses: "anchore/sbom-action@v0.14.3"
+        
+      - name: "security-scan"
+        uses: "aquasecurity/trivy-action@master"
+        
+      - name: "upload-artifacts"
+        uses: "actions/upload-artifact@v3"
+        with:
+          if-no-files-found: "error"
+          
+  # Container registry integration
+  registry:
+    platform: "ghcr.io"
+    
+    # Registry configuration
+    configuration:
+      oci_compliance: true
+      cosign_integration: true
+      vulnerability_scanning: true
+      
+    # Image policies
+    policies:
+      - name: "require_signature"
+        enforcement: "strict"
+        
+      - name: "require_sbom"
+        enforcement: "strict"
+        
+      - name: "vulnerability_threshold"
+        max_severity: "high"
+        enforcement: "warn"
+        
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 📈 MONITORING AND ALERTING
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+monitoring:
+  # Metrics collection
+  metrics:
+    - name: "slsa_builds_total"
+      type: "counter"
+      description: "Total number of SLSA builds"
+      labels: ["level", "status"]
+      
+    - name: "provenance_generation_duration_seconds"
+      type: "histogram"
+      description: "Time to generate provenance"
+      buckets: [0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+      
+    - name: "signature_verification_total"
+      type: "counter"
+      description: "Signature verification attempts"
+      labels: ["status", "algorithm"]
+      
+    - name: "policy_violations_total"
+      type: "counter"
+      description: "Policy violations detected"
+      labels: ["policy", "severity"]
+      
+  # Alerting rules
+  alerts:
+    - name: "slsa_build_failure"
+      condition: "increase(slsa_builds_total{status='failed'}[5m]) > 0"
+      severity: "critical"
+      description: "SLSA build has failed"
+      
+    - name: "signature_verification_failure"
+      condition: "increase(signature_verification_total{status='failed'}[5m]) > 0"
+      severity: "critical"
+      description: "Artifact signature verification failed"
+      
+    - name: "policy_violation_detected"
+      condition: "increase(policy_violations_total{severity='critical'}[1m]) > 0"
+      severity: "critical"
+      description: "Critical policy violation detected"
+      
+    - name: "provenance_generation_slow"
+      condition: "histogram_quantile(0.95, provenance_generation_duration_seconds) > 30"
+      severity: "warning"
+      description: "Provenance generation is taking too long"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🔧 TOOLING AND AUTOMATION
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+tooling:
+  # SLSA generators
+  generators:
+    - name: "slsa-github-generator"
+      version: "v1.4.0"
+      trust_level: "high"
+      
+    - name: "slsa-container-generator" 
+      version: "v1.4.0"
+      trust_level: "high"
+      
+  # Verification tools
+  verifiers:
+    - name: "slsa-verifier"
+      version: "v2.0.0"
+      
+    - name: "cosign"
+      version: "v2.0.0"
+      
+    - name: "rekor-cli"
+      version: "v1.0.0"
+      
+  # Automation scripts
+  automation:
+    # Provenance verification script
+    verify_provenance:
+      path: "scripts/verify-slsa-provenance.sh"
+      requirements:
+        - "slsa-verifier"
+        - "jq"
+        - "curl"
+        
+    # Policy enforcement script
+    enforce_policies:
+      path: "scripts/enforce-slsa-policies.py"
+      requirements:
+        - "python3"
+        - "pyyaml"
+        - "cryptography"
