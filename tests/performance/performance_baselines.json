@@ -1,0 +1,30 @@
+{
+  "version": "1.0",
+  "last_updated": "2025-07-29",
+  "baseline_metrics": {
+    "data_loading_time_sec": 2.0,
+    "model_inference_time_sec": 0.5,
+    "training_iteration_time_sec": 1.0,
+    "memory_usage_mb": 500.0,
+    "throughput_samples_per_sec": 10.0,
+    "batch_processing_16_samples_per_sec": 8.0,
+    "batch_processing_32_samples_per_sec": 15.0,
+    "batch_processing_64_samples_per_sec": 25.0
+  },
+  "regression_thresholds": {
+    "performance_degradation_percent": 20,
+    "memory_increase_percent": 50,
+    "throughput_decrease_percent": 15
+  },
+  "test_environment": {
+    "python_version": "3.10+",
+    "tensorflow_version": "2.17.0+",
+    "hardware_baseline": "4 CPU cores, 8GB RAM",
+    "os": "Linux"
+  },
+  "notes": [
+    "Baselines established from production workload analysis",
+    "Update baselines when infrastructure changes",
+    "Monitor trends over time for performance optimization opportunities"
+  ]
+}

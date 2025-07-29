@@ -1,0 +1,610 @@
+# MLOps Model Governance Framework - Advanced SDLC Enhancement
+# Comprehensive model lifecycle management and governance for production ML systems
+
+apiVersion: mlops.ai/v1
+kind: ModelGovernancePolicy
+metadata:
+  name: chest-xray-detector-governance
+  version: "1.0"
+  description: "Advanced ML model governance framework for healthcare AI systems"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🏛️ MODEL GOVERNANCE FRAMEWORK
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+governance:
+  # Model lifecycle stages
+  lifecycle_stages:
+    - name: "development"
+      description: "Model under active development"
+      allowed_operations: ["train", "validate", "experiment"]
+      promotion_criteria:
+        - "accuracy_threshold": 0.85
+        - "bias_testing": "passed"
+        - "security_scan": "passed"
+        
+    - name: "staging"
+      description: "Model ready for pre-production testing"
+      allowed_operations: ["validate", "performance_test", "integration_test"]
+      promotion_criteria:
+        - "accuracy_threshold": 0.90
+        - "performance_benchmark": "passed"
+        - "integration_tests": "passed"
+        - "regulatory_review": "approved"
+        
+    - name: "production"
+      description: "Model deployed in production"
+      allowed_operations: ["infer", "monitor", "validate"]
+      demotion_criteria:
+        - "accuracy_degradation": 0.05
+        - "performance_degradation": 0.20
+        - "bias_drift": 0.10
+        
+    - name: "deprecated"
+      description: "Model marked for retirement"
+      allowed_operations: ["monitor", "archive"]
+      
+  # Approval workflows
+  approval_workflows:
+    development_to_staging:
+      required_approvers: 2
+      approver_roles: ["ml_engineer", "data_scientist"]
+      automated_checks:
+        - "model_validation"
+        - "bias_testing"
+        - "security_scanning"
+        - "performance_benchmarking"
+        
+    staging_to_production:
+      required_approvers: 3
+      approver_roles: ["ml_engineer", "clinical_expert", "compliance_officer"]
+      automated_checks:
+        - "regulatory_compliance"
+        - "clinical_validation"
+        - "performance_validation"
+        - "security_assessment"
+      manual_checks:
+        - "clinical_review"
+        - "regulatory_sign_off"
+        - "risk_assessment"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 📊 MODEL REGISTRY AND VERSIONING
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+model_registry:
+  # Registry configuration
+  backend: "mlflow"
+  storage:
+    model_artifacts: "s3://ml-models-bucket/chest-xray-detector"
+    experiment_tracking: "postgresql://mlflow:password@db:5432/mlflow"
+    
+  # Model metadata requirements
+  required_metadata:
+    - "model_architecture"
+    - "training_dataset"
+    - "hyperparameters"
+    - "performance_metrics"
+    - "training_duration"
+    - "framework_version"
+    - "python_version"
+    - "dependencies"
+    - "training_environment"
+    - "data_preprocessing"
+    
+  # Versioning strategy
+  versioning:
+    scheme: "semantic"  # major.minor.patch
+    auto_increment: "patch"
+    
+    # Version bump triggers
+    major_bump_triggers:
+      - "model_architecture_change"
+      - "training_data_schema_change"
+      - "breaking_api_change"
+      
+    minor_bump_triggers:
+      - "performance_improvement"
+      - "new_feature_addition"
+      - "training_data_addition"
+      
+    patch_bump_triggers:
+      - "bug_fix"
+      - "security_patch"
+      - "documentation_update"
+      
+  # Model tagging
+  tagging:
+    automatic_tags:
+      - "framework:${FRAMEWORK_NAME}"
+      - "version:${MODEL_VERSION}"
+      - "stage:${LIFECYCLE_STAGE}"
+      - "domain:healthcare"
+      - "task:image_classification"
+      
+    custom_tags:
+      - "hipaa_compliant"
+      - "fda_approved"
+      - "production_ready"
+      - "bias_tested"
+      - "security_verified"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🎯 MODEL VALIDATION AND TESTING
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+validation:
+  # Performance validation
+  performance_validation:
+    metrics:
+      - name: "accuracy"
+        threshold: 0.90
+        comparison: "greater_than"
+        
+      - name: "precision"
+        threshold: 0.88
+        comparison: "greater_than"
+        
+      - name: "recall"
+        threshold: 0.92
+        comparison: "greater_than"
+        
+      - name: "f1_score"
+        threshold: 0.90
+        comparison: "greater_than"
+        
+      - name: "auc_roc"
+        threshold: 0.95
+        comparison: "greater_than"
+        
+      - name: "inference_latency_p95"
+        threshold: 2000  # milliseconds
+        comparison: "less_than"
+        
+    validation_datasets:
+      - name: "holdout_test_set"
+        size: 1000
+        stratified: true
+        
+      - name: "clinical_validation_set"
+        size: 500
+        clinical_annotations: true
+        
+      - name: "external_validation_set"
+        source: "external_hospital"
+        size: 200
+        
+  # Bias and fairness testing
+  bias_testing:
+    enabled: true
+    
+    # Demographic groups for fairness analysis
+    protected_attributes:
+      - "age_group"
+      - "gender"
+      - "ethnicity"
+      - "hospital_source"
+      
+    # Fairness metrics
+    fairness_metrics:
+      - name: "demographic_parity"
+        threshold: 0.05
+        
+      - name: "equal_opportunity"
+        threshold: 0.05
+        
+      - name: "calibration"
+        threshold: 0.10
+        
+    # Bias mitigation strategies
+    mitigation_strategies:
+      - "data_augmentation"
+      - "re_weighting"
+      - "adversarial_debiasing"
+      - "post_processing_adjustment"
+      
+  # Robustness testing
+  robustness_testing:
+    # Adversarial testing
+    adversarial_attacks:
+      - name: "fgsm"
+        epsilon: 0.01
+        
+      - name: "pgd"
+        epsilon: 0.01
+        iterations: 10
+        
+      - name: "c&w"
+        confidence: 0.1
+        
+    # Data drift detection
+    drift_detection:
+      enabled: true
+      methods: ["ks_test", "jensen_shannon", "wasserstein"]
+      threshold: 0.05
+      
+    # Concept drift detection
+    concept_drift:
+      enabled: true
+      window_size: 1000
+      threshold: 0.10
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🚀 AUTOMATED MODEL DEPLOYMENT
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+deployment:
+  # Deployment strategies
+  strategies:
+    - name: "blue_green"
+      description: "Zero-downtime deployment with full environment switch"
+      default: true
+      
+      configuration:
+        health_check_timeout: 300  # seconds
+        validation_period: 600     # seconds
+        rollback_threshold: 0.05   # error rate
+        
+    - name: "canary"
+      description: "Gradual traffic shift to new model version"
+      
+      configuration:
+        initial_traffic: 0.05      # 5% initial traffic
+        increment_rate: 0.10       # 10% increase per stage
+        evaluation_period: 1800    # 30 minutes per stage
+        success_threshold: 0.02    # max error rate increase
+        
+    - name: "a_b_testing"
+      description: "Statistical comparison between model versions"
+      
+      configuration:
+        traffic_split: 0.50        # 50/50 split
+        min_sample_size: 1000      # minimum samples per variant
+        statistical_power: 0.8     # required statistical power
+        significance_level: 0.05   # alpha level
+        
+  # Deployment automation
+  automation:
+    # Continuous deployment triggers
+    cd_triggers:
+      - "model_validation_passed"
+      - "security_scan_passed"
+      - "performance_benchmark_passed"
+      - "approval_workflow_completed"
+      
+    # Pre-deployment checks
+    pre_deployment_checks:
+      - name: "model_compatibility"
+        description: "Verify model compatibility with serving infrastructure"
+        
+      - name: "resource_requirements"
+        description: "Validate compute and memory requirements"
+        
+      - name: "dependency_compatibility"
+        description: "Check for dependency conflicts"
+        
+      - name: "api_compatibility"
+        description: "Ensure API backward compatibility"
+        
+    # Post-deployment validation
+    post_deployment_validation:
+      - name: "health_check"
+        timeout: 60
+        retries: 3
+        
+      - name: "smoke_test"
+        test_cases: 10
+        success_threshold: 1.0
+        
+      - name: "load_test"
+        duration: 300
+        concurrent_users: 100
+        
+      - name: "integration_test"
+        external_services: true
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 📡 MODEL MONITORING AND OBSERVABILITY
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+monitoring:
+  # Model performance monitoring
+  performance_monitoring:
+    metrics:
+      - name: "prediction_accuracy"
+        collection_method: "ground_truth_comparison"
+        frequency: "hourly"
+        alerting_threshold: 0.05  # 5% degradation
+        
+      - name: "inference_latency"
+        collection_method: "timing"
+        frequency: "real_time"
+        alerting_threshold: 3000  # 3 seconds
+        
+      - name: "throughput"
+        collection_method: "counting"
+        frequency: "real_time"
+        alerting_threshold: -0.20  # 20% decrease
+        
+      - name: "error_rate"
+        collection_method: "error_counting"
+        frequency: "real_time"
+        alerting_threshold: 0.05   # 5% error rate
+        
+  # Data quality monitoring
+  data_quality_monitoring:
+    input_validation:
+      - name: "image_format_check"
+        validation_rule: "format in ['JPEG', 'PNG', 'DICOM']"
+        
+      - name: "image_size_check"
+        validation_rule: "min_dimension >= 224 and max_dimension <= 2048"
+        
+      - name: "image_quality_check"
+        validation_rule: "brightness > 0.1 and contrast > 0.1"
+        
+    drift_monitoring:
+      - name: "feature_drift"
+        method: "kolmogorov_smirnov"
+        window_size: 1000
+        threshold: 0.05
+        
+      - name: "prediction_drift"
+        method: "population_stability_index"
+        window_size: 1000
+        threshold: 0.25
+        
+  # Business metrics monitoring
+  business_monitoring:
+    kpis:
+      - name: "clinical_accuracy"
+        description: "Accuracy validated by clinical experts"
+        target: 0.95
+        
+      - name: "time_to_diagnosis"
+        description: "Average time from image upload to diagnosis"
+        target: 30  # seconds
+        
+      - name: "false_positive_rate"
+        description: "Rate of false positive diagnoses"
+        target: 0.05
+        
+      - name: "false_negative_rate"
+        description: "Rate of missed pneumonia cases"
+        target: 0.03
+        
+      - name: "system_availability"
+        description: "Model serving system uptime"
+        target: 0.999
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🔒 COMPLIANCE AND REGULATORY REQUIREMENTS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+compliance:
+  # Healthcare regulations
+  healthcare_regulations:
+    hipaa:
+      enabled: true
+      requirements:
+        - "data_encryption_at_rest"
+        - "data_encryption_in_transit"
+        - "access_logging"
+        - "audit_trails"
+        - "minimum_necessary_access"
+        
+    fda_regulations:
+      enabled: true
+      classification: "Class_II_Medical_Device"
+      requirements:
+        - "510k_submission"
+        - "clinical_validation"
+        - "quality_system_regulation"
+        - "adverse_event_reporting"
+        
+    gdpr:
+      enabled: true
+      requirements:
+        - "data_minimization"
+        - "consent_management"
+        - "right_to_erasure"
+        - "data_portability"
+        - "privacy_by_design"
+        
+  # Model documentation requirements
+  documentation:
+    required_documents:
+      - name: "model_card"
+        template: "model_card_template.md"
+        fields:
+          - "model_details"
+          - "intended_use"
+          - "factors"
+          - "metrics"
+          - "evaluation_data"
+          - "training_data"
+          - "quantitative_analyses"
+          - "ethical_considerations"
+          - "caveats_recommendations"
+          
+      - name: "data_sheet"
+        template: "datasheet_template.md"
+        fields:
+          - "motivation"
+          - "composition"
+          - "collection_process"
+          - "preprocessing"
+          - "uses"
+          - "distribution"
+          - "maintenance"
+          
+      - name: "risk_assessment"
+        template: "risk_assessment_template.md"
+        fields:
+          - "identified_risks"
+          - "risk_mitigation"
+          - "monitoring_plan"
+          - "incident_response"
+          
+  # Audit and compliance tracking
+  audit:
+    audit_trail:
+      enabled: true
+      retention_period: "7_years"
+      events:
+        - "model_training"
+        - "model_validation"
+        - "model_deployment"
+        - "prediction_requests"
+        - "model_updates"
+        - "access_events"
+        - "configuration_changes"
+        
+    compliance_reports:
+      frequency: "quarterly"
+      automated_generation: true
+      recipients:
+        - "compliance_officer@organization.com"
+        - "clinical_director@organization.com"
+        - "cto@organization.com"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🔄 MODEL RETRAINING AND UPDATES
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+retraining:
+  # Automated retraining triggers
+  triggers:
+    - name: "performance_degradation"
+      condition: "accuracy < baseline_accuracy - 0.05"
+      action: "schedule_retraining"
+      
+    - name: "data_drift_detected"
+      condition: "drift_score > 0.10"
+      action: "data_validation_and_retraining"
+      
+    - name: "concept_drift_detected"
+      condition: "concept_drift_score > 0.15"
+      action: "full_retraining_with_new_data"
+      
+    - name: "scheduled_retraining"
+      condition: "time_since_last_training > 90_days"
+      action: "routine_retraining"
+      
+  # Retraining pipeline
+  pipeline:
+    data_preparation:
+      - "data_collection"
+      - "data_validation"
+      - "data_preprocessing"
+      - "feature_engineering"
+      - "data_splitting"
+      
+    model_training:
+      - "hyperparameter_optimization"
+      - "model_training"
+      - "cross_validation"
+      - "ensemble_creation"
+      
+    validation:
+      - "performance_validation"
+      - "bias_testing"
+      - "robustness_testing"
+      - "clinical_validation"
+      
+    deployment:
+      - "a_b_testing"
+      - "canary_deployment"
+      - "full_deployment"
+      
+  # Data management for retraining
+  data_management:
+    training_data:
+      retention_policy: "5_years"
+      versioning: "enabled"
+      lineage_tracking: "enabled"
+      
+    validation_data:
+      holdout_strategy: "temporal_split"
+      holdout_percentage: 0.20
+      refresh_frequency: "quarterly"
+      
+    external_data:
+      sources: ["hospital_partners", "public_datasets"]
+      integration_validation: "required"
+      privacy_compliance: "required"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🛠️ TOOLING AND AUTOMATION
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+tooling:
+  # MLOps platform integration
+  platforms:
+    - name: "mlflow"
+      purpose: "experiment_tracking_and_registry"
+      configuration:
+        tracking_uri: "postgresql://mlflow:password@db:5432/mlflow"
+        artifact_store: "s3://ml-artifacts-bucket"
+        
+    - name: "kubeflow"
+      purpose: "pipeline_orchestration"
+      configuration:
+        namespace: "ml-pipelines"
+        storage_class: "fast-ssd"
+        
+    - name: "seldon"
+      purpose: "model_serving"
+      configuration:
+        replicas: 3
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+            
+  # Automation tools
+  automation_tools:
+    - name: "model_validator"
+      script: "scripts/validate_model.py"
+      triggers: ["model_registration", "scheduled"]
+      
+    - name: "bias_tester"
+      script: "scripts/test_model_bias.py"
+      triggers: ["model_validation", "data_update"]
+      
+    - name: "deployment_orchestrator"
+      script: "scripts/deploy_model.py"
+      triggers: ["validation_passed", "approval_completed"]
+      
+    - name: "monitoring_dashboard"
+      tool: "grafana"
+      dashboards:
+        - "model_performance.json"
+        - "data_quality.json"
+        - "business_metrics.json"
+        
+  # Integration hooks
+  integration_hooks:
+    pre_training:
+      - "data_validation"
+      - "environment_setup"
+      - "resource_allocation"
+      
+    post_training:
+      - "model_validation"
+      - "performance_benchmarking"
+      - "security_scanning"
+      - "documentation_generation"
+      
+    pre_deployment:
+      - "compatibility_check"
+      - "load_testing"
+      - "rollback_preparation"
+      
+    post_deployment:
+      - "health_monitoring"
+      - "performance_tracking"
+      - "alert_configuration"
