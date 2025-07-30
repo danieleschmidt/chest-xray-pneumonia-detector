@@ -1,31 +1,58 @@
+# Advanced pre-commit configuration for mature ML repository
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+  autofix_prs: true
+  autoupdate_schedule: weekly
+
 repos:
+  # Enhanced basic quality checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
       - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
       - id: check-yaml
+        args: ['--unsafe']
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-symlinks
       - id: check-added-large-files
         args: ['--maxkb=10000']
-      - id: check-case-conflict
-      - id: check-merge-conflict
       - id: debug-statements
-      - id: check-json
+      - id: mixed-line-ending
+        args: ['--fix=lf']
       - id: pretty-format-json
-        args: ['--autofix']
+        args: ['--autofix', '--indent=2']
 
+  # Python code formatting
   - repo: https://github.com/psf/black
     rev: 23.3.0
     hooks:
       - id: black
-        language_version: python3.8
+        language_version: python3
+        args: [--line-length=88]
 
+  # Import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: ["--profile", "black", "--filter-files"]
+
+  # Enhanced Python linting
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.270
+    rev: v0.0.272
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
 
+  # Security scanning
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.5
     hooks:
@@ -33,12 +60,82 @@ repos:
         args: ['-r', 'src', '-ll']
         exclude: ^tests/
 
+  # Secrets detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+
+  # Dockerfile linting
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.32.0
+    hooks:
+      - id: yamllint
+        args: [-c=.yamllint.yml]
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.5
+    hooks:
+      - id: shellcheck
+
+  # Commit message validation
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v2.3.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+
+  # Type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.4.1
+    hooks:
+      - id: mypy
+        args: [--ignore-missing-imports]
+        files: ^src/
+        exclude: ^tests/
+
+  # Documentation linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.35.0
+    hooks:
+      - id: markdownlint
+        args: [--fix]
+
+  # Advanced local hooks for ML projects
   - repo: local
     hooks:
-      - id: pytest
-        name: pytest
+      - id: pytest-with-coverage
+        name: Run tests with coverage
         entry: pytest
         language: system
         pass_filenames: false
-        always_run: true
-        args: [--tb=short, -q]
+        args: [--cov=src, --cov-report=term-missing, --cov-fail-under=80, -q]
+        
+      - id: model-validation
+        name: Validate model architectures
+        entry: python -m src.model_architecture_validation
+        language: system
+        pass_filenames: false
+        files: '(model_builder|train_engine)\.py$'
+        
+      - id: security-scan
+        name: Advanced security scanning
+        entry: python -m src.dependency_security_scan
+        language: system
+        pass_filenames: false
+        stages: [push]
+        
+      - id: performance-check
+        name: Performance regression check
+        entry: python -m src.performance_benchmark --check-only
+        language: system
+        pass_filenames: false
+        files: '(train_engine|model_builder|data_loader)\.py$'

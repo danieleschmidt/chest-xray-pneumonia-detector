@@ -1,0 +1,74 @@
+# YAML linting configuration for advanced repository
+extends: default
+
+rules:
+  # Line length matching code style
+  line-length:
+    max: 120
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+
+  # Indentation for readability
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: false
+
+  # Comments formatting
+  comments:
+    min-spaces-from-content: 1
+    require-starting-space: true
+
+  # Truthy values - allow yes/no for Docker Compose
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no']
+    check-keys: true
+
+  # Document formatting
+  document-start:
+    present: false
+  document-end:
+    present: false
+
+  # Bracket spacing
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+    min-spaces-inside-empty: 0
+    max-spaces-inside-empty: 0
+
+  # Brace spacing
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+    min-spaces-inside-empty: 0
+    max-spaces-inside-empty: 0
+
+  # Empty values
+  empty-values:
+    forbid-in-block-mappings: true
+    forbid-in-flow-mappings: true
+
+  # Key ordering
+  key-ordering: disable
+
+  # Octal values
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
+
+  # Quoted strings
+  quoted-strings:
+    quote-type: any
+    required: only-when-needed
+
+# Ignore patterns for generated or external files
+ignore: |
+  .tox/
+  .mypy_cache/
+  .ruff_cache/
+  venv/
+  .venv/
+  node_modules/
+  **/*.min.yml
+  **/*.min.yaml
