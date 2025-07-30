@@ -3,10 +3,10 @@
     "main",
     {
       "name": "develop",
-      "prerelease": true
+      "prerelease": "beta"
     },
     {
-      "name": "beta",
+      "name": "alpha",
       "prerelease": true
     }
   ],
@@ -14,7 +14,7 @@
     [
       "@semantic-release/commit-analyzer",
       {
-        "preset": "angular",
+        "preset": "conventionalcommits",
         "releaseRules": [
           {
             "type": "feat",
@@ -78,7 +78,7 @@
     [
       "@semantic-release/release-notes-generator",
       {
-        "preset": "angular",
+        "preset": "conventionalcommits",
         "parserOpts": {
           "noteKeywords": [
             "BREAKING CHANGE",

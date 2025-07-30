@@ -65,9 +65,35 @@ Makefile text eol=lf
 LICENSE text eol=lf
 README text eol=lf
 
-# Ignore large files in diff and merge
+# Git LFS for large model and data files
+*.keras filter=lfs diff=lfs merge=lfs -text
 *.h5 filter=lfs diff=lfs merge=lfs -text
 *.pkl filter=lfs diff=lfs merge=lfs -text
 *.joblib filter=lfs diff=lfs merge=lfs -text
 *.pth filter=lfs diff=lfs merge=lfs -text
 *.pt filter=lfs diff=lfs merge=lfs -text
+*.onnx filter=lfs diff=lfs merge=lfs -text
+*.pb filter=lfs diff=lfs merge=lfs -text
+*.bin filter=lfs diff=lfs merge=lfs -text
+
+# Large dataset files
+data/ filter=lfs diff=lfs merge=lfs -text
+*.npy filter=lfs diff=lfs merge=lfs -text
+*.npz filter=lfs diff=lfs merge=lfs -text
+
+# Language and framework detection
+*.py linguist-language=Python
+*.yml linguist-language=YAML
+*.yaml linguist-language=YAML
+*.toml linguist-language=TOML
+*.dockerfile linguist-language=Dockerfile
+
+# Export-ignore for cleaner archives
+.github/ export-ignore
+.vscode/ export-ignore
+.devcontainer/ export-ignore
+tests/ export-ignore
+docs/ export-ignore
+*.md export-ignore
+.gitignore export-ignore
+.gitattributes export-ignore

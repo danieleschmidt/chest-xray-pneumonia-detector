@@ -1,0 +1,52 @@
+# <type>(<scope>): <subject>
+#
+# <body>
+#
+# <footer>
+#
+# --- COMMIT MESSAGE TEMPLATE ---
+# Type should be one of:
+#   feat:     A new feature
+#   fix:      A bug fix
+#   docs:     Documentation only changes
+#   style:    Changes that do not affect the meaning of the code
+#   refactor: A code change that neither fixes a bug nor adds a feature
+#   perf:     A code change that improves performance
+#   test:     Adding missing tests or correcting existing tests
+#   build:    Changes that affect the build system or external dependencies
+#   ci:       Changes to our CI configuration files and scripts
+#   chore:    Other changes that don't modify src or test files
+#   revert:   Reverts a previous commit
+#
+# Scope is optional but should be concise (e.g., model, data, api, cli)
+#
+# Subject line should be:
+# - no more than 50 characters
+# - start with lowercase
+# - no period at the end
+#
+# Body should explain what and why vs. how.
+# - Use the imperative mood ("fix" not "fixed" or "fixes")
+# - Wrap at 72 characters
+# - Include motivation for the change and contrast with previous behavior
+#
+# Footer should contain:
+# - Breaking changes (BREAKING CHANGE: <description>)
+# - Issues closed (closes #123, fixes #456)
+# - Co-authored-by for pair programming
+#
+# Examples:
+# feat(model): add attention mechanism to CNN architecture
+# fix(data): handle missing images in dataset loader
+# docs(api): update inference endpoint documentation
+# perf(train): optimize data loading pipeline for 40% speedup
+# ci: add automated security scanning to PR workflow
+#
+# Breaking change example:
+# feat(api)!: change prediction response format
+#
+# BREAKING CHANGE: Prediction API now returns structured JSON with
+# confidence scores instead of plain class labels. Update clients
+# accordingly.
+#
+# Closes #123
