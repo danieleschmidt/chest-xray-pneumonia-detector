@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pneumonia-detection-api-service
+  namespace: pneumonia-detection
+  labels:
+    app: pneumonia-detection-api
+    component: api
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: "/health"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: pneumonia-detection-api
+    version: v1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pneumonia-detection-api-headless
+  namespace: pneumonia-detection
+  labels:
+    app: pneumonia-detection-api
+    component: api
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: http
+    port: 8000
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: pneumonia-detection-api
+    version: v1
