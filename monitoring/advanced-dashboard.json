@@ -1,0 +1,172 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Advanced ML Model Performance Dashboard",
+    "tags": ["ml", "pneumonia-detection", "production"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Model Prediction Metrics",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(predictions_total[5m])",
+            "legendFormat": "Predictions/sec"
+          },
+          {
+            "expr": "avg(prediction_duration_seconds)",
+            "legendFormat": "Avg Latency"
+          },
+          {
+            "expr": "rate(predictions_total{status=\"error\"}[5m]) / rate(predictions_total[5m]) * 100",
+            "legendFormat": "Error Rate %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Model Confidence Distribution",
+        "type": "histogram",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(model_confidence_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(model_confidence_bucket[5m]))",
+            "legendFormat": "50th percentile"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Prediction Classes Distribution",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum by (prediction) (rate(predictions_total[1h]))",
+            "legendFormat": "{{prediction}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "Model Drift Detection",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "model_drift_score",
+            "legendFormat": "Drift Score"
+          }
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "query": {
+                "queryType": "",
+                "refId": "A"
+              },
+              "reducer": {
+                "type": "last",
+                "params": []
+              },
+              "evaluator": {
+                "params": [0.7],
+                "type": "gt"
+              }
+            }
+          ],
+          "executionErrorState": "alerting",
+          "noDataState": "no_data",
+          "frequency": "10s",
+          "handler": 1,
+          "name": "Model Drift Alert",
+          "message": "Model drift detected - consider retraining"
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8}
+      },
+      {
+        "id": 5,
+        "title": "Bias Detection Metrics",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "bias_detection_score by (demographic_group)",
+            "format": "table",
+            "legendFormat": "{{demographic_group}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8}
+      },
+      {
+        "id": 6,
+        "title": "Resource Utilization",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(container_cpu_usage_seconds_total{pod=~\"pneumonia-detection-api.*\"}[5m]) * 100",
+            "legendFormat": "CPU Usage %"
+          },
+          {
+            "expr": "container_memory_usage_bytes{pod=~\"pneumonia-detection-api.*\"} / container_spec_memory_limit_bytes * 100",
+            "legendFormat": "Memory Usage %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+      },
+      {
+        "id": 7,
+        "title": "API Response Times",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"pneumonia-detection-api\"}[5m]))",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=\"pneumonia-detection-api\"}[5m]))",
+            "legendFormat": "Median"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+      },
+      {
+        "id": 8,
+        "title": "Data Quality Metrics",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "data_quality_score",
+            "legendFormat": "Quality Score"
+          },
+          {
+            "expr": "rate(invalid_images_total[5m])",
+            "legendFormat": "Invalid Images/sec"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 12, "x": 0, "y": 24}
+      },
+      {
+        "id": 9,
+        "title": "Model Version Usage",
+        "type": "bargraph",
+        "targets": [
+          {
+            "expr": "sum by (model_version) (rate(predictions_total[1h]))",
+            "legendFormat": "{{model_version}}"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 12, "x": 12, "y": 24}
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "10s"
+  }
+}

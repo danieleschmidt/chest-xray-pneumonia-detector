@@ -1,0 +1,149 @@
+groups:
+- name: ml_model_alerts
+  rules:
+  - alert: ModelHighErrorRate
+    expr: rate(predictions_total{status="error"}[5m]) / rate(predictions_total[5m]) > 0.05
+    for: 2m
+    labels:
+      severity: critical
+      service: pneumonia-detection-api
+    annotations:
+      summary: "High error rate in ML model predictions"
+      description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+      runbook_url: "https://docs.example.com/runbooks/ml-model-errors"
+
+  - alert: ModelLatencyHigh
+    expr: histogram_quantile(0.95, rate(prediction_duration_seconds_bucket[5m])) > 2.0
+    for: 3m
+    labels:
+      severity: warning
+      service: pneumonia-detection-api
+    annotations:
+      summary: "High latency in ML model predictions"
+      description: "95th percentile latency is {{ $value }}s"
+
+  - alert: ModelDriftDetected
+    expr: model_drift_score > 0.7
+    for: 5m
+    labels:
+      severity: warning
+      service: pneumonia-detection-api
+    annotations:
+      summary: "Model drift detected"
+      description: "Drift score is {{ $value }}, consider model retraining"
+      playbook_url: "https://docs.example.com/playbooks/model-drift"
+
+  - alert: BiasDetected
+    expr: max(bias_detection_score) > 0.8
+    for: 10m
+    labels:
+      severity: critical
+      service: pneumonia-detection-api
+    annotations:
+      summary: "Model bias detected"
+      description: "Bias score is {{ $value }} for demographic group"
+      escalation: "immediate"
+
+  - alert: DataQualityLow
+    expr: data_quality_score < 0.8
+    for: 15m
+    labels:
+      severity: warning
+      service: pneumonia-detection-api
+    annotations:
+      summary: "Low data quality detected"
+      description: "Data quality score is {{ $value }}"
+
+  - alert: ModelNotResponding
+    expr: up{job="pneumonia-detection-api"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: pneumonia-detection-api
+    annotations:
+      summary: "ML model service is down"
+      description: "Model service has been down for more than 1 minute"
+
+- name: infrastructure_alerts
+  rules:
+  - alert: HighCPUUsage
+    expr: rate(container_cpu_usage_seconds_total{pod=~"pneumonia-detection-api.*"}[5m]) * 100 > 80
+    for: 5m
+    labels:
+      severity: warning
+      service: pneumonia-detection-api
+    annotations:
+      summary: "High CPU usage"
+      description: "CPU usage is {{ $value }}%"
+
+  - alert: HighMemoryUsage
+    expr: container_memory_usage_bytes{pod=~"pneumonia-detection-api.*"} / container_spec_memory_limit_bytes * 100 > 85
+    for: 5m
+    labels:
+      severity: warning
+      service: pneumonia-detection-api
+    annotations:
+      summary: "High memory usage"
+      description: "Memory usage is {{ $value }}%"
+
+  - alert: PodRestartingTooOften
+    expr: rate(kube_pod_container_status_restarts_total{pod=~"pneumonia-detection-api.*"}[15m]) > 0
+    for: 5m
+    labels:
+      severity: warning
+      service: pneumonia-detection-api
+    annotations:
+      summary: "Pod restarting frequently"
+      description: "Pod has restarted {{ $value }} times in the last 15 minutes"
+
+- name: business_metrics_alerts
+  rules:
+  - alert: LowPredictionVolume
+    expr: rate(predictions_total[5m]) < 0.1
+    for: 10m
+    labels:
+      severity: warning
+      service: pneumonia-detection-api
+    annotations:
+      summary: "Low prediction volume"
+      description: "Prediction rate is {{ $value }}/sec, below expected threshold"
+
+  - alert: UnusualPredictionDistribution
+    expr: |
+      (
+        sum(rate(predictions_total{prediction="PNEUMONIA"}[1h])) / 
+        sum(rate(predictions_total[1h]))
+      ) > 0.8 or 
+      (
+        sum(rate(predictions_total{prediction="PNEUMONIA"}[1h])) / 
+        sum(rate(predictions_total[1h]))
+      ) < 0.1
+    for: 30m
+    labels:
+      severity: warning
+      service: pneumonia-detection-api
+    annotations:
+      summary: "Unusual prediction distribution"
+      description: "Pneumonia prediction rate is {{ $value | humanizePercentage }}"
+
+- name: security_alerts
+  rules:
+  - alert: UnauthorizedAccess
+    expr: rate(http_requests_total{status_code=~"401|403"}[5m]) > 1
+    for: 2m
+    labels:
+      severity: critical
+      service: pneumonia-detection-api
+    annotations:
+      summary: "Potential unauthorized access attempts"
+      description: "{{ $value }} unauthorized requests per second"
+
+  - alert: RateLimitExceeded
+    expr: rate(http_requests_total{status_code="429"}[5m]) > 5
+    for: 1m
+    labels:
+      severity: warning
+      service: pneumonia-detection-api
+    annotations:
+      summary: "Rate limit frequently exceeded"
+      description: "{{ $value }} rate limit violations per second"

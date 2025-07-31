@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pneumonia-detection
+  labels:
+    name: pneumonia-detection
+    app.kubernetes.io/name: chest-xray-pneumonia-detector
+    app.kubernetes.io/part-of: ml-healthcare-platform
+    environment: production
