@@ -1,0 +1,146 @@
+---
+# Terragon Autonomous SDLC Value Discovery Configuration
+# Repository: chest_xray_pneumonia_detector
+# Maturity Level: ADVANCED (85%+)
+# Last Updated: 2025-08-01
+
+repository:
+  name: "chest_xray_pneumonia_detector"
+  type: "ml_project"
+  maturity_level: "advanced"
+  primary_language: "python"
+  framework: "tensorflow_keras"
+  domain: "medical_ai"
+
+scoring:
+  weights:
+    advanced:
+      wsjf: 0.5          # Weighted Shortest Job First
+      ice: 0.1           # Impact/Confidence/Ease
+      technicalDebt: 0.3 # Technical debt priority
+      security: 0.1      # Security vulnerability weight
+  
+  thresholds:
+    minScore: 15         # Minimum composite score for execution
+    maxRisk: 0.75        # Maximum acceptable risk level
+    securityBoost: 2.0   # Security vulnerability score multiplier
+    complianceBoost: 1.8 # HIPAA/medical compliance multiplier
+    mlopsBoost: 1.5      # MLOps-specific task boost
+
+discovery:
+  sources:
+    - gitHistory         # TODO/FIXME/HACK comments in commits
+    - staticAnalysis     # Code quality and complexity analysis
+    - dependencyAudit    # Security vulnerabilities in dependencies
+    - performanceMetrics # Model performance and system benchmarks
+    - mlModelGovernance  # AI governance and bias detection
+    - complianceGaps     # HIPAA and medical AI compliance
+  
+  tools:
+    staticAnalysis:
+      - ruff             # Python linting and formatting
+      - bandit           # Security vulnerability detection
+      - mypy             # Type checking
+      - sonarqube        # Code quality analysis
+    security:
+      - snyk             # Dependency vulnerability scanning
+      - safety           # Python package security checking
+      - trivy            # Container and filesystem scanning
+    mlops:
+      - tensorboard      # Model performance monitoring
+      - wandb            # Experiment tracking
+      - mlflow           # Model registry and versioning
+    performance:
+      - pytest-benchmark # Performance regression testing
+      - memory-profiler  # Memory usage analysis
+
+execution:
+  maxConcurrentTasks: 1
+  testRequirements:
+    minCoverage: 85      # Minimum test coverage percentage
+    performanceRegression: 3  # Max % performance degradation allowed
+    securityScanPass: true    # All security scans must pass
+  
+  rollbackTriggers:
+    - testFailure
+    - buildFailure
+    - securityViolation
+    - performanceRegression
+    - complianceViolation
+
+  schedules:
+    immediate:           # After each PR merge
+      - valueDiscovery
+      - nextItemSelection
+    hourly:             # Every hour
+      - securityScan
+      - dependencyAudit
+    daily:              # Daily at 2 AM
+      - comprehensiveAnalysis
+      - technicalDebtAssessment
+      - modelPerformanceReview
+    weekly:             # Weekly on Monday at 3 AM  
+      - deepArchitecturalAnalysis
+      - complianceAudit
+      - mlopsOptimization
+    monthly:            # Monthly on 1st at 4 AM
+      - strategicValueAlignment
+      - scoringModelRecalibration
+      - innovationOpportunityAssessment
+
+value_categories:
+  high_impact:
+    - security_vulnerabilities
+    - model_bias_detection
+    - hipaa_compliance_gaps
+    - performance_critical_bugs
+    - data_leakage_prevention
+  
+  medium_impact:
+    - technical_debt_reduction
+    - model_performance_optimization
+    - testing_coverage_improvement
+    - documentation_enhancement
+    - ci_cd_optimization
+  
+  low_impact:
+    - code_style_improvements
+    - dependency_updates
+    - refactoring_opportunities
+    - logging_enhancements
+    - monitoring_additions
+
+medical_ai_specific:
+  compliance_frameworks:
+    - HIPAA
+    - FDA_510k
+    - EU_MDR
+    - ISO_13485
+  
+  bias_detection:
+    - demographic_parity
+    - equalized_odds
+    - calibration_assessment
+  
+  interpretability_requirements:
+    - grad_cam_analysis
+    - lime_explanations
+    - shap_values
+    - clinical_decision_support
+
+continuous_learning:
+  feedback_sources:
+    - execution_outcomes
+    - user_feedback
+    - clinical_validation_results
+    - regulatory_feedback
+  
+  adaptation_triggers:
+    - accuracy_degradation: 0.15    # 15% accuracy drop triggers learning
+    - effort_estimation_error: 0.25  # 25% effort error triggers recalibration
+    - false_positive_rate: 0.20     # 20% false positive rate triggers adjustment
+  
+  learning_retention:
+    - pattern_recognition: 90       # Days to retain learned patterns
+    - estimation_models: 60         # Days to retain effort models
+    - risk_assessments: 30          # Days to retain risk calculations

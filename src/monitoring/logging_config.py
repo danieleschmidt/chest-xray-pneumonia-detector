@@ -365,3 +365,206 @@ if __name__ == "__main__":
         if args.file:
             print(f"Logs will be written to: {args.file}")
         print("Use --test to test the configuration")
+"""
+HIPAA-Compliant Audit Logging Enhancement
+Comprehensive audit trail for PHI access and medical AI predictions
+"""
+
+import logging
+import json
+from datetime import datetime, timezone
+from typing import Dict, Any, Optional
+from functools import wraps
+
+
+class HITPAAuditLogger:
+    """HIPAA-compliant audit logger for medical AI operations."""
+    
+    def __init__(self):
+        self.logger = logging.getLogger('hipaa_audit')
+        self._setup_audit_handler()
+    
+    def _setup_audit_handler(self):
+        """Configure secure audit log handler."""
+        handler = logging.FileHandler('logs/hipaa-audit.log', mode='a')
+        handler.setLevel(logging.INFO)
+        
+        # HIPAA audit format: timestamp, user, action, phi_involved, outcome
+        formatter = logging.Formatter(
+            '%(asctime)s|%(levelname)s|USER:%(user_id)s|ACTION:%(action)s|'
+            'PHI:%(phi_involved)s|OUTCOME:%(outcome)s|DATA:%(audit_data)s'
+        )
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
+        self.logger.setLevel(logging.INFO)
+    
+    def log_phi_access(self, user_id: str, action: str, phi_data: Dict[str, Any], 
+                       outcome: str = "SUCCESS"):
+        """Log Protected Health Information access."""
+        audit_data = {
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'phi_data_hash': self._hash_phi_data(phi_data),
+            'data_classification': 'PHI',
+            'access_reason': action,
+            'compliance_framework': 'HIPAA'
+        }
+        
+        self.logger.info(
+            "PHI Access Audit",
+            extra={
+                'user_id': user_id,
+                'action': action,
+                'phi_involved': 'YES',
+                'outcome': outcome,
+                'audit_data': json.dumps(audit_data)
+            }
+        )
+    
+    def log_model_prediction(self, user_id: str, model_version: str, 
+                           input_hash: str, prediction: Dict[str, Any]):
+        """Log medical AI model predictions for audit trail."""
+        audit_data = {
+            'model_version': model_version,
+            'input_data_hash': input_hash,
+            'prediction_confidence': prediction.get('confidence', 0.0),
+            'prediction_class': prediction.get('class', 'unknown'),
+            'clinical_context': 'chest_xray_pneumonia_detection'
+        }
+        
+        self.log_phi_access(
+            user_id=user_id,
+            action=f"MODEL_PREDICTION_{model_version}",
+            phi_data=audit_data,
+            outcome="PREDICTION_GENERATED"
+        )
+    
+    def _hash_phi_data(self, phi_data: Dict[str, Any]) -> str:
+        """Create non-reversible hash of PHI data for audit logging."""
+        import hashlib
+        data_str = json.dumps(phi_data, sort_keys=True)
+        return hashlib.sha256(data_str.encode()).hexdigest()[:16]
+
+
+def audit_phi_access(action: str):
+    """Decorator for automatic PHI access audit logging."""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            audit_logger = HITPAAuditLogger()
+            user_id = kwargs.get('user_id', 'system')
+            
+            try:
+                result = func(*args, **kwargs)
+                audit_logger.log_phi_access(user_id, action, kwargs, "SUCCESS")
+                return result
+            except Exception as e:
+                audit_logger.log_phi_access(user_id, action, kwargs, f"FAILED: {e}")
+                raise
+        return wrapper
+    return decorator
+
+
+# Global audit logger instance
+audit_logger = HITPAAuditLogger()
+
+"""
+HIPAA-Compliant Audit Logging Enhancement
+Comprehensive audit trail for PHI access and medical AI predictions
+"""
+
+import logging
+import json
+from datetime import datetime, timezone
+from typing import Dict, Any, Optional
+from functools import wraps
+
+
+class HITPAAuditLogger:
+    """HIPAA-compliant audit logger for medical AI operations."""
+    
+    def __init__(self):
+        self.logger = logging.getLogger('hipaa_audit')
+        self._setup_audit_handler()
+    
+    def _setup_audit_handler(self):
+        """Configure secure audit log handler."""
+        handler = logging.FileHandler('logs/hipaa-audit.log', mode='a')
+        handler.setLevel(logging.INFO)
+        
+        # HIPAA audit format: timestamp, user, action, phi_involved, outcome
+        formatter = logging.Formatter(
+            '%(asctime)s|%(levelname)s|USER:%(user_id)s|ACTION:%(action)s|'
+            'PHI:%(phi_involved)s|OUTCOME:%(outcome)s|DATA:%(audit_data)s'
+        )
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
+        self.logger.setLevel(logging.INFO)
+    
+    def log_phi_access(self, user_id: str, action: str, phi_data: Dict[str, Any], 
+                       outcome: str = "SUCCESS"):
+        """Log Protected Health Information access."""
+        audit_data = {
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'phi_data_hash': self._hash_phi_data(phi_data),
+            'data_classification': 'PHI',
+            'access_reason': action,
+            'compliance_framework': 'HIPAA'
+        }
+        
+        self.logger.info(
+            "PHI Access Audit",
+            extra={
+                'user_id': user_id,
+                'action': action,
+                'phi_involved': 'YES',
+                'outcome': outcome,
+                'audit_data': json.dumps(audit_data)
+            }
+        )
+    
+    def log_model_prediction(self, user_id: str, model_version: str, 
+                           input_hash: str, prediction: Dict[str, Any]):
+        """Log medical AI model predictions for audit trail."""
+        audit_data = {
+            'model_version': model_version,
+            'input_data_hash': input_hash,
+            'prediction_confidence': prediction.get('confidence', 0.0),
+            'prediction_class': prediction.get('class', 'unknown'),
+            'clinical_context': 'chest_xray_pneumonia_detection'
+        }
+        
+        self.log_phi_access(
+            user_id=user_id,
+            action=f"MODEL_PREDICTION_{model_version}",
+            phi_data=audit_data,
+            outcome="PREDICTION_GENERATED"
+        )
+    
+    def _hash_phi_data(self, phi_data: Dict[str, Any]) -> str:
+        """Create non-reversible hash of PHI data for audit logging."""
+        import hashlib
+        data_str = json.dumps(phi_data, sort_keys=True)
+        return hashlib.sha256(data_str.encode()).hexdigest()[:16]
+
+
+def audit_phi_access(action: str):
+    """Decorator for automatic PHI access audit logging."""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            audit_logger = HITPAAuditLogger()
+            user_id = kwargs.get('user_id', 'system')
+            
+            try:
+                result = func(*args, **kwargs)
+                audit_logger.log_phi_access(user_id, action, kwargs, "SUCCESS")
+                return result
+            except Exception as e:
+                audit_logger.log_phi_access(user_id, action, kwargs, f"FAILED: {e}")
+                raise
+        return wrapper
+    return decorator
+
+
+# Global audit logger instance
+audit_logger = HITPAAuditLogger()

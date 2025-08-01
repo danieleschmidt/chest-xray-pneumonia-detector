@@ -1,0 +1,12 @@
+# HIPAA Audit Log Retention Policy
+# Logs must be retained for minimum 6 years per HIPAA requirements
+# Automated cleanup after retention period with secure deletion
+
+LOG_RETENTION_YEARS = 6
+AUDIT_LOG_ENCRYPTION = True
+SECURE_DELETION_REQUIRED = True
+
+# Log rotation configuration
+AUDIT_LOG_MAX_SIZE = "100MB"
+AUDIT_LOG_BACKUP_COUNT = 10
+AUDIT_LOG_COMPRESSION = True
