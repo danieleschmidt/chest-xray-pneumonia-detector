@@ -1,0 +1,107 @@
+{
+  "generated_at": "2025-08-01T02:56:47.538418+00:00",
+  "repository": "chest_xray_pneumonia_detector",
+  "maturity_level": "advanced",
+  "total_items": 5,
+  "items": [
+    {
+      "id": "HIPAA-001",
+      "title": "HIPAA Audit Logging Enhancement",
+      "category": "security",
+      "impact": "High",
+      "effort": 5,
+      "risk": "Low",
+      "medical_ai_priority": "CRITICAL",
+      "description": "Implement comprehensive audit logging for all PHI access, model predictions, and user actions for HIPAA compliance.",
+      "discovered_at": "2025-08-01T02:56:47.538201+00:00",
+      "scores": {
+        "wsjf": 3.7468860552385195,
+        "ice": 405.0,
+        "technicalDebt": 7.0,
+        "composite": 31.848789798858668
+      },
+      "composite_score": 31.848789798858668
+    },
+    {
+      "id": "SEC-001",
+      "title": "Medical Data Encryption at Rest",
+      "category": "security",
+      "impact": "High",
+      "effort": 6,
+      "risk": "Medium",
+      "medical_ai_priority": "HIGH",
+      "description": "AES-256 encryption for stored medical images and PHI data compliance.",
+      "discovered_at": "2025-08-01T02:56:47.538305+00:00",
+      "scores": {
+        "wsjf": 3.2263524123360763,
+        "ice": 243.0,
+        "technicalDebt": 7.0,
+        "composite": 24.142868684409876
+      },
+      "composite_score": 24.142868684409876
+    },
+    {
+      "id": "SEC-002",
+      "title": "Input Validation for Medical Images",
+      "category": "security",
+      "impact": "High",
+      "effort": 5,
+      "risk": "Medium",
+      "medical_ai_priority": "HIGH",
+      "description": "Medical image format validation, metadata sanitization, and DICOM header security.",
+      "discovered_at": "2025-08-01T02:56:47.538325+00:00",
+      "scores": {
+        "wsjf": 3.5918424943320977,
+        "ice": 243.0,
+        "technicalDebt": 12.0,
+        "composite": 15.643684988664194
+      },
+      "composite_score": 15.643684988664194
+    },
+    {
+      "id": "TD-001",
+      "title": "Train Engine Complexity Reduction",
+      "category": "technical_debt",
+      "impact": "High",
+      "effort": 8,
+      "risk": "Medium",
+      "medical_ai_priority": "HIGH",
+      "description": "Refactor 1034-line train_engine.py for improved maintainability and testing.",
+      "discovered_at": "2025-08-01T02:56:47.538283+00:00",
+      "scores": {
+        "wsjf": 2.1533333333333333,
+        "ice": 116.64000000000001,
+        "technicalDebt": 30.0,
+        "composite": 7.819733333333334
+      },
+      "composite_score": 7.819733333333334
+    },
+    {
+      "id": "MLOPS-001",
+      "title": "Model Drift Detection Implementation",
+      "category": "mlops",
+      "impact": "High",
+      "effort": 7,
+      "risk": "Medium",
+      "medical_ai_priority": "CRITICAL",
+      "description": "Automated drift detection for medical model accuracy and performance monitoring.",
+      "discovered_at": "2025-08-01T02:56:47.538257+00:00",
+      "scores": {
+        "wsjf": 2.1728638413589354,
+        "ice": 116.64000000000001,
+        "technicalDebt": 9.0,
+        "composite": 7.033895762038402
+      },
+      "composite_score": 7.033895762038402
+    }
+  ],
+  "summary": {
+    "average_composite_score": 17.297794513460893,
+    "high_priority_items": 0,
+    "categories": [
+      "mlops",
+      "security",
+      "technical_debt"
+    ]
+  }
+}
