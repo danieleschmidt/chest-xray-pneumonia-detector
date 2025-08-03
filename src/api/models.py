@@ -179,9 +179,43 @@ class PneumoniaDetectionModel:
         layer_name: str = "conv2d_4"
     ) -> Dict[str, Any]:
         """Make prediction with Grad-CAM visualization."""
-        # This would integrate with the existing grad_cam.py module
-        # Implementation depends on the specific model architecture
-        pass
+        if not self.model:
+            raise RuntimeError("Model not loaded")
+        
+        try:
+            # Import grad_cam functionality
+            from ..grad_cam import generate_gradcam_heatmap
+            
+            # Make standard prediction
+            prediction_result = await self.predict(image)
+            
+            # Generate Grad-CAM heatmap
+            heatmap = await asyncio.get_event_loop().run_in_executor(
+                None, 
+                generate_gradcam_heatmap,
+                self.model,
+                image[0] if len(image.shape) == 4 else image,
+                layer_name
+            )
+            
+            return {
+                "prediction": prediction_result,
+                "gradcam_heatmap": heatmap.tolist() if heatmap is not None else None,
+                "interpretation": {
+                    "method": "Grad-CAM",
+                    "target_layer": layer_name,
+                    "description": "Areas highlighted in the heatmap contributed most to the prediction"
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Grad-CAM generation failed: {str(e)}")
+            # Return prediction without visualization
+            return {
+                "prediction": await self.predict(image),
+                "gradcam_heatmap": None,
+                "interpretation": {"error": str(e)}
+            }
     
     async def get_model_info(self) -> ModelInfoResponse:
         """Get comprehensive model information."""
