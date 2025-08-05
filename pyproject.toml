@@ -3,13 +3,13 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "chest_xray_pneumonia_detector"
+name = "quantum_inspired_task_planner"
 version = "0.2.0"
 requires-python = ">=3.8"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["chest_xray_pneumonia_detector"]
+packages = ["quantum_inspired_task_planner"]
 py-modules = [
     "architecture_review",
     "data_loader",
@@ -32,13 +32,10 @@ py-modules = [
 ]
 
 [project.scripts]
-cxr-version = "version_cli:main"
-cxr-dataset-stats = "dataset_stats:main"
-cxr-benchmark = "performance_benchmark:main"
-cxr-validate = "model_architecture_validation:main"
-cxr-security-scan = "dependency_security_scan:main"
-cxr-generate-data = "synthetic_medical_data_generator:main"
-cxr-model-registry = "model_management_cli:main"
+quantum-planner = "quantum_inspired_task_planner.task_planner_cli:main"
+qtp-version = "version_cli:main"
+qtp-benchmark = "performance_benchmark:main"
+qtp-security-scan = "dependency_security_scan:main"
 
 [tool.ruff]
 line-length = 88

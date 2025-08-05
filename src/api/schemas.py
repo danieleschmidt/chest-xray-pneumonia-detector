@@ -1,5 +1,5 @@
 """
-Pydantic schemas for API request/response models.
+Pydantic schemas for quantum-inspired task planner API request/response models.
 """
 
 from datetime import datetime
@@ -8,23 +8,57 @@ from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field, validator
 
 
-class PredictionRequest(BaseModel):
-    """Request schema for pneumonia prediction."""
-    model_version: Optional[str] = Field(None, description="Specific model version to use")
-    include_gradcam: bool = Field(False, description="Include Grad-CAM visualization")
-    confidence_threshold: float = Field(0.5, description="Confidence threshold for classification", ge=0.0, le=1.0)
+class TaskCreateRequest(BaseModel):
+    """Request schema for creating a new task."""
+    name: str = Field(..., description="Task name", min_length=1, max_length=200)
+    description: Optional[str] = Field(None, description="Detailed task description")
+    priority: str = Field("medium", description="Task priority level")
+    dependencies: Optional[List[str]] = Field(None, description="List of task dependency IDs")
+    estimated_duration_minutes: Optional[int] = Field(60, description="Estimated task duration in minutes", ge=1)
+    resource_requirements: Optional[Dict[str, float]] = Field(None, description="Resource requirements by type")
 
 
-class PredictionResponse(BaseModel):
-    """Response schema for pneumonia prediction."""
-    prediction: str = Field(..., description="Predicted class: NORMAL or PNEUMONIA")
-    confidence: float = Field(..., description="Prediction confidence score", ge=0.0, le=1.0)
-    probabilities: Dict[str, float] = Field(..., description="Class probabilities")
-    model_version: str = Field(..., description="Model version used for prediction")
-    processing_time_ms: float = Field(..., description="Processing time in milliseconds")
-    timestamp: datetime = Field(..., description="Prediction timestamp")
-    interpretability: Optional[Dict[str, Any]] = Field(None, description="Grad-CAM and other interpretability data")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+class TaskResponse(BaseModel):
+    """Response schema for task information."""
+    id: str = Field(..., description="Unique task identifier")
+    name: str = Field(..., description="Task name")
+    description: str = Field(..., description="Task description")
+    priority: str = Field(..., description="Task priority level")
+    status: str = Field(..., description="Current task status")
+    dependencies: List[str] = Field(..., description="Task dependency IDs")
+    estimated_duration_minutes: int = Field(..., description="Estimated duration in minutes")
+    created_at: datetime = Field(..., description="Task creation timestamp")
+    started_at: Optional[datetime] = Field(None, description="Task start timestamp")
+    completed_at: Optional[datetime] = Field(None, description="Task completion timestamp")
+
+
+class ScheduleOptimizeRequest(BaseModel):
+    """Request schema for schedule optimization."""
+    algorithm: str = Field("annealing", description="Optimization algorithm to use")
+    max_iterations: Optional[int] = Field(1000, description="Maximum optimization iterations", ge=10, le=10000)
+    temperature: Optional[float] = Field(100.0, description="Initial annealing temperature", gt=0.0)
+    cooling_rate: Optional[float] = Field(0.95, description="Annealing cooling rate", gt=0.0, lt=1.0)
+
+
+class ScheduleResponse(BaseModel):
+    """Response schema for schedule optimization results."""
+    optimal_schedule: List[str] = Field(..., description="Optimal task execution order")
+    energy: float = Field(..., description="Final optimization energy/cost")
+    iterations: int = Field(..., description="Number of optimization iterations performed")
+    convergence_achieved: bool = Field(..., description="Whether optimization converged")
+    execution_time: float = Field(..., description="Optimization execution time in seconds")
+
+
+class ResourceAddRequest(BaseModel):
+    """Request schema for adding a new resource."""
+    resource_id: str = Field(..., description="Unique resource identifier", min_length=1)
+    type: str = Field(..., description="Resource type")
+    capacity: float = Field(..., description="Total resource capacity", gt=0.0)
+
+
+class ResourceUtilizationResponse(BaseModel):
+    """Response schema for resource utilization information."""
+    utilization: Dict[str, Dict[str, Any]] = Field(..., description="Resource utilization data by resource ID")
 
 
 class BatchPredictionResponse(BaseModel):
