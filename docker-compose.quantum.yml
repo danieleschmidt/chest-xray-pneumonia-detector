@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  quantum-task-planner:
+    build:
+      context: .
+      dockerfile: Dockerfile.quantum
+    container_name: quantum-task-planner-api
+    ports:
+      - "8000:8000"
+    environment:
+      - QTP_LOG_LEVEL=info
+      - QTP_MAX_PARALLEL_TASKS=8
+      - QTP_REDIS_URL=redis://redis:6379/0
+      - QTP_POSTGRES_URL=postgresql://qtp:quantum_secure_2024@postgres:5432/quantum_planner
+      - QTP_MONITORING_ENABLED=true
+      - QTP_QUANTUM_COHERENCE_THRESHOLD=0.1
+    depends_on:
+      - redis
+      - postgres
+      - prometheus
+    volumes:
+      - ./logs:/app/logs
+      - ./model_registry:/app/model_registry
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:7-alpine
+    container_name: quantum-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: quantum-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=quantum_planner
+      - POSTGRES_USER=qtp
+      - POSTGRES_PASSWORD=quantum_secure_2024
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qtp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: quantum-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: quantum-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=quantum_admin_2024
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana-dashboard.json:/etc/grafana/provisioning/dashboards/quantum-dashboard.json
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: quantum-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - quantum-task-planner
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    driver: bridge

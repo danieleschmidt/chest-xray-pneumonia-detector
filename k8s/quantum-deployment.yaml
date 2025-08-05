@@ -1,0 +1,208 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quantum-task-planner
+  namespace: quantum-planner
+  labels:
+    app: quantum-task-planner
+    version: v1.0.0
+    component: api
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: quantum-task-planner
+  template:
+    metadata:
+      labels:
+        app: quantum-task-planner
+        version: v1.0.0
+        component: api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: quantum-task-planner
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: quantum-api
+        image: quantum-task-planner:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        env:
+        - name: QTP_LOG_LEVEL
+          value: "info"
+        - name: QTP_MAX_PARALLEL_TASKS
+          value: "8"
+        - name: QTP_MONITORING_ENABLED
+          value: "true"
+        - name: QTP_REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: quantum-secrets
+              key: redis-url
+        - name: QTP_POSTGRES_URL
+          valueFrom:
+            secretKeyRef:
+              name: quantum-secrets
+              key: postgres-url
+        - name: QTP_QUANTUM_COHERENCE_THRESHOLD
+          value: "0.1"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health/liveness
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/readiness
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: logs
+        emptyDir: {}
+      - name: config
+        configMap:
+          name: quantum-config
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - quantum-task-planner
+              topologyKey: kubernetes.io/hostname
+      tolerations:
+      - key: "quantum-workload"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quantum-task-planner-service
+  namespace: quantum-planner
+  labels:
+    app: quantum-task-planner
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: quantum-task-planner
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: quantum-task-planner-hpa
+  namespace: quantum-planner
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: quantum-task-planner
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quantum-config
+  namespace: quantum-planner
+data:
+  app.yaml: |
+    quantum_planner:
+      max_parallel_tasks: 8
+      optimization_algorithm: "annealing"
+      cache_size: 1000
+      cache_ttl_seconds: 3600
+      monitoring:
+        enabled: true
+        metrics_retention_hours: 24
+        alert_threshold_critical: 95
+        alert_threshold_warning: 80
+      security:
+        input_validation_strict: true
+        rate_limiting_enabled: true
+        max_request_size_mb: 10
+      scaling:
+        auto_scaling_enabled: true
+        scale_up_threshold: 0.8
+        scale_down_threshold: 0.3
+        min_instances: 2
+        max_instances: 10
