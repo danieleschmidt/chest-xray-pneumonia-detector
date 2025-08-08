@@ -1,57 +1,50 @@
-# Quantum-Inspired Task Planner
+# Chest X-Ray Pneumonia Detector
 
-This project implements an advanced task planning system inspired by quantum computing principles, utilizing quantum-inspired algorithms for optimal task scheduling, resource allocation, and priority management. It leverages superposition and entanglement concepts to manage complex task dependencies and parallel execution strategies.
+This project aims to build and evaluate a Convolutional Neural Network (CNN) to detect pneumonia from chest X-ray images. It will explore data augmentation, model architecture design, transfer learning, and model interpretability.
 
 ## Project Goals
-- Implement quantum-inspired task scheduling algorithms using superposition and entanglement principles
-- Design adaptive priority management systems that evolve based on task completion patterns
-- Create multi-dimensional resource allocation optimization using quantum annealing concepts
-- Implement real-time task dependency resolution with quantum-inspired parallel processing
-- Develop predictive task completion modeling using quantum probability distributions
-- Build self-optimizing scheduling systems that learn from execution patterns
+- Implement a robust data loading and preprocessing pipeline for X-ray images.
+- Design and train a custom CNN for pneumonia detection.
+- Experiment with transfer learning using pre-trained models (e.g., VGG16, ResNet).
+- Implement techniques for handling class imbalance if present in the dataset.
+- Evaluate model performance using appropriate metrics (accuracy, precision, recall, F1-score, AUC-ROC).
+- Explore model interpretability techniques like Grad-CAM.
 
-## Tech Stack
-- Python (Core Language)
-- NumPy / SciPy (Quantum Mathematical Operations)
-- Scikit-learn (Machine Learning for Predictive Scheduling)
-- NetworkX (Graph-based Task Dependencies)
-- Redis (Real-time State Management)
-- FastAPI (High-performance API)
-- Celery (Distributed Task Execution)
-- PostgreSQL (Persistent Task Storage)
+## Tech Stack (Planned)
+- Python
+- TensorFlow / Keras or PyTorch
+- OpenCV
+- Scikit-learn
+- Matplotlib / Seaborn
+- Pandas, NumPy
 
-## Project Structure
-quantum-inspired-task-planner/
+## Initial File Structure
+chest-xray-pneumonia-detector/
+├── data/ # For image datasets (structure for train/val/test)
+│   ├── train/
+│   │   ├── NORMAL/
+│   │   └── PNEUMONIA/
+│   ├── val/
+│   │   ├── NORMAL/
+│   │   └── PNEUMONIA/
+│   └── test/
+│       ├── NORMAL/
+│       └── PNEUMONIA/
+├── notebooks/
+│   └── cnn_exploration.ipynb
 ├── src/
-│   ├── quantum_inspired_task_planner/
-│   │   ├── __init__.py
-│   │   ├── quantum_scheduler.py      # Core quantum scheduling engine
-│   │   ├── resource_allocator.py     # Quantum resource allocation
-│   │   ├── quantum_optimization.py   # Quantum annealing algorithms
-│   │   ├── simple_optimization.py    # Simplified optimization (no external deps)
-│   │   ├── validation.py             # Input validation and security
-│   │   ├── error_handling.py         # Comprehensive error handling
-│   │   ├── monitoring.py             # System monitoring and metrics
-│   │   ├── caching.py                # Quantum-coherent caching
-│   │   ├── scaling.py                # Auto-scaling and load balancing
-│   │   └── task_planner_cli.py       # Command-line interface
-│   └── api/
-│       ├── main_quantum.py           # FastAPI quantum task planner API
-│       ├── schemas.py                # API request/response models
-│       └── middleware.py             # API middleware
+│   ├── __init__.py
+│   ├── data_loader.py # Image loading and augmentation
+│   ├── model_builder.py # CNN model definitions
+│   ├── train_engine.py # Training and evaluation loop
+│   ├── predict_utils.py # Inference functions
+│   └── grad_cam.py # For interpretability
 ├── tests/
-│   ├── test_quantum_scheduler.py     # Quantum scheduler tests
-│   ├── test_quantum_optimization.py  # Optimization algorithm tests
-│   ├── test_resource_allocator.py    # Resource allocation tests
-│   └── test_validation.py            # Validation system tests
-├── k8s/
-│   └── quantum-deployment.yaml       # Kubernetes deployment configuration
-├── monitoring/
-│   └── prometheus.yml                # Monitoring configuration
-├── docker-compose.quantum.yml        # Docker Compose for quantum planner
-├── Dockerfile.quantum                # Docker image for quantum planner
-├── QUANTUM_DEPLOYMENT_GUIDE.md       # Comprehensive deployment guide
+│   ├── __init__.py
+│   └── test_data_loader.py
+├── saved_models/ # To store trained model weights
 ├── requirements.txt
+├── .gitignore
 └── README.md
 
 ## Dataset Split Utility
