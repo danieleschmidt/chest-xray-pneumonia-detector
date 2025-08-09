@@ -61,6 +61,20 @@ class ResourceUtilizationResponse(BaseModel):
     utilization: Dict[str, Dict[str, Any]] = Field(..., description="Resource utilization data by resource ID")
 
 
+class PredictionRequest(BaseModel):
+    """Request schema for pneumonia detection predictions."""
+    image_data: str = Field(..., description="Base64 encoded image data")
+    include_grad_cam: bool = Field(False, description="Include Grad-CAM visualization")
+
+
+class PredictionResponse(BaseModel):
+    """Response schema for pneumonia detection predictions."""
+    prediction: str = Field(..., description="Predicted class (NORMAL or PNEUMONIA)")
+    confidence: float = Field(..., description="Prediction confidence score", ge=0.0, le=1.0)
+    processing_time_ms: float = Field(..., description="Processing time in milliseconds")
+    model_version: str = Field(..., description="Model version used for prediction")
+
+
 class BatchPredictionResponse(BaseModel):
     """Response schema for batch predictions."""
     predictions: List[PredictionResponse] = Field(..., description="List of individual predictions")

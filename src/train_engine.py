@@ -533,7 +533,6 @@ def _train(model, train_generator, val_generator, class_weights, args: TrainingA
             validation_data=val_generator,
             validation_steps=validation_steps,
             callbacks=[checkpoint_cb, early_stop_cb, reduce_lr_cb],
-            class_weight=class_weights,
             verbose=1,
         )
         for k, vals in fine_history.history.items():
