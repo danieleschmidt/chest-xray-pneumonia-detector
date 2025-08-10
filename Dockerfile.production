@@ -1,0 +1,103 @@
+# Production Dockerfile for Pneumonia Detection AI System
+# Multi-stage build with security hardening and optimization
+
+# Build stage - includes development dependencies
+FROM python:3.12-slim as builder
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies for building
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    make \
+    libssl-dev \
+    libffi-dev \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements*.txt ./
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY src/ ./src/
+COPY setup.py ./
+COPY pyproject.toml ./
+COPY README.md ./
+
+# Install the application
+RUN pip install --no-cache-dir -e .
+
+# Production stage - minimal runtime image
+FROM python:3.12-slim as production
+
+# Add labels for container metadata
+LABEL maintainer="terragon-labs@example.com" \
+      version="1.0.0" \
+      description="Pneumonia Detection AI System" \
+      org.opencontainers.image.source="https://github.com/danieleschmidt/chest-xray-pneumonia-detector"
+
+# Create non-root user for security
+RUN groupadd -r pneumonia && useradd -r -g pneumonia pneumonia
+
+# Install only runtime system dependencies
+RUN apt-get update && apt-get install -y \
+    libgomp1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgl1-mesa-glx \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Set working directory
+WORKDIR /app
+
+# Copy Python packages from builder
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy application code
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/setup.py ./
+COPY --from=builder /app/pyproject.toml ./
+
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/data /app/models /app/logs /app/cache \
+    && chown -R pneumonia:pneumonia /app
+
+# Copy configuration files
+COPY config/production.yaml ./config/production.yaml
+COPY scripts/health-check.sh ./health-check.sh
+
+# Make scripts executable
+RUN chmod +x ./health-check.sh
+
+# Set environment variables
+ENV PYTHONPATH=/app/src \
+    PYTHONUNBUFFERED=1 \
+    ENVIRONMENT=production \
+    LOG_LEVEL=INFO \
+    MODEL_CACHE_DIR=/app/cache \
+    DATA_DIR=/app/data \
+    MODELS_DIR=/app/models
+
+# Expose port
+EXPOSE 8000
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD ./health-check.sh || exit 1
+
+# Switch to non-root user
+USER pneumonia
+
+# Set default command
+CMD ["python", "-m", "src.api.main", "--host", "0.0.0.0", "--port", "8000"]
