@@ -5,7 +5,7 @@ import json
 import sys
 from datetime import timedelta
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Dict
 
 from .quantum_scheduler import QuantumScheduler, QuantumTask, TaskPriority, TaskStatus
 from .resource_allocator import QuantumResourceAllocator, ResourceType

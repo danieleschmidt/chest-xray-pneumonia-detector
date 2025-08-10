@@ -1,6 +1,7 @@
 """Comprehensive tests for quantum scheduler functionality."""
 
 import pytest
+import time
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 import uuid
