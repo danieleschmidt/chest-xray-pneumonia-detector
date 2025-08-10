@@ -1,0 +1,71 @@
+================================================================================
+QUALITY GATE ASSESSMENT REPORT
+================================================================================
+Timestamp: 2025-08-10T22:13:06.748230
+Overall Result: ❌ FAILED
+Overall Score: 0.829/1.000
+
+EXECUTION SUMMARY
+----------------------------------------
+Total Checks: 8
+Passed: 5
+Failed: 3
+Execution Time: 0.97s
+
+INDIVIDUAL CHECK RESULTS
+----------------------------------------
+Python Syntax Check: ✅ PASS (Score: 1.000)
+  Execution Time: 0.242s
+  files_checked: 84
+  syntax_errors: 0
+  error_details: []
+
+Import Structure Check: ❌ FAIL (Score: 0.786)
+  Execution Time: 0.018s
+  files_analyzed: 84
+  import_issues: 18
+  issue_details: ['src/data_loader.py:15: Relative import without package structure', 'src/inference.py:8: Relative import without package structure', 'src/inference.py:9: Relative import without package structure', 'src/model_architecture_validation.py:18: Relative import without package structure', 'src/model_management_cli.py:40: Relative import without package structure', 'src/model_management_cli.py:47: Relative import without package structure', 'src/model_management_cli.py:66: Relative import without package structure', 'src/model_registry.py:29: Relative import without package structure', 'src/performance_benchmark.py:19: Relative import without package structure', 'src/performance_benchmark.py:20: Relative import without package structure']
+
+Code Complexity Check: ❌ FAIL (Score: 0.202)
+  Execution Time: 0.035s
+  files_analyzed: 84
+  complexity_issues: 67
+  issue_details: ["src/data_loader.py: Function 'create_data_generators' is very long (62 lines)", "src/data_split.py: Function 'split_dataset' is very long (55 lines)", "src/dataset_stats.py: Function 'main' is very long (67 lines)", "src/dependency_security_scan.py: Function 'main' is very long (51 lines)", "src/evaluate.py: Function 'evaluate_predictions' is very long (88 lines)", "src/evaluate.py: Function 'main' is very long (52 lines)", "src/grad_cam.py: Function 'generate_grad_cam' is very long (67 lines)", "src/image_utils.py: Function 'create_image_data_generator' is very long (79 lines)", "src/input_validation.py: Function 'validate_file_path' is very long (59 lines)", "src/input_validation.py: Function 'validate_directory_path' is very long (52 lines)"]
+
+Hardcoded Secrets Check: ❌ FAIL (Score: 0.976)
+  Execution Time: 0.150s
+  files_scanned: 84
+  potential_secrets: 2
+  issue_details: ['src/quantum_inspired_task_planner/robust_api.py:65: Potential hardcoded secret detected', 'src/quantum_inspired_task_planner/robust_api.py:75: Potential hardcoded secret detected']
+
+SQL Injection Check: ✅ PASS (Score: 1.000)
+  Execution Time: 0.086s
+  files_scanned: 84
+  potential_vulnerabilities: 0
+  issue_details: []
+
+File Permissions Check: ✅ PASS (Score: 1.000)
+  Execution Time: 0.001s
+  files_checked: 84
+  permission_issues: 0
+  issue_details: []
+
+Docstring Coverage Check: ✅ PASS (Score: 0.884)
+  Execution Time: 0.436s
+  total_functions: 876
+  documented_functions: 688
+  function_coverage: 0.7853881278538812
+
+README Quality Check: ✅ PASS (Score: 0.786)
+  Execution Time: 0.001s
+  readme_file: README.md
+  content_length: 9307
+  required_sections_found: ['usage', 'example', 'license', 'how to']
+
+CRITICAL ISSUES
+----------------------------------------
+⚠️ Code Complexity Check: Failed with low score
+
+================================================================================
+END OF REPORT
+================================================================================

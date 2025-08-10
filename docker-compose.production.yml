@@ -1,0 +1,353 @@
+# Production Docker Compose Configuration
+# High-availability multi-service deployment with monitoring
+
+version: '3.8'
+
+services:
+  # Main API service with replicas for load balancing
+  pneumonia-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    image: pneumonia-detector:production
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://pneumonia:${DB_PASSWORD}@postgres:5432/pneumonia_db
+      - REDIS_URL=redis://redis:6379
+      - MODEL_CACHE_SIZE=1000
+      - LOG_LEVEL=INFO
+      - METRICS_ENABLED=true
+      - TRACING_ENABLED=true
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+    volumes:
+      - model_cache:/app/cache
+      - application_logs:/app/logs
+    networks:
+      - backend
+      - monitoring
+    depends_on:
+      - postgres
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Load balancer / reverse proxy
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./config/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - backend
+      - monitoring
+    depends_on:
+      - pneumonia-api
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+
+  # PostgreSQL database with replication
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=pneumonia_db
+      - POSTGRES_USER=pneumonia
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--data-checksums
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./config/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pneumonia -d pneumonia_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for caching and session storage
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=30d'
+    networks:
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana-dashboard.json:/etc/grafana/provisioning/dashboards/dashboard.json:ro
+      - ./monitoring/grafana-datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+
+  # Jaeger for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+      - SPAN_STORAGE_TYPE=badger
+      - BADGER_EPHEMERAL=false
+      - BADGER_DIRECTORY_VALUE=/badger/data
+      - BADGER_DIRECTORY_KEY=/badger/key
+    volumes:
+      - jaeger_data:/badger
+    networks:
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+
+  # ELK Stack for log aggregation
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.8.0
+    volumes:
+      - ./config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - application_logs:/logs:ro
+    networks:
+      - monitoring
+    depends_on:
+      - elasticsearch
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - monitoring
+    depends_on:
+      - elasticsearch
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+
+  # Model serving with TensorFlow Serving
+  tf-serving:
+    image: tensorflow/serving:latest
+    ports:
+      - "8501:8501"
+      - "8500:8500"
+    environment:
+      - MODEL_NAME=pneumonia_detector
+      - MODEL_BASE_PATH=/models
+    volumes:
+      - ./models:/models
+    networks:
+      - backend
+    command: >
+      tensorflow_model_server
+      --rest_api_port=8501
+      --model_name=pneumonia_detector
+      --model_base_path=/models/pneumonia_detector
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  # Background job processor
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    image: pneumonia-detector:production
+    command: python -m src.worker.main
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://pneumonia:${DB_PASSWORD}@postgres:5432/pneumonia_db
+      - REDIS_URL=redis://redis:6379
+      - WORKER_CONCURRENCY=4
+    volumes:
+      - model_cache:/app/cache
+      - application_logs:/app/logs
+    networks:
+      - backend
+    depends_on:
+      - postgres
+      - redis
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Backup service
+  backup:
+    image: postgres:15-alpine
+    environment:
+      - PGPASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:ro
+      - backup_data:/backup
+      - ./scripts/backup.sh:/backup.sh:ro
+    networks:
+      - backend
+    command: >
+      sh -c "
+      echo '0 2 * * * /backup.sh' > /etc/crontab &&
+      crond -f
+      "
+    depends_on:
+      - postgres
+
+networks:
+  backend:
+    driver: overlay
+    attachable: true
+  monitoring:
+    driver: overlay
+    attachable: true
+
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/postgres
+  redis_data:
+    driver: local
+  model_cache:
+    driver: local
+  application_logs:
+    driver: local
+  nginx_logs:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  jaeger_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  backup_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /backup
+
+# Secrets management
+secrets:
+  db_password:
+    external: true
+  redis_password:
+    external: true
+  grafana_password:
+    external: true
