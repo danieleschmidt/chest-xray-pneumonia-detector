@@ -1,157 +1,97 @@
 {
-  "timestamp": "2025-08-10T22:13:06.748230",
-  "overall_passed": false,
-  "overall_score": 0.8292863378228004,
-  "individual_checks": [
-    {
-      "name": "Python Syntax Check",
+  "summary": {
+    "overall_passed": false,
+    "total_gates": 7,
+    "passed_gates": 5,
+    "failed_gates": 2,
+    "critical_failures": [
+      "Unit Tests",
+      "Dependency Security"
+    ],
+    "total_execution_time": 0.2031242847442627,
+    "timestamp": 1755015475.4527705
+  },
+  "results": {
+    "code_linting": {
+      "name": "Code Linting",
+      "critical": false,
       "passed": true,
-      "score": 1.0,
+      "execution_time": 0.045896053314208984,
       "details": {
-        "files_checked": 84,
-        "syntax_errors": 0,
-        "error_details": []
-      },
-      "execution_time": 0.2416219711303711,
-      "error_message": null
+        "command": "ruff check src/",
+        "return_code": 1,
+        "stdout": "",
+        "stderr": "/usr/bin/python3: No module named ruff\n",
+        "issues": [],
+        "issue_count": 0
+      }
     },
-    {
-      "name": "Import Structure Check",
+    "security_scan": {
+      "name": "Security Scan",
+      "critical": true,
+      "passed": true,
+      "execution_time": 0.04695892333984375,
+      "details": {
+        "command": "bandit -r src/",
+        "return_code": 1,
+        "stdout": "",
+        "stderr": "/usr/bin/python3: No module named bandit\n",
+        "high_severity_count": 0,
+        "medium_severity_count": 0
+      }
+    },
+    "unit_tests": {
+      "name": "Unit Tests",
+      "critical": true,
       "passed": false,
-      "score": 0.7857142857142857,
+      "execution_time": 0.02973628044128418,
       "details": {
-        "files_analyzed": 84,
-        "import_issues": 18,
-        "issue_details": [
-          "src/data_loader.py:15: Relative import without package structure",
-          "src/inference.py:8: Relative import without package structure",
-          "src/inference.py:9: Relative import without package structure",
-          "src/model_architecture_validation.py:18: Relative import without package structure",
-          "src/model_management_cli.py:40: Relative import without package structure",
-          "src/model_management_cli.py:47: Relative import without package structure",
-          "src/model_management_cli.py:66: Relative import without package structure",
-          "src/model_registry.py:29: Relative import without package structure",
-          "src/performance_benchmark.py:19: Relative import without package structure",
-          "src/performance_benchmark.py:20: Relative import without package structure"
-        ]
-      },
-      "execution_time": 0.018039941787719727,
-      "error_message": null
+        "command": "pytest tests/",
+        "return_code": 1,
+        "stdout": "",
+        "stderr": "/usr/bin/python3: No module named pytest\n"
+      }
     },
-    {
-      "name": "Code Complexity Check",
+    "type_checking": {
+      "name": "Type Checking",
+      "critical": false,
+      "passed": true,
+      "execution_time": 0.029950380325317383,
+      "details": {
+        "command": "mypy src/",
+        "return_code": 1,
+        "stdout": "",
+        "stderr": "/usr/bin/python3: No module named mypy\n",
+        "error_count": 0,
+        "errors": []
+      }
+    },
+    "dependency_security": {
+      "name": "Dependency Security",
+      "critical": true,
       "passed": false,
-      "score": 0.20238095238095233,
+      "execution_time": 0.031450748443603516,
       "details": {
-        "files_analyzed": 84,
-        "complexity_issues": 67,
-        "issue_details": [
-          "src/data_loader.py: Function 'create_data_generators' is very long (62 lines)",
-          "src/data_split.py: Function 'split_dataset' is very long (55 lines)",
-          "src/dataset_stats.py: Function 'main' is very long (67 lines)",
-          "src/dependency_security_scan.py: Function 'main' is very long (51 lines)",
-          "src/evaluate.py: Function 'evaluate_predictions' is very long (88 lines)",
-          "src/evaluate.py: Function 'main' is very long (52 lines)",
-          "src/grad_cam.py: Function 'generate_grad_cam' is very long (67 lines)",
-          "src/image_utils.py: Function 'create_image_data_generator' is very long (79 lines)",
-          "src/input_validation.py: Function 'validate_file_path' is very long (59 lines)",
-          "src/input_validation.py: Function 'validate_directory_path' is very long (52 lines)"
-        ]
-      },
-      "execution_time": 0.03490424156188965,
-      "error_message": null
+        "error": "Dependency scan failed: object of type 'ScanResult' has no len()"
+      }
     },
-    {
-      "name": "Hardcoded Secrets Check",
-      "passed": false,
-      "score": 0.9761904761904762,
-      "details": {
-        "files_scanned": 84,
-        "potential_secrets": 2,
-        "issue_details": [
-          "src/quantum_inspired_task_planner/robust_api.py:65: Potential hardcoded secret detected",
-          "src/quantum_inspired_task_planner/robust_api.py:75: Potential hardcoded secret detected"
-        ]
-      },
-      "execution_time": 0.1499190330505371,
-      "error_message": null
-    },
-    {
-      "name": "SQL Injection Check",
+    "model_validation": {
+      "name": "Model Validation",
+      "critical": false,
       "passed": true,
-      "score": 1.0,
+      "execution_time": 0.01114654541015625,
       "details": {
-        "files_scanned": 84,
-        "potential_vulnerabilities": 0,
-        "issue_details": []
-      },
-      "execution_time": 0.08626866340637207,
-      "error_message": null
+        "skipped": "Validation framework not available: No module named 'numpy'"
+      }
     },
-    {
-      "name": "File Permissions Check",
+    "performance_benchmark": {
+      "name": "Performance Benchmark",
+      "critical": false,
       "passed": true,
-      "score": 1.0,
+      "execution_time": 0.007985353469848633,
       "details": {
-        "files_checked": 84,
-        "permission_issues": 0,
-        "issue_details": []
-      },
-      "execution_time": 0.0013706684112548828,
-      "error_message": null
-    },
-    {
-      "name": "Docstring Coverage Check",
-      "passed": true,
-      "score": 0.8842907025824027,
-      "details": {
-        "total_functions": 876,
-        "documented_functions": 688,
-        "function_coverage": 0.7853881278538812,
-        "total_classes": 238,
-        "documented_classes": 234,
-        "class_coverage": 0.9831932773109243,
-        "overall_coverage": 0.8842907025824027
-      },
-      "execution_time": 0.4364748001098633,
-      "error_message": null
-    },
-    {
-      "name": "README Quality Check",
-      "passed": true,
-      "score": 0.7857142857142857,
-      "details": {
-        "readme_file": "README.md",
-        "content_length": 9307,
-        "required_sections_found": [
-          "usage",
-          "example",
-          "license",
-          "how to"
-        ],
-        "quality_indicators": {
-          "has_code_examples": true,
-          "has_links": true,
-          "sufficient_length": true,
-          "has_headers": true,
-          "has_installation_info": true
-        },
-        "section_score": 0.5714285714285714,
-        "quality_score": 1.0
-      },
-      "execution_time": 0.0006492137908935547,
-      "error_message": null
+        "skipped": "Performance benchmark not available"
+      }
     }
-  ],
-  "critical_issues": [
-    "Code Complexity Check: Failed with low score"
-  ],
-  "recommendations": [],
-  "execution_summary": {
-    "total_checks": 8,
-    "passed_checks": 5,
-    "failed_checks": 3,
-    "total_execution_time": 0.9706509113311768,
-    "checks_per_second": 8.241889995249565
   }
 }
