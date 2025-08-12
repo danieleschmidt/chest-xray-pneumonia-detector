@@ -1,0 +1,540 @@
+# Kubernetes Production Deployment with Enhanced Features
+# Includes auto-scaling, monitoring, and advanced functionality
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pneumonia-detector
+  labels:
+    app: pneumonia-detector
+    environment: production
+
+---
+# ConfigMap for application configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pneumonia-config
+  namespace: pneumonia-detector
+data:
+  LOG_LEVEL: "INFO"
+  PYTHONPATH: "/app"
+  HEALTH_CHECK_ENABLED: "true"
+  AUTO_SCALING_ENABLED: "true"
+  PERFORMANCE_OPTIMIZATION_ENABLED: "true"
+  CACHE_SIZE: "2000"
+  MAX_BATCH_SIZE: "64"
+  METRICS_ENABLED: "true"
+  SECURITY_SCANNING_ENABLED: "true"
+  MODEL_PATH: "/app/models/pneumonia_detector.keras"
+  REDIS_URL: "redis://redis-service:6379/0"
+
+---
+# Secret for sensitive configuration
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pneumonia-secrets
+  namespace: pneumonia-detector
+type: Opaque
+data:
+  # Base64 encoded values - replace with actual secrets
+  redis-password: cGFzc3dvcmQxMjM=  # password123
+  api-key: YXBpa2V5MTIz  # apikey123
+
+---
+# PersistentVolume for model storage
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: model-storage
+  namespace: pneumonia-detector
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: fast-ssd
+  hostPath:
+    path: /data/models
+
+---
+# PersistentVolumeClaim for model storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-storage-claim
+  namespace: pneumonia-detector
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: fast-ssd
+
+---
+# Redis Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: pneumonia-detector
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pneumonia-secrets
+              key: redis-password
+        command: ["redis-server"]
+        args: ["--requirepass", "$(REDIS_PASSWORD)"]
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: pneumonia-detector
+  labels:
+    app: redis
+spec:
+  selector:
+    app: redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+  type: ClusterIP
+
+---
+# Main Application Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pneumonia-detector
+  namespace: pneumonia-detector
+  labels:
+    app: pneumonia-detector
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: pneumonia-detector
+  template:
+    metadata:
+      labels:
+        app: pneumonia-detector
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: pneumonia-detector
+        image: pneumonia-detector:production
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+        envFrom:
+        - configMapRef:
+            name: pneumonia-config
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pneumonia-secrets
+              key: redis-password
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pneumonia-secrets
+              key: api-key
+        volumeMounts:
+        - name: model-storage
+          mountPath: /app/models
+          readOnly: true
+        - name: logs
+          mountPath: /app/logs
+        - name: cache
+          mountPath: /app/cache
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 15
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 12
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: model-storage
+        persistentVolumeClaim:
+          claimName: model-storage-claim
+      - name: logs
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: cache
+        emptyDir:
+          sizeLimit: 2Gi
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+
+---
+# Service for the main application
+apiVersion: v1
+kind: Service
+metadata:
+  name: pneumonia-detector-service
+  namespace: pneumonia-detector
+  labels:
+    app: pneumonia-detector
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+spec:
+  selector:
+    app: pneumonia-detector
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8000
+    protocol: TCP
+  type: ClusterIP
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pneumonia-detector-hpa
+  namespace: pneumonia-detector
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pneumonia-detector
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: http_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "100"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+
+---
+# Ingress for external access
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pneumonia-detector-ingress
+  namespace: pneumonia-detector
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - api.pneumonia-detector.com
+    secretName: pneumonia-detector-tls
+  rules:
+  - host: api.pneumonia-detector.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pneumonia-detector-service
+            port:
+              number: 80
+
+---
+# Network Policy for security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pneumonia-detector-netpol
+  namespace: pneumonia-detector
+spec:
+  podSelector:
+    matchLabels:
+      app: pneumonia-detector
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: nginx-ingress
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 8000
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  - to: []  # Allow external DNS/API calls
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+
+---
+# PodDisruptionBudget for high availability
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pneumonia-detector-pdb
+  namespace: pneumonia-detector
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: pneumonia-detector
+
+---
+# ServiceMonitor for Prometheus
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: pneumonia-detector-monitor
+  namespace: pneumonia-detector
+  labels:
+    app: pneumonia-detector
+spec:
+  selector:
+    matchLabels:
+      app: pneumonia-detector
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+
+---
+# PrometheusRule for alerting
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: pneumonia-detector-alerts
+  namespace: pneumonia-detector
+  labels:
+    app: pneumonia-detector
+spec:
+  groups:
+  - name: pneumonia-detector.rules
+    rules:
+    - alert: PneumoniaDetectorHighErrorRate
+      expr: |
+        (
+          rate(http_requests_total{job="pneumonia-detector",code=~"5.."}[5m])
+          /
+          rate(http_requests_total{job="pneumonia-detector"}[5m])
+        ) > 0.1
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High error rate detected for Pneumonia Detector"
+        description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+    
+    - alert: PneumoniaDetectorHighLatency
+      expr: |
+        histogram_quantile(0.95,
+          rate(http_request_duration_seconds_bucket{job="pneumonia-detector"}[5m])
+        ) > 2
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High latency detected for Pneumonia Detector"
+        description: "95th percentile latency is {{ $value }}s for the last 5 minutes."
+    
+    - alert: PneumoniaDetectorPodCrashLooping
+      expr: |
+        rate(kube_pod_container_status_restarts_total{namespace="pneumonia-detector"}[15m]) > 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Pod is crash looping"
+        description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is restarting frequently."
+    
+    - alert: PneumoniaDetectorHighMemoryUsage
+      expr: |
+        (
+          container_memory_working_set_bytes{namespace="pneumonia-detector",pod=~"pneumonia-detector-.*"}
+          /
+          container_spec_memory_limit_bytes{namespace="pneumonia-detector",pod=~"pneumonia-detector-.*"}
+        ) > 0.9
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High memory usage detected"
+        description: "Memory usage is {{ $value | humanizePercentage }} for pod {{ $labels.pod }}."
+
+---
+# CronJob for model updates
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: model-updater
+  namespace: pneumonia-detector
+spec:
+  schedule: "0 2 * * 0"  # Weekly on Sunday at 2 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: model-updater
+            image: pneumonia-detector:production
+            command: ["python", "-m", "src.model_management_cli", "--update-models"]
+            envFrom:
+            - configMapRef:
+                name: pneumonia-config
+            volumeMounts:
+            - name: model-storage
+              mountPath: /app/models
+            resources:
+              requests:
+                memory: "1Gi"
+                cpu: "500m"
+              limits:
+                memory: "2Gi"
+                cpu: "1000m"
+          volumes:
+          - name: model-storage
+            persistentVolumeClaim:
+              claimName: model-storage-claim
+          restartPolicy: OnFailure
+      backoffLimit: 3
+      successfulJobsHistoryLimit: 3
+      failedJobsHistoryLimit: 1
