@@ -29,6 +29,8 @@ py-modules = [
     "model_registry",
     "model_management_cli",
     "image_utils",
+    "medical_analytics_dashboard",
+    "simple_deployment_manager",
 ]
 
 [project.scripts]
@@ -36,6 +38,8 @@ quantum-planner = "quantum_inspired_task_planner.task_planner_cli:main"
 qtp-version = "version_cli:main"
 qtp-benchmark = "performance_benchmark:main"
 qtp-security-scan = "dependency_security_scan:main"
+medical-analytics = "medical_analytics_dashboard:main"
+simple-deploy = "simple_deployment_manager:main"
 
 [tool.ruff]
 line-length = 88

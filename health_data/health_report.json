@@ -1,0 +1,26 @@
+{
+  "timestamp": "2025-08-15T07:41:52.808451",
+  "overall_status": "warning",
+  "checks": {
+    "disk": {
+      "status": "healthy",
+      "free_percent": 84.63031625926341,
+      "free_gb": 19.878135681152344,
+      "total_gb": 23.488197326660156
+    },
+    "memory": {
+      "status": "unavailable",
+      "error": "psutil not installed"
+    },
+    "logs": {
+      "status": "healthy",
+      "total_size_mb": 0.00034999847412109375,
+      "large_files": []
+    },
+    "models": {
+      "status": "warning",
+      "models_found": 0,
+      "model_files": []
+    }
+  }
+}
