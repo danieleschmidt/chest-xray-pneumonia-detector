@@ -1,0 +1,42 @@
+{
+  "prometheus": {
+    "enabled": true,
+    "scrape_interval": "15s",
+    "metrics_path": "/metrics"
+  },
+  "grafana": {
+    "enabled": true,
+    "dashboards": [
+      "medical-ai-overview",
+      "model-performance",
+      "system-health",
+      "compliance-metrics"
+    ]
+  },
+  "alertmanager": {
+    "enabled": true,
+    "alerts": [
+      {
+        "name": "high_error_rate",
+        "condition": "error_rate > 0.05",
+        "severity": "critical"
+      },
+      {
+        "name": "high_response_time",
+        "condition": "response_time_p95 > 1s",
+        "severity": "warning"
+      },
+      {
+        "name": "low_model_confidence",
+        "condition": "avg_confidence < 0.7",
+        "severity": "warning"
+      }
+    ]
+  },
+  "logging": {
+    "enabled": true,
+    "log_level": "INFO",
+    "structured_logging": true,
+    "audit_logging": true
+  }
+}

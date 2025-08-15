@@ -1,0 +1,11 @@
+{
+  "environment": "staging",
+  "namespace": "medical-ai-staging",
+  "deployed_at": 1755261391.2905035,
+  "replicas": 1,
+  "image_tag": "prod-deploy-1755261391",
+  "endpoints": [
+    "https://staging.medical-ai.company.com/health",
+    "https://staging.medical-ai.company.com/predict"
+  ]
+}

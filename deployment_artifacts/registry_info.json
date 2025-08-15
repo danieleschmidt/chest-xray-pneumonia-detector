@@ -1,0 +1,8 @@
+{
+  "registry_url": "registry.company.com",
+  "repository": "medical-ai/pneumonia-detector",
+  "tag": "prod-deploy-1755261391",
+  "digest": "1eb096467c4d",
+  "push_time": 1755261391.2884495,
+  "size_mb": 450
+}

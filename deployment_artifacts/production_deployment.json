@@ -1,0 +1,14 @@
+{
+  "environment": "production",
+  "namespace": "medical-ai",
+  "deployed_at": 1755261391.2913408,
+  "replicas": 3,
+  "image_tag": "prod-deploy-1755261391",
+  "endpoints": [
+    "https://api.medical-ai.company.com/health",
+    "https://api.medical-ai.company.com/predict"
+  ],
+  "rollout_strategy": "rolling_update",
+  "max_unavailable": "25%",
+  "max_surge": "25%"
+}

@@ -1,0 +1,49 @@
+{
+  "apiVersion": "networking.k8s.io/v1",
+  "kind": "NetworkPolicy",
+  "metadata": {
+    "name": "medical-ai-network-policy",
+    "namespace": "medical-ai"
+  },
+  "spec": {
+    "podSelector": {
+      "matchLabels": {
+        "app": "pneumonia-detector"
+      }
+    },
+    "policyTypes": [
+      "Ingress",
+      "Egress"
+    ],
+    "ingress": [
+      {
+        "from": [
+          {
+            "namespaceSelector": {
+              "matchLabels": {
+                "name": "ingress-nginx"
+              }
+            }
+          }
+        ],
+        "ports": [
+          {
+            "protocol": "TCP",
+            "port": 8080
+          }
+        ]
+      }
+    ],
+    "egress": [
+      {
+        "to": [],
+        "ports": [
+          {
+            "protocol": "TCP",
+            "port": 443
+          }
+        ]
+      }
+    ]
+  }
+}

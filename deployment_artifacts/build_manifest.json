@@ -1,0 +1,12 @@
+{
+  "image_tag": "medical-ai-pneumonia-detector:prod-deploy-1755261391",
+  "dockerfile": "Dockerfile.production",
+  "build_context": ".",
+  "build_time": 1755261391.2874892,
+  "layers": [
+    "python:3.11-slim",
+    "medical-ai-base",
+    "application-code",
+    "security-hardening"
+  ]
+}

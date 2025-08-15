@@ -1,0 +1,11 @@
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+    "name": "medical-ai-config",
+    "namespace": "medical-ai"
+  },
+  "data": {
+    "app.conf": "{\"model_path\": \"/app/models/pneumonia_detector.h5\", \"batch_size\": 32, \"max_request_size\": \"10MB\", \"timeout\": 30, \"log_level\": \"INFO\"}"
+  }
+}

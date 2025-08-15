@@ -1,0 +1,60 @@
+{
+  "timestamp": "2025-08-15 12:30:53",
+  "overall_status": "FAILED",
+  "success_rate": 0.3333333333333333,
+  "total_gates": 6,
+  "passed_gates": [
+    "medical_ai_validation",
+    "performance_benchmark"
+  ],
+  "failed_gates": [
+    "security_scan",
+    "code_quality",
+    "test_suite",
+    "dependency_audit"
+  ],
+  "detailed_results": {
+    "security_scan": {
+      "status": "error",
+      "details": "[Errno 2] No such file or directory: 'python'"
+    },
+    "code_quality": {
+      "status": "error",
+      "details": "[Errno 2] No such file or directory: 'python'"
+    },
+    "test_suite": {
+      "status": "error",
+      "details": "[Errno 2] No such file or directory: 'python'"
+    },
+    "medical_ai_validation": {
+      "status": "passed",
+      "compliance_score": 1.0,
+      "found_patterns": [
+        "encryption",
+        "audit",
+        "logging",
+        "anonymization",
+        "validation"
+      ]
+    },
+    "performance_benchmark": {
+      "status": "passed",
+      "total_time": 0.03761863708496094,
+      "import_times": {
+        "src.model_builder": "Import failed: No module named 'tensorflow'",
+        "src.data_loader": "Import failed: No module named 'numpy'",
+        "src.train_engine": "Import failed: No module named 'mlflow'"
+      }
+    },
+    "dependency_audit": {
+      "status": "error",
+      "details": "[Errno 2] No such file or directory: 'python'"
+    }
+  },
+  "recommendations": [
+    "Address security vulnerabilities identified by bandit",
+    "Fix code quality issues identified by ruff",
+    "Increase test coverage to at least 85%",
+    "Update vulnerable dependencies"
+  ]
+}

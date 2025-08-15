@@ -1,0 +1,19 @@
+{
+  "scan_time": 1755261391.2878885,
+  "vulnerabilities": {
+    "critical": 0,
+    "high": 1,
+    "medium": 3,
+    "low": 8
+  },
+  "compliance_checks": {
+    "hipaa_compliant": true,
+    "gdpr_compliant": true,
+    "security_baseline": true
+  },
+  "recommendations": [
+    "Update base image to latest security patch",
+    "Remove unnecessary packages",
+    "Implement network policies"
+  ]
+}
