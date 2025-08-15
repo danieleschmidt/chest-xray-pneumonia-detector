@@ -1,0 +1,86 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "medical-ai-pneumonia-detector",
+    "namespace": "medical-ai",
+    "labels": {
+      "app": "pneumonia-detector",
+      "version": "prod-deploy-1755261391",
+      "tier": "production"
+    }
+  },
+  "spec": {
+    "replicas": 3,
+    "selector": {
+      "matchLabels": {
+        "app": "pneumonia-detector"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "pneumonia-detector",
+          "version": "prod-deploy-1755261391"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "pneumonia-detector",
+            "image": "registry.company.com/medical-ai/pneumonia-detector:prod-deploy-1755261391",
+            "ports": [
+              {
+                "containerPort": 8080,
+                "protocol": "TCP"
+              }
+            ],
+            "resources": {
+              "requests": {
+                "cpu": "1000m",
+                "memory": "2Gi"
+              },
+              "limits": {
+                "cpu": "2000m",
+                "memory": "4Gi",
+                "nvidia.com/gpu": "1"
+              }
+            },
+            "livenessProbe": {
+              "httpGet": {
+                "path": "/health",
+                "port": 8080
+              },
+              "initialDelaySeconds": 60,
+              "periodSeconds": 30
+            },
+            "readinessProbe": {
+              "httpGet": {
+                "path": "/ready",
+                "port": 8080
+              },
+              "initialDelaySeconds": 30,
+              "periodSeconds": 10
+            },
+            "env": [
+              {
+                "name": "FLASK_ENV",
+                "value": "production"
+              },
+              {
+                "name": "LOG_LEVEL",
+                "value": "INFO"
+              }
+            ],
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 1000,
+              "allowPrivilegeEscalation": false,
+              "readOnlyRootFilesystem": true
+            }
+          }
+        ]
+      }
+    }
+  }
+}

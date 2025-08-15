@@ -1,0 +1,27 @@
+{
+  "deployment_id": "a82dfc5a-fab3-4cfd-aff4-ba5eff6cfa7f",
+  "timestamp": 1755261257.396412,
+  "overall_status": "FAILED",
+  "total_duration": 0.0011751651763916016,
+  "success_rate": 0.0,
+  "average_performance_score": 0.3,
+  "average_compliance_score": 0.2,
+  "stages_completed": 1,
+  "stages_successful": 0,
+  "stages_failed": 1,
+  "metrics": [
+    {
+      "timestamp": 1755261257.3962824,
+      "deployment_id": "a82dfc5a-fab3-4cfd-aff4-ba5eff6cfa7f",
+      "stage": "pre_deployment_validation",
+      "duration": 0.0009291172027587891,
+      "success": false,
+      "error_message": "[Errno 2] No such file or directory: 'python'",
+      "performance_score": 0.3,
+      "compliance_score": 0.2
+    }
+  ],
+  "recommendations": [
+    "Review and fix validation errors before redeployment"
+  ]
+}

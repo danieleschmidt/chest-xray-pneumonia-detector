@@ -1,0 +1,34 @@
+{
+  "test_suite": "integration_tests",
+  "total_tests": 25,
+  "passed": 24,
+  "failed": 1,
+  "skipped": 0,
+  "duration": 45.2,
+  "coverage": 87.5,
+  "test_categories": {
+    "api_tests": {
+      "passed": 8,
+      "failed": 0
+    },
+    "model_tests": {
+      "passed": 6,
+      "failed": 0
+    },
+    "security_tests": {
+      "passed": 5,
+      "failed": 1
+    },
+    "performance_tests": {
+      "passed": 5,
+      "failed": 0
+    }
+  },
+  "failed_tests": [
+    {
+      "test_name": "test_rate_limiting",
+      "error": "Rate limiting not properly configured",
+      "severity": "medium"
+    }
+  ]
+}

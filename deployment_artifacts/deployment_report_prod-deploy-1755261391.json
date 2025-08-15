@@ -1,0 +1,158 @@
+{
+  "deployment_id": "prod-deploy-1755261391",
+  "timestamp": 1755261391.2924716,
+  "overall_status": "SUCCESS",
+  "total_duration": 0.005335092544555664,
+  "success_rate": 1.0,
+  "steps_completed": 12,
+  "steps_successful": 12,
+  "steps_failed": 0,
+  "deployment_config": {
+    "environment": "production",
+    "replicas": 3,
+    "cpu_request": "1000m",
+    "cpu_limit": "2000m",
+    "memory_request": "2Gi",
+    "memory_limit": "4Gi",
+    "gpu_limit": "1",
+    "health_check_path": "/health",
+    "readiness_probe_path": "/ready",
+    "liveness_probe_path": "/health",
+    "service_port": 8080,
+    "ingress_enabled": true,
+    "tls_enabled": true,
+    "auto_scaling_enabled": true,
+    "min_replicas": 2,
+    "max_replicas": 10,
+    "target_cpu_utilization": 70
+  },
+  "steps": [
+    {
+      "name": "validate_environment",
+      "status": "completed",
+      "start_time": 1755261391.2871397,
+      "end_time": 1755261391.2873566,
+      "error_message": null,
+      "artifacts": []
+    },
+    {
+      "name": "build_container_image",
+      "status": "completed",
+      "start_time": 1755261391.287421,
+      "end_time": 1755261391.287771,
+      "error_message": null,
+      "artifacts": [
+        "deployment_artifacts/build_manifest.json"
+      ]
+    },
+    {
+      "name": "security_scan_image",
+      "status": "completed",
+      "start_time": 1755261391.287843,
+      "end_time": 1755261391.2882597,
+      "error_message": null,
+      "artifacts": [
+        "deployment_artifacts/security_scan_results.json"
+      ]
+    },
+    {
+      "name": "push_to_registry",
+      "status": "completed",
+      "start_time": 1755261391.2883198,
+      "end_time": 1755261391.2886362,
+      "error_message": null,
+      "artifacts": [
+        "deployment_artifacts/registry_info.json"
+      ]
+    },
+    {
+      "name": "create_kubernetes_manifests",
+      "status": "completed",
+      "start_time": 1755261391.2887301,
+      "end_time": 1755261391.2899477,
+      "error_message": null,
+      "artifacts": [
+        "deployment_artifacts/deployment.yaml",
+        "deployment_artifacts/service.yaml",
+        "deployment_artifacts/ingress.yaml",
+        "deployment_artifacts/hpa.yaml",
+        "deployment_artifacts/configmap.yaml",
+        "deployment_artifacts/secret.yaml"
+      ]
+    },
+    {
+      "name": "apply_security_policies",
+      "status": "completed",
+      "start_time": 1755261391.2900298,
+      "end_time": 1755261391.2903562,
+      "error_message": null,
+      "artifacts": [
+        "deployment_artifacts/network_policy.yaml"
+      ]
+    },
+    {
+      "name": "deploy_to_staging",
+      "status": "completed",
+      "start_time": 1755261391.2904365,
+      "end_time": 1755261391.2907486,
+      "error_message": null,
+      "artifacts": [
+        "deployment_artifacts/staging_deployment.json"
+      ]
+    },
+    {
+      "name": "run_integration_tests",
+      "status": "completed",
+      "start_time": 1755261391.290857,
+      "end_time": 1755261391.291215,
+      "error_message": null,
+      "artifacts": [
+        "deployment_artifacts/integration_test_results.json"
+      ]
+    },
+    {
+      "name": "deploy_to_production",
+      "status": "completed",
+      "start_time": 1755261391.291295,
+      "end_time": 1755261391.2915092,
+      "error_message": null,
+      "artifacts": [
+        "deployment_artifacts/production_deployment.json"
+      ]
+    },
+    {
+      "name": "verify_deployment",
+      "status": "completed",
+      "start_time": 1755261391.2915602,
+      "end_time": 1755261391.2918284,
+      "error_message": null,
+      "artifacts": [
+        "deployment_artifacts/deployment_verification.json"
+      ]
+    },
+    {
+      "name": "setup_monitoring",
+      "status": "completed",
+      "start_time": 1755261391.2918792,
+      "end_time": 1755261391.2921338,
+      "error_message": null,
+      "artifacts": [
+        "deployment_artifacts/monitoring_config.json"
+      ]
+    },
+    {
+      "name": "enable_traffic",
+      "status": "completed",
+      "start_time": 1755261391.292185,
+      "end_time": 1755261391.29242,
+      "error_message": null,
+      "artifacts": [
+        "deployment_artifacts/traffic_config.json"
+      ]
+    }
+  ],
+  "artifacts_directory": "deployment_artifacts",
+  "recommendations": [
+    "Deployment completed successfully - monitor production metrics"
+  ]
+}

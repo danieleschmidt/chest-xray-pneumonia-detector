@@ -1,0 +1,50 @@
+{
+  "timestamp": "2025-08-15T12:30:59.174516",
+  "overall_status": "COMPLIANT",
+  "overall_score": 0.975,
+  "compliance_grade": "A",
+  "checks": [
+    {
+      "name": "HIPAA Compliance",
+      "status": "passed",
+      "score": 1.0,
+      "details": "Found 8/8 compliance patterns in 110 files",
+      "recommendations": []
+    },
+    {
+      "name": "FDA 21 CFR 820 Compliance",
+      "status": "passed",
+      "score": 1.0,
+      "details": "Found 8/8 QSR patterns",
+      "recommendations": []
+    },
+    {
+      "name": "GDPR Compliance",
+      "status": "passed",
+      "score": 1.0,
+      "details": "Found 8/8 GDPR patterns",
+      "recommendations": []
+    },
+    {
+      "name": "AI Model Validation",
+      "status": "passed",
+      "score": 0.875,
+      "details": "Found 7/8 validation patterns",
+      "recommendations": []
+    },
+    {
+      "name": "Medical Device Software (IEC 62304)",
+      "status": "passed",
+      "score": 1.0,
+      "details": "Found 8/8 medical software patterns",
+      "recommendations": []
+    }
+  ],
+  "summary": {
+    "total_checks": 5,
+    "passed": 5,
+    "warnings": 0,
+    "failed": 0
+  },
+  "priority_recommendations": []
+}
