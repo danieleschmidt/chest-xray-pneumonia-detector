@@ -1,0 +1,97 @@
+{
+  "summary": {
+    "overall_passed": false,
+    "total_gates": 7,
+    "passed_gates": 5,
+    "failed_gates": 2,
+    "critical_failures": [
+      "Unit Tests",
+      "Dependency Security"
+    ],
+    "total_execution_time": 0.16298532485961914,
+    "timestamp": 1755472081.3710797
+  },
+  "results": {
+    "code_linting": {
+      "name": "Code Linting",
+      "critical": false,
+      "passed": true,
+      "execution_time": 0.03362607955932617,
+      "details": {
+        "command": "ruff check src/",
+        "return_code": 1,
+        "stdout": "",
+        "stderr": "/usr/bin/python3: No module named ruff\n",
+        "issues": [],
+        "issue_count": 0
+      }
+    },
+    "security_scan": {
+      "name": "Security Scan",
+      "critical": true,
+      "passed": true,
+      "execution_time": 0.028703689575195312,
+      "details": {
+        "command": "bandit -r src/",
+        "return_code": 1,
+        "stdout": "",
+        "stderr": "/usr/bin/python3: No module named bandit\n",
+        "high_severity_count": 0,
+        "medium_severity_count": 0
+      }
+    },
+    "unit_tests": {
+      "name": "Unit Tests",
+      "critical": true,
+      "passed": false,
+      "execution_time": 0.0323030948638916,
+      "details": {
+        "command": "pytest tests/",
+        "return_code": 1,
+        "stdout": "",
+        "stderr": "/usr/bin/python3: No module named pytest\n"
+      }
+    },
+    "type_checking": {
+      "name": "Type Checking",
+      "critical": false,
+      "passed": true,
+      "execution_time": 0.0292508602142334,
+      "details": {
+        "command": "mypy src/",
+        "return_code": 1,
+        "stdout": "",
+        "stderr": "/usr/bin/python3: No module named mypy\n",
+        "error_count": 0,
+        "errors": []
+      }
+    },
+    "dependency_security": {
+      "name": "Dependency Security",
+      "critical": true,
+      "passed": false,
+      "execution_time": 0.021239519119262695,
+      "details": {
+        "error": "Dependency scan failed: object of type 'ScanResult' has no len()"
+      }
+    },
+    "model_validation": {
+      "name": "Model Validation",
+      "critical": false,
+      "passed": true,
+      "execution_time": 0.010312080383300781,
+      "details": {
+        "skipped": "Validation framework not available: No module named 'numpy'"
+      }
+    },
+    "performance_benchmark": {
+      "name": "Performance Benchmark",
+      "critical": false,
+      "passed": true,
+      "execution_time": 0.00755000114440918,
+      "details": {
+        "skipped": "Performance benchmark not available"
+      }
+    }
+  }
+}

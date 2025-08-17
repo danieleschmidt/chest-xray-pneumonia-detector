@@ -1,0 +1,228 @@
+{
+  "summary": {
+    "overall_passed": false,
+    "total_checks": 7,
+    "passed_checks": 5,
+    "failed_checks": 2,
+    "total_execution_time": 0.6034667491912842,
+    "quality_scores": {
+      "file_structure_score": 1.0,
+      "syntax_score": 1.0,
+      "import_score": 0.0,
+      "documentation_score": 1.0,
+      "security_score": 0.9217391304347826,
+      "compliance_score": 1.0,
+      "quantum_score": 1.0
+    },
+    "overall_quality_score": 0.8459627329192546,
+    "timestamp": "2025-08-17 23:09:07"
+  },
+  "results": {
+    "file_structure": {
+      "name": "File Structure",
+      "passed": true,
+      "execution_time": 0.000186920166015625,
+      "details": {
+        "required_files": 8,
+        "present_files": 8,
+        "missing_files": [],
+        "file_structure_score": 1.0
+      }
+    },
+    "python_syntax": {
+      "name": "Python Syntax",
+      "passed": true,
+      "execution_time": 0.4267752170562744,
+      "details": {
+        "total_python_files": 115,
+        "valid_files": 115,
+        "syntax_errors": [],
+        "syntax_score": 1.0
+      }
+    },
+    "import_resolution": {
+      "name": "Import Resolution",
+      "passed": false,
+      "execution_time": 0.11806392669677734,
+      "details": {
+        "total_import_tests": 5,
+        "successful_imports": [],
+        "failed_imports": [
+          {
+            "module": "quantum_inspired_task_planner.quantum_optimization",
+            "class": "QuantumAnnealer",
+            "error": "No module named 'numpy'"
+          },
+          {
+            "module": "autonomous_model_versioning",
+            "class": "AutonomousModelVersionManager",
+            "error": "No module named 'numpy'"
+          },
+          {
+            "module": "real_time_quantum_performance_optimizer",
+            "class": "RealTimeQuantumOptimizer",
+            "error": "No module named 'numpy'"
+          },
+          {
+            "module": "research.novel_quantum_medical_fusion",
+            "class": "QuantumMedicalFusionNetwork",
+            "error": "No module named 'numpy'"
+          },
+          {
+            "module": "research.quantum_vs_classical_comparative_study",
+            "class": "ComparativeStudyFramework",
+            "error": "No module named 'numpy'"
+          }
+        ],
+        "import_score": 0.0
+      }
+    },
+    "documentation": {
+      "name": "Documentation",
+      "passed": true,
+      "execution_time": 0.00034165382385253906,
+      "details": {
+        "required_docs": 4,
+        "present_docs": 4,
+        "missing_docs": [],
+        "documentation_score": 1.0
+      }
+    },
+    "security_patterns": {
+      "name": "Security Patterns",
+      "passed": false,
+      "execution_time": 0.016422271728515625,
+      "details": {
+        "total_files_scanned": 115,
+        "security_issues": [
+          {
+            "file": "src/advanced_error_recovery.py",
+            "pattern": "pickle.load",
+            "description": "Pickle deserialization",
+            "line": 535,
+            "line_content": "state = pickle.load(f)"
+          },
+          {
+            "file": "src/quantum_security_framework.py",
+            "pattern": "eval(",
+            "description": "Use of eval() function",
+            "line": 341,
+            "line_content": "\"eval(\", \"exec(\", \"system(\", \"shell_exec\","
+          },
+          {
+            "file": "src/quantum_security_framework.py",
+            "pattern": "exec(",
+            "description": "Use of exec() function",
+            "line": 272,
+            "line_content": "\"update set\", \"exec(\", \"script>\", \"javascript:\","
+          },
+          {
+            "file": "src/database/cache.py",
+            "pattern": "pickle.load",
+            "description": "Pickle deserialization",
+            "line": 140,
+            "line_content": "return pickle.loads(data)"
+          },
+          {
+            "file": "src/monitoring/health_checks.py",
+            "pattern": "__import__",
+            "description": "Dynamic imports",
+            "line": 213,
+            "line_content": "__import__(dep.replace('-', '_'))"
+          },
+          {
+            "file": "src/security/advanced_input_sanitizer.py",
+            "pattern": "eval(",
+            "description": "Use of eval() function",
+            "line": 38,
+            "line_content": "b'<script', b'javascript:', b'eval(', b'exec(',"
+          },
+          {
+            "file": "src/security/advanced_input_sanitizer.py",
+            "pattern": "exec(",
+            "description": "Use of exec() function",
+            "line": 38,
+            "line_content": "b'<script', b'javascript:', b'eval(', b'exec(',"
+          },
+          {
+            "file": "src/security/advanced_input_sanitizer.py",
+            "pattern": "__import__",
+            "description": "Dynamic imports",
+            "line": 39,
+            "line_content": "b'import os', b'subprocess', b'__import__'"
+          },
+          {
+            "file": "src/security/medical_data_protection.py",
+            "pattern": "pickle.load",
+            "description": "Pickle deserialization",
+            "line": 76,
+            "line_content": "return pickle.loads(weights_bytes)"
+          }
+        ],
+        "security_score": 0.9217391304347826
+      }
+    },
+    "medical_compliance": {
+      "name": "Medical Compliance",
+      "passed": true,
+      "execution_time": 0.02055668830871582,
+      "details": {
+        "total_files_scanned": 115,
+        "medical_indicators_found": 49,
+        "files_with_medical_content": 26,
+        "compliance_score": 1.0,
+        "compliance_files": {
+          "src/comprehensive_security_framework.py": 1,
+          "src/comprehensive_validation.py": 1,
+          "src/federated_learning_coordinator.py": 2,
+          "src/global_compliance_framework.py": 4,
+          "src/quantum_security_framework.py": 1,
+          "src/real_time_quantum_performance_optimizer.py": 1,
+          "src/autonomous_model_versioning.py": 4,
+          "src/api/main.py": 2,
+          "src/api/middleware.py": 1,
+          "src/controllers/prediction_controller.py": 1,
+          "src/database/migrations.py": 2,
+          "src/database/models.py": 2,
+          "src/database/repositories.py": 2,
+          "src/monitoring/logging_config.py": 2,
+          "src/monitoring/tracing_instrumentation.py": 1,
+          "src/quantum_inspired_task_planner/research_framework.py": 1,
+          "src/quantum_inspired_task_planner/advanced_quantum_medical_optimizer.py": 5,
+          "src/research/novel_architectures.py": 1,
+          "src/research/quantum_vs_classical_comparative_study.py": 4,
+          "src/research/novel_quantum_medical_fusion.py": 5,
+          "src/security/advanced_input_sanitizer.py": 1,
+          "src/security/medical_data_protection.py": 1,
+          "src/services/prediction_service.py": 1,
+          "src/utils/__init__.py": 1,
+          "src/utils/business_rules.py": 1,
+          "src/validation/comprehensive_input_validation.py": 1
+        }
+      }
+    },
+    "quantum_algorithms": {
+      "name": "Quantum Algorithms",
+      "passed": true,
+      "execution_time": 0.021120071411132812,
+      "details": {
+        "total_files_scanned": 115,
+        "quantum_indicators_found": 2054,
+        "files_with_quantum_content": 32,
+        "quantum_score": 1.0,
+        "quantum_files": {
+          "src/quantum_enhanced_optimizer.py": 184,
+          "src/quantum_scaling_orchestrator.py": 134,
+          "src/quantum_security_framework.py": 24,
+          "src/real_time_quantum_performance_optimizer.py": 185,
+          "src/autonomous_model_versioning.py": 36,
+          "src/api/main_quantum.py": 24,
+          "src/api/schemas.py": 4,
+          "src/error_handling/__init__.py": 2,
+          "src/error_handling/exceptions.py": 3,
+          "src/error_handling/handlers.py": 5
+        }
+      }
+    }
+  }
+}
