@@ -25,17 +25,23 @@ class OptimizationResult:
 
 
 class QuantumAnnealer:
-    """Quantum annealing simulator for task scheduling optimization."""
+    """Advanced quantum annealing simulator with adaptive temperature control."""
     
     def __init__(self, initial_temperature: float = 100.0, 
-                 cooling_rate: float = 0.95, min_temperature: float = 0.01):
+                 cooling_rate: float = 0.95, min_temperature: float = 0.01,
+                 adaptive_cooling: bool = True, quantum_coherence: float = 0.8):
         self.initial_temperature = initial_temperature
         self.cooling_rate = cooling_rate
         self.min_temperature = min_temperature
+        self.adaptive_cooling = adaptive_cooling
+        self.quantum_coherence = quantum_coherence
         self.energy_history: List[float] = []
+        self.temperature_history: List[float] = []
+        self.acceptance_rate_history: List[float] = []
     
     def anneal(self, cost_function: Callable[[List[str]], float],
-               initial_schedule: List[str], max_iterations: int = 1000) -> OptimizationResult:
+               initial_schedule: List[str], max_iterations: int = 1000,
+               target_energy: Optional[float] = None) -> OptimizationResult:
         """Perform quantum annealing optimization."""
         import time
         start_time = time.time()
@@ -48,21 +54,47 @@ class QuantumAnnealer:
         temperature = self.initial_temperature
         iteration = 0
         
+        accepted_transitions = 0
         while temperature > self.min_temperature and iteration < max_iterations:
-            # Generate neighbor solution using quantum tunneling
-            neighbor_schedule = self._quantum_tunnel(current_schedule)
-            neighbor_energy = cost_function(neighbor_schedule)
+            # Early termination if target energy reached
+            if target_energy is not None and best_energy <= target_energy:
+                break
+                
+            # Generate multiple neighbor solutions for better exploration
+            best_neighbor = None
+            best_neighbor_energy = float('inf')
+            
+            for _ in range(min(5, max(1, int(temperature / 10)))):
+                neighbor_schedule = self._quantum_tunnel(current_schedule, temperature)
+                neighbor_energy = cost_function(neighbor_schedule)
+                
+                if neighbor_energy < best_neighbor_energy:
+                    best_neighbor = neighbor_schedule
+                    best_neighbor_energy = neighbor_energy
             
             # Accept or reject based on quantum probability
-            if self._accept_transition(current_energy, neighbor_energy, temperature):
-                current_schedule = neighbor_schedule
-                current_energy = neighbor_energy
+            if self._accept_transition(current_energy, best_neighbor_energy, temperature):
+                current_schedule = best_neighbor
+                current_energy = best_neighbor_energy
+                accepted_transitions += 1
                 
                 if current_energy < best_energy:
                     best_schedule = current_schedule.copy()
                     best_energy = current_energy
             
             self.energy_history.append(current_energy)
+            self.temperature_history.append(temperature)
+            
+            # Adaptive cooling based on acceptance rate
+            if self.adaptive_cooling and iteration > 0 and iteration % 50 == 0:
+                acceptance_rate = accepted_transitions / 50
+                self.acceptance_rate_history.append(acceptance_rate)
+                if acceptance_rate < 0.1:  # Too low acceptance
+                    self.cooling_rate = max(0.9, self.cooling_rate - 0.01)
+                elif acceptance_rate > 0.5:  # Too high acceptance
+                    self.cooling_rate = min(0.99, self.cooling_rate + 0.01)
+                accepted_transitions = 0
+            
             temperature *= self.cooling_rate
             iteration += 1
         
@@ -77,16 +109,32 @@ class QuantumAnnealer:
             execution_time=execution_time
         )
     
-    def _quantum_tunnel(self, schedule: List[str]) -> List[str]:
-        """Generate neighbor solution using quantum tunneling."""
+    def _quantum_tunnel(self, schedule: List[str], temperature: float) -> List[str]:
+        """Generate neighbor solution using temperature-dependent quantum tunneling."""
         if len(schedule) < 2:
             return schedule.copy()
         
         new_schedule = schedule.copy()
         
-        # Quantum tunneling: swap two random tasks
-        i, j = np.random.choice(len(schedule), 2, replace=False)
-        new_schedule[i], new_schedule[j] = new_schedule[j], new_schedule[i]
+        # Temperature-dependent tunneling strategies
+        tunnel_probability = min(1.0, temperature / self.initial_temperature)
+        
+        if np.random.random() < tunnel_probability * self.quantum_coherence:
+            # High-energy quantum tunneling: large rearrangements
+            if len(schedule) >= 4:
+                # Reverse a random subsequence
+                start = np.random.randint(0, len(schedule) - 2)
+                end = np.random.randint(start + 2, len(schedule) + 1)
+                new_schedule[start:end] = new_schedule[start:end][::-1]
+            else:
+                # Simple swap for short schedules
+                i, j = np.random.choice(len(schedule), 2, replace=False)
+                new_schedule[i], new_schedule[j] = new_schedule[j], new_schedule[i]
+        else:
+            # Low-energy local moves: adjacent swaps
+            if len(schedule) > 1:
+                i = np.random.randint(0, len(schedule) - 1)
+                new_schedule[i], new_schedule[i + 1] = new_schedule[i + 1], new_schedule[i]
         
         return new_schedule
     
