@@ -1,0 +1,142 @@
+{
+  "execution_summary": {
+    "timestamp": "2025-08-24T21:48:21.066337",
+    "total_execution_time": 0.022803544998168945,
+    "total_gates": 7,
+    "passed": 2,
+    "failed": 4,
+    "warnings": 1,
+    "skipped": 0,
+    "success_rate": 28.57142857142857
+  },
+  "quality_metrics": {
+    "overall_score": 37.142857142857146,
+    "quality_assessment": "POOR",
+    "critical_failures": 4,
+    "coverage_gate_passed": false,
+    "security_gate_passed": false
+  },
+  "gate_results": [
+    {
+      "gate_type": "unit_tests",
+      "status": "failed",
+      "score": 0.0,
+      "execution_time": 0.019551753997802734,
+      "details": {
+        "stdout": "",
+        "stderr": "/bin/sh: 1: python: not found\n"
+      },
+      "warnings": [],
+      "errors": [
+        "Tests failed with return code 127"
+      ]
+    },
+    {
+      "gate_type": "coverage_check",
+      "status": "failed",
+      "score": 0.0,
+      "execution_time": 0.018803119659423828,
+      "details": {},
+      "warnings": [],
+      "errors": [
+        "Coverage below 85% requirement"
+      ]
+    },
+    {
+      "gate_type": "code_quality",
+      "status": "passed",
+      "score": 100.0,
+      "execution_time": 0.01605844497680664,
+      "details": {
+        "message": "No code quality issues found"
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "gate_type": "security_scan",
+      "status": "warning",
+      "score": 70.0,
+      "execution_time": 0.013397455215454102,
+      "details": {},
+      "warnings": [
+        "Bandit report not found"
+      ],
+      "errors": []
+    },
+    {
+      "gate_type": "performance_test",
+      "status": "failed",
+      "score": 0.0,
+      "execution_time": 0.010953664779663086,
+      "details": {},
+      "warnings": [],
+      "errors": [
+        "Performance tests failed with return code 127"
+      ]
+    },
+    {
+      "gate_type": "dependency_check",
+      "status": "passed",
+      "score": 90.0,
+      "execution_time": 0.008308649063110352,
+      "details": {
+        "message": "No vulnerable dependencies found"
+      },
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "gate_type": "integration_tests",
+      "status": "failed",
+      "score": 0.0,
+      "execution_time": 0.00821542739868164,
+      "details": {},
+      "warnings": [],
+      "errors": [
+        "Integration tests failed with return code 127"
+      ]
+    }
+  ],
+  "critical_failures": [
+    {
+      "gate_type": "unit_tests",
+      "errors": [
+        "Tests failed with return code 127"
+      ],
+      "score": 0.0
+    },
+    {
+      "gate_type": "coverage_check",
+      "errors": [
+        "Coverage below 85% requirement"
+      ],
+      "score": 0.0
+    },
+    {
+      "gate_type": "performance_test",
+      "errors": [
+        "Performance tests failed with return code 127"
+      ],
+      "score": 0.0
+    },
+    {
+      "gate_type": "integration_tests",
+      "errors": [
+        "Integration tests failed with return code 127"
+      ],
+      "score": 0.0
+    }
+  ],
+  "quality_gates_status": {
+    "all_required_passed": false,
+    "coverage_requirement_met": false,
+    "security_scans_passed": true,
+    "performance_benchmarks_met": false
+  },
+  "recommendations": [
+    "Increase test coverage to meet the 85% minimum requirement",
+    "Optimize performance to meet benchmarking requirements",
+    "Fix failing unit tests before proceeding"
+  ]
+}
