@@ -1,0 +1,3811 @@
+{
+  "timestamp": "2025-08-26T04:35:26.934659",
+  "project_root": "/root/repo",
+  "summary": {
+    "total_files_scanned": 253,
+    "total_findings": 468,
+    "critical_count": 12,
+    "high_count": 18,
+    "medium_count": 25,
+    "low_count": 0,
+    "info_count": 413
+  },
+  "findings": {
+    "critical": [
+      {
+        "severity": "critical",
+        "type": "hardcoded_secret",
+        "description": "Potential hardcoded password",
+        "file": "comprehensive_test_runner.py",
+        "line": 210,
+        "code": "password=\"TestPass123!\""
+      },
+      {
+        "severity": "critical",
+        "type": "hardcoded_secret",
+        "description": "Potential hardcoded password",
+        "file": "comprehensive_test_runner.py",
+        "line": 331,
+        "code": "password=\"E2EPass123!\""
+      },
+      {
+        "severity": "critical",
+        "type": "hardcoded_secret",
+        "description": "Potential hardcoded password",
+        "file": "simple_robust_demo.py",
+        "line": 30,
+        "code": "password=\"AdminPass123!\""
+      },
+      {
+        "severity": "critical",
+        "type": "hardcoded_secret",
+        "description": "Potential hardcoded password",
+        "file": "simple_robust_demo.py",
+        "line": 43,
+        "code": "password=\"UserPass123!\""
+      },
+      {
+        "severity": "critical",
+        "type": "hardcoded_secret",
+        "description": "Potential hardcoded password",
+        "file": "tests/test_comprehensive_integration.py",
+        "line": 297,
+        "code": "password=\"TestPass123!\""
+      },
+      {
+        "severity": "critical",
+        "type": "hardcoded_secret",
+        "description": "Potential hardcoded password",
+        "file": "tests/test_comprehensive_integration.py",
+        "line": 330,
+        "code": "password=\"TestPass123!\""
+      },
+      {
+        "severity": "critical",
+        "type": "hardcoded_secret",
+        "description": "Potential hardcoded password",
+        "file": "tests/test_comprehensive_integration.py",
+        "line": 356,
+        "code": "password=\"CreatePass123!\""
+      },
+      {
+        "severity": "critical",
+        "type": "hardcoded_secret",
+        "description": "Potential hardcoded password",
+        "file": "tests/test_comprehensive_integration.py",
+        "line": 381,
+        "code": "password=\"NoPerms123!\""
+      },
+      {
+        "severity": "critical",
+        "type": "hardcoded_secret",
+        "description": "Potential hardcoded password",
+        "file": "tests/test_comprehensive_integration.py",
+        "line": 396,
+        "code": "password=\"ReportPass123!\""
+      },
+      {
+        "severity": "critical",
+        "type": "hardcoded_secret",
+        "description": "Potential hardcoded password",
+        "file": "tests/test_comprehensive_integration.py",
+        "line": 615,
+        "code": "password=\"E2EPass123!\""
+      },
+      {
+        "severity": "critical",
+        "type": "hardcoded_secret",
+        "description": "Potential hardcoded password",
+        "file": "src/quantum_inspired_task_planner/robust_api.py",
+        "line": 65,
+        "code": "password=\"AdminPass123!\""
+      },
+      {
+        "severity": "critical",
+        "type": "hardcoded_secret",
+        "description": "Potential hardcoded password",
+        "file": "src/quantum_inspired_task_planner/robust_api.py",
+        "line": 75,
+        "code": "password=\"UserPass123!\""
+      }
+    ],
+    "high": [
+      {
+        "severity": "high",
+        "type": "dangerous_function",
+        "description": "Use of eval() function - potential code injection",
+        "file": "simplified_quality_validation.py",
+        "line": 199,
+        "code": "eval("
+      },
+      {
+        "severity": "high",
+        "type": "dangerous_function",
+        "description": "Use of eval() function - potential code injection",
+        "file": "simplified_quality_validation.py",
+        "line": 199,
+        "code": "eval("
+      },
+      {
+        "severity": "high",
+        "type": "dangerous_function",
+        "description": "Use of exec() function - potential code injection",
+        "file": "simplified_quality_validation.py",
+        "line": 200,
+        "code": "exec("
+      },
+      {
+        "severity": "high",
+        "type": "dangerous_function",
+        "description": "Use of exec() function - potential code injection",
+        "file": "simplified_quality_validation.py",
+        "line": 200,
+        "code": "exec("
+      },
+      {
+        "severity": "high",
+        "type": "sql_injection",
+        "description": "Potential SQL injection - string concatenation in query",
+        "file": "quality_gate_runner.py",
+        "line": 238,
+        "code": "query.*\\+.*'],"
+      },
+      {
+        "severity": "high",
+        "type": "dangerous_function",
+        "description": "Use of eval() function - potential code injection",
+        "file": "security_audit_report.py",
+        "line": 113,
+        "code": "eval("
+      },
+      {
+        "severity": "high",
+        "type": "dangerous_function",
+        "description": "Use of exec() function - potential code injection",
+        "file": "security_audit_report.py",
+        "line": 114,
+        "code": "exec("
+      },
+      {
+        "severity": "high",
+        "type": "dangerous_function",
+        "description": "Use of os.system() - command injection risk",
+        "file": "security_audit_report.py",
+        "line": 116,
+        "code": "os.system("
+      },
+      {
+        "severity": "high",
+        "type": "sql_injection",
+        "description": "Potential SQL injection - string concatenation in query",
+        "file": "security_audit_report.py",
+        "line": 137,
+        "code": "query.*\\+.*', 'Potential SQL injection - string concatenation in query'),"
+      },
+      {
+        "severity": "high",
+        "type": "sql_injection",
+        "description": "Potential SQL injection in SELECT statement",
+        "file": "security_audit_report.py",
+        "line": 138,
+        "code": "SELECT.*\\+.*FROM"
+      },
+      {
+        "severity": "high",
+        "type": "dangerous_function",
+        "description": "Use of eval() function - potential code injection",
+        "file": "src/quantum_security_framework.py",
+        "line": 341,
+        "code": "eval("
+      },
+      {
+        "severity": "high",
+        "type": "dangerous_function",
+        "description": "Use of exec() function - potential code injection",
+        "file": "src/quantum_security_framework.py",
+        "line": 272,
+        "code": "exec("
+      },
+      {
+        "severity": "high",
+        "type": "dangerous_function",
+        "description": "Use of exec() function - potential code injection",
+        "file": "src/quantum_security_framework.py",
+        "line": 341,
+        "code": "exec("
+      },
+      {
+        "severity": "high",
+        "type": "dangerous_function",
+        "description": "Use of eval() function - potential code injection",
+        "file": "tests/test_validation.py",
+        "line": 286,
+        "code": "eval("
+      },
+      {
+        "severity": "high",
+        "type": "dangerous_function",
+        "description": "Use of os.system() - command injection risk",
+        "file": "tests/test_validation.py",
+        "line": 287,
+        "code": "os.system("
+      },
+      {
+        "severity": "high",
+        "type": "dangerous_function",
+        "description": "Use of eval() function - potential code injection",
+        "file": "src/research/robust_quantum_medical_validation.py",
+        "line": 210,
+        "code": "eval("
+      },
+      {
+        "severity": "high",
+        "type": "dangerous_function",
+        "description": "Use of eval() function - potential code injection",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 38,
+        "code": "eval("
+      },
+      {
+        "severity": "high",
+        "type": "dangerous_function",
+        "description": "Use of exec() function - potential code injection",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 38,
+        "code": "exec("
+      }
+    ],
+    "medium": [
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak random number generator for security",
+        "file": "comprehensive_testing_framework.py",
+        "line": 532,
+        "code": "random("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak random number generator for security",
+        "file": "comprehensive_testing_framework.py",
+        "line": 545,
+        "code": "random("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak MD5 hash function",
+        "file": "distributed_ml_orchestrator.py",
+        "line": 184,
+        "code": "md5("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak MD5 hash function",
+        "file": "distributed_ml_orchestrator.py",
+        "line": 265,
+        "code": "md5("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak MD5 hash function",
+        "file": "distributed_ml_orchestrator.py",
+        "line": 300,
+        "code": "md5("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak MD5 hash function",
+        "file": "distributed_ml_orchestrator.py",
+        "line": 387,
+        "code": "md5("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak MD5 hash function",
+        "file": "distributed_ml_orchestrator.py",
+        "line": 762,
+        "code": "md5("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak MD5 hash function",
+        "file": "src/adaptive_load_balancer.py",
+        "line": 455,
+        "code": "md5("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak MD5 hash function",
+        "file": "src/adaptive_medical_research_engine.py",
+        "line": 501,
+        "code": "md5("
+      },
+      {
+        "severity": "medium",
+        "type": "dangerous_function",
+        "description": "Unsafe deserialization with pickle",
+        "file": "src/advanced_error_recovery.py",
+        "line": 535,
+        "code": "pickle.load("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak random number generator for security",
+        "file": "src/comprehensive_audit_logging_system.py",
+        "line": 149,
+        "code": "random("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak random number generator for security",
+        "file": "src/quantum_medical_production_orchestrator.py",
+        "line": 284,
+        "code": "random("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak random number generator for security",
+        "file": "src/quantum_medical_production_orchestrator.py",
+        "line": 285,
+        "code": "random("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak random number generator for security",
+        "file": "src/quantum_medical_production_orchestrator.py",
+        "line": 286,
+        "code": "random("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak random number generator for security",
+        "file": "src/quantum_medical_production_orchestrator.py",
+        "line": 287,
+        "code": "random("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak MD5 hash function",
+        "file": "src/quantum_scale_optimization_engine.py",
+        "line": 211,
+        "code": "md5("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak MD5 hash function",
+        "file": "src/quantum_scale_optimization_engine.py",
+        "line": 481,
+        "code": "md5("
+      },
+      {
+        "severity": "medium",
+        "type": "path_traversal",
+        "description": "Potential path traversal in file handling",
+        "file": "tests/test_input_validation.py",
+        "line": 59,
+        "code": "file_path(\"../../../etc/passwd\")"
+      },
+      {
+        "severity": "medium",
+        "type": "path_traversal",
+        "description": "Potential path traversal in file handling",
+        "file": "tests/test_input_validation.py",
+        "line": 62,
+        "code": "file_path(\"models/../../../secrets.txt\")"
+      },
+      {
+        "severity": "medium",
+        "type": "path_traversal",
+        "description": "Potential path traversal in file handling",
+        "file": "tests/test_input_validation.py",
+        "line": 220,
+        "code": "file_path(\"../../../tmp/outside_target.txt\")"
+      },
+      {
+        "severity": "medium",
+        "type": "dangerous_function",
+        "description": "Unsafe deserialization with pickle",
+        "file": "src/database/cache.py",
+        "line": 140,
+        "code": "pickle.loads("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak MD5 hash function",
+        "file": "src/database/cache.py",
+        "line": 414,
+        "code": "md5("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak MD5 hash function",
+        "file": "src/quantum_inspired_task_planner/caching.py",
+        "line": 583,
+        "code": "md5("
+      },
+      {
+        "severity": "medium",
+        "type": "dangerous_function",
+        "description": "Unsafe deserialization with pickle",
+        "file": "src/security/medical_data_protection.py",
+        "line": 76,
+        "code": "pickle.loads("
+      },
+      {
+        "severity": "medium",
+        "type": "weak_crypto",
+        "description": "Use of weak random number generator for security",
+        "file": "src/security/medical_data_protection.py",
+        "line": 43,
+        "code": "random("
+      }
+    ],
+    "low": [],
+    "info": [
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "advanced_security_framework.py",
+        "line": 18,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "advanced_security_framework.py",
+        "line": 18,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "advanced_security_framework.py",
+        "line": 171,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "advanced_security_framework.py",
+        "line": 179,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "advanced_security_framework.py",
+        "line": 224,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "advanced_security_framework.py",
+        "line": 224,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "advanced_security_framework.py",
+        "line": 225,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "advanced_security_framework.py",
+        "line": 248,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "advanced_security_framework.py",
+        "line": 248,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "advanced_security_framework.py",
+        "line": 250,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "advanced_security_framework.py",
+        "line": 176,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "advanced_security_framework.py",
+        "line": 374,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "advanced_security_framework.py",
+        "line": 426,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "advanced_security_framework.py",
+        "line": 469,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "advanced_security_framework.py",
+        "line": 18,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "advanced_security_framework.py",
+        "line": 19,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "advanced_security_framework.py",
+        "line": 20,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "advanced_security_framework.py",
+        "line": 21,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "autonomous_sdlc_validator.py",
+        "line": 201,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "comprehensive_testing_framework.py",
+        "line": 512,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "intelligent_error_recovery.py",
+        "line": 697,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "production_deployment_orchestrator.py",
+        "line": 322,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "quantum_enhanced_api_gateway.py",
+        "line": 14,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "simple_robust_demo.py",
+        "line": 197,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "test_new_features.py",
+        "line": 11,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "test_new_features.py",
+        "line": 12,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "test_new_features.py",
+        "line": 14,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "test_new_features.py",
+        "line": 14,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "test_new_features.py",
+        "line": 16,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "test_new_features.py",
+        "line": 16,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "test_new_features.py",
+        "line": 25,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "test_new_features.py",
+        "line": 25,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "test_new_features.py",
+        "line": 26,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "test_new_features.py",
+        "line": 29,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "test_new_features.py",
+        "line": 33,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "test_new_features.py",
+        "line": 170,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "update_secure_dependencies.py",
+        "line": 149,
+        "code": "Validate all model input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using bcrypt for password hashing",
+        "file": "quality_gate_runner.py",
+        "line": 228,
+        "code": "bcrypt"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using bcrypt for password hashing",
+        "file": "quality_gate_runner.py",
+        "line": 566,
+        "code": "bcrypt"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using scrypt for key derivation",
+        "file": "quality_gate_runner.py",
+        "line": 228,
+        "code": "scrypt"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "quality_gate_runner.py",
+        "line": 227,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "quality_gate_runner.py",
+        "line": 228,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "quality_gate_runner.py",
+        "line": 230,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using bcrypt for password hashing",
+        "file": "security_audit_report.py",
+        "line": 199,
+        "code": "bcrypt"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using bcrypt for password hashing",
+        "file": "security_audit_report.py",
+        "line": 199,
+        "code": "bcrypt"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using scrypt for key derivation",
+        "file": "security_audit_report.py",
+        "line": 200,
+        "code": "scrypt"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using scrypt for key derivation",
+        "file": "security_audit_report.py",
+        "line": 200,
+        "code": "scrypt"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "security_audit_report.py",
+        "line": 201,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "security_audit_report.py",
+        "line": 201,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "security_audit_report.py",
+        "line": 202,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "security_audit_report.py",
+        "line": 205,
+        "code": "validate.*input', 'Good: Input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "security_audit_report.py",
+        "line": 206,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "security_audit_report.py",
+        "line": 206,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": ".terragon/continuous-execution.py",
+        "line": 184,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": ".terragon/continuous-execution.py",
+        "line": 367,
+        "code": "SHA256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": ".terragon/scoring-engine.py",
+        "line": 398,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "scripts/mlops-automation.py",
+        "line": 154,
+        "code": "SHA256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "scripts/mlops-automation.py",
+        "line": 155,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "scripts/mlops-automation.py",
+        "line": 155,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "scripts/mlops-automation.py",
+        "line": 158,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "scripts/mlops-automation.py",
+        "line": 159,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/advanced_data_integrity_system.py",
+        "line": 89,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/advanced_data_integrity_system.py",
+        "line": 89,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/advanced_data_integrity_system.py",
+        "line": 93,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/advanced_data_integrity_system.py",
+        "line": 94,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/advanced_data_integrity_system.py",
+        "line": 184,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/advanced_data_integrity_system.py",
+        "line": 188,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/advanced_data_integrity_system.py",
+        "line": 390,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/advanced_data_integrity_system.py",
+        "line": 407,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/advanced_error_recovery.py",
+        "line": 514,
+        "code": "validate input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/advanced_error_recovery.py",
+        "line": 327,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/advanced_error_recovery.py",
+        "line": 335,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/advanced_error_recovery.py",
+        "line": 336,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/advanced_error_recovery.py",
+        "line": 337,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/advanced_error_recovery.py",
+        "line": 342,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/advanced_error_recovery.py",
+        "line": 344,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/advanced_error_recovery.py",
+        "line": 346,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/advanced_error_recovery.py",
+        "line": 348,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/advanced_error_recovery.py",
+        "line": 350,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/autonomous_model_versioning.py",
+        "line": 259,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/comprehensive_audit_logging_system.py",
+        "line": 30,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/comprehensive_audit_logging_system.py",
+        "line": 30,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/comprehensive_audit_logging_system.py",
+        "line": 110,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/comprehensive_audit_logging_system.py",
+        "line": 151,
+        "code": "SHA256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/comprehensive_audit_logging_system.py",
+        "line": 469,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/comprehensive_audit_logging_system.py",
+        "line": 30,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/comprehensive_audit_logging_system.py",
+        "line": 31,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/comprehensive_audit_logging_system.py",
+        "line": 32,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using bcrypt for password hashing",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 374,
+        "code": "bcrypt"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using scrypt for key derivation",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 374,
+        "code": "scrypt"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 203,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 203,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 206,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 207,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 209,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 209,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 210,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 127,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 139,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 59,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 385,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 203,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 489,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/comprehensive_security_framework.py",
+        "line": 491,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/comprehensive_testing_validation_framework.py",
+        "line": 684,
+        "code": "validate that malicious input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/comprehensive_testing_validation_framework.py",
+        "line": 684,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/data_loader.py",
+        "line": 87,
+        "code": "Validate input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/federated_learning_coordinator.py",
+        "line": 16,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/federated_learning_coordinator.py",
+        "line": 16,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/federated_learning_coordinator.py",
+        "line": 178,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/federated_learning_coordinator.py",
+        "line": 179,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/federated_learning_coordinator.py",
+        "line": 16,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/global_medical_compliance_framework.py",
+        "line": 808,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/inference.py",
+        "line": 41,
+        "code": "Validate input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/inference.py",
+        "line": 98,
+        "code": "Validate input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/input_validation.py",
+        "line": 26,
+        "code": "Validate and sanitize file path input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/input_validation.py",
+        "line": 100,
+        "code": "Validate and sanitize directory path input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/input_validation.py",
+        "line": 26,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/input_validation.py",
+        "line": 100,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/model_architecture_validation.py",
+        "line": 117,
+        "code": "Validate input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/model_architecture_validation.py",
+        "line": 119,
+        "code": "validate_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/model_architecture_validation.py",
+        "line": 178,
+        "code": "validate_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/model_architecture_validation.py",
+        "line": 181,
+        "code": "Validate input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/model_management_cli.py",
+        "line": 65,
+        "code": "Validate input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/model_registry.py",
+        "line": 85,
+        "code": "SHA256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/model_registry.py",
+        "line": 155,
+        "code": "SHA256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/model_registry.py",
+        "line": 159,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/model_registry.py",
+        "line": 159,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/model_registry.py",
+        "line": 162,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/model_registry.py",
+        "line": 163,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/model_registry.py",
+        "line": 300,
+        "code": "SHA256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/model_registry.py",
+        "line": 301,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/predict_utils.py",
+        "line": 156,
+        "code": "Validate input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/quantum_security_framework.py",
+        "line": 82,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/quantum_security_framework.py",
+        "line": 88,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/quantum_security_framework.py",
+        "line": 117,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/quantum_security_framework.py",
+        "line": 127,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/quantum_security_framework.py",
+        "line": 162,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/quantum_security_framework.py",
+        "line": 20,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/quantum_security_framework.py",
+        "line": 21,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/quantum_security_framework.py",
+        "line": 22,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/quantum_security_framework.py",
+        "line": 23,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/quantum_security_framework.py",
+        "line": 24,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/quantum_security_framework.py",
+        "line": 93,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/quantum_security_framework.py",
+        "line": 104,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/robust_error_recovery.py",
+        "line": 323,
+        "code": "validate_image_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/robust_error_recovery.py",
+        "line": 324,
+        "code": "Validate image input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_error_recovery.py",
+        "line": 320,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_error_recovery.py",
+        "line": 390,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_error_recovery.py",
+        "line": 391,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_error_recovery.py",
+        "line": 395,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_error_recovery.py",
+        "line": 396,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_error_recovery.py",
+        "line": 396,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_error_recovery.py",
+        "line": 399,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_error_recovery.py",
+        "line": 399,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_error_recovery.py",
+        "line": 402,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_error_recovery.py",
+        "line": 402,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_error_recovery.py",
+        "line": 404,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/robust_medical_ai_framework.py",
+        "line": 271,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/robust_medical_ai_framework.py",
+        "line": 502,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/robust_medical_ai_framework.py",
+        "line": 582,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/robust_medical_ai_framework.py",
+        "line": 150,
+        "code": "validated_data = await self._validate_and_sanitize_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/robust_medical_ai_framework.py",
+        "line": 235,
+        "code": "validate_and_sanitize_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/robust_medical_ai_framework.py",
+        "line": 238,
+        "code": "Validate and sanitize input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_medical_ai_framework.py",
+        "line": 92,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_medical_ai_framework.py",
+        "line": 149,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_medical_ai_framework.py",
+        "line": 150,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_medical_ai_framework.py",
+        "line": 235,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_medical_ai_framework.py",
+        "line": 238,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/robust_medical_ai_framework.py",
+        "line": 264,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/robust_quantum_medical_framework.py",
+        "line": 24,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/robust_quantum_medical_framework.py",
+        "line": 24,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/robust_quantum_medical_framework.py",
+        "line": 111,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/robust_quantum_medical_framework.py",
+        "line": 112,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/robust_quantum_medical_framework.py",
+        "line": 503,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/robust_quantum_medical_framework.py",
+        "line": 24,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/train_engine.py",
+        "line": 983,
+        "code": "Validate input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "tests/test_dependency_security_scan.py",
+        "line": 507,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "tests/test_dependency_security_scan.py",
+        "line": 508,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "tests/test_hipaa_audit_logging.py",
+        "line": 72,
+        "code": "SHA256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "tests/test_inference.py",
+        "line": 446,
+        "code": "validates_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "tests/test_inference.py",
+        "line": 447,
+        "code": "validates input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "tests/test_input_validation.py",
+        "line": 62,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "tests/test_model_architecture_validation.py",
+        "line": 153,
+        "code": "validate_model_with_wrong_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "tests/test_model_registry.py",
+        "line": 166,
+        "code": "SHA256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "tests/test_model_registry.py",
+        "line": 175,
+        "code": "SHA256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "tests/test_model_registry.py",
+        "line": 182,
+        "code": "SHA256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "tests/test_research_framework.py",
+        "line": 574,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "tests/test_research_framework.py",
+        "line": 574,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "tests/test_research_framework.py",
+        "line": 576,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "tests/test_research_framework.py",
+        "line": 577,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "tests/test_validation.py",
+        "line": 280,
+        "code": "validate_input_security(input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "tests/test_validation.py",
+        "line": 293,
+        "code": "validate_input_security(input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "tests/test_validation.py",
+        "line": 302,
+        "code": "validate_input_security(large_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "tests/test_validation.py",
+        "line": 311,
+        "code": "validate_input_security(input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "tests/test_validation.py",
+        "line": 577,
+        "code": "validate_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "tests/test_validation.py",
+        "line": 606,
+        "code": "validate_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/api/middleware.py",
+        "line": 28,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/api/middleware.py",
+        "line": 67,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/api/schemas.py",
+        "line": 153,
+        "code": "SHA256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/api/utils.py",
+        "line": 192,
+        "code": "SHA256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/api/utils.py",
+        "line": 193,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/api/utils.py",
+        "line": 224,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/api/utils.py",
+        "line": 225,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/controllers/prediction_controller.py",
+        "line": 17,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/controllers/prediction_controller.py",
+        "line": 98,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/controllers/prediction_controller.py",
+        "line": 198,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/controllers/prediction_controller.py",
+        "line": 216,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/database/migrations.py",
+        "line": 243,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/database/models.py",
+        "line": 71,
+        "code": "SHA256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/database/models.py",
+        "line": 214,
+        "code": "SHA256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/database/models.py",
+        "line": 309,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/error_handling/handlers.py",
+        "line": 87,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/error_handling/handlers.py",
+        "line": 88,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/error_handling/handlers.py",
+        "line": 138,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/error_handling/handlers.py",
+        "line": 139,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/monitoring/logging_config.py",
+        "line": 445,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/monitoring/logging_config.py",
+        "line": 547,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/optimization/model_acceleration.py",
+        "line": 264,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/error_handling.py",
+        "line": 141,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/robust_api.py",
+        "line": 137,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 542,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 552,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 44,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 391,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 541,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 238,
+        "code": "validate_json_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 239,
+        "code": "Validate JSON input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 278,
+        "code": "Validate input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 196,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 197,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 200,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 201,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 206,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 209,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 209,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 213,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 213,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 216,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 216,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 217,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 217,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 219,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 282,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 285,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 285,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 451,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 459,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 460,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 463,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 463,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 464,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 466,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 469,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 469,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 469,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 484,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/quantum_inspired_task_planner/security_framework.py",
+        "line": 488,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/quantum_inspired_task_planner/validation.py",
+        "line": 399,
+        "code": "validate_input_security(cls, input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/quantum_inspired_task_planner/validation.py",
+        "line": 400,
+        "code": "Validate input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/research/robust_quantum_medical_validation.py",
+        "line": 29,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/research/robust_quantum_medical_validation.py",
+        "line": 29,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/research/robust_quantum_medical_validation.py",
+        "line": 169,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/research/robust_quantum_medical_validation.py",
+        "line": 170,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/research/robust_quantum_medical_validation.py",
+        "line": 217,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/research/robust_quantum_medical_validation.py",
+        "line": 222,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/research/robust_quantum_medical_validation.py",
+        "line": 29,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/research/robust_quantum_medical_validation.py",
+        "line": 373,
+        "code": "validate_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/research/robust_quantum_medical_validation.py",
+        "line": 441,
+        "code": "validate_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/research/robust_quantum_medical_validation.py",
+        "line": 443,
+        "code": "Validate input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/research/robust_quantum_medical_validation.py",
+        "line": 10,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/__init__.py",
+        "line": 3,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/__init__.py",
+        "line": 3,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/__init__.py",
+        "line": 5,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 182,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 221,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 221,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 224,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 225,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 2,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 3,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 19,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 20,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 42,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 43,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 63,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 125,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 126,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 127,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 144,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 156,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 165,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 169,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 172,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 173,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 182,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 191,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 198,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 200,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 241,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 242,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 262,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 262,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 263,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 264,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 269,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 269,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 271,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 281,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 281,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 281,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 282,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/advanced_input_sanitizer.py",
+        "line": 282,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 12,
+        "code": "validates input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 1,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 11,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 12,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 25,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 26,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 32,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 80,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 83,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 84,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 87,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 91,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 104,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 107,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 107,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 109,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 139,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 140,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 146,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 148,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 151,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 152,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 154,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 156,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 165,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 166,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 168,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 169,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 171,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/input_sanitizer.py",
+        "line": 173,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/security/medical_data_protection.py",
+        "line": 9,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/security/medical_data_protection.py",
+        "line": 9,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/security/medical_data_protection.py",
+        "line": 51,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/security/medical_data_protection.py",
+        "line": 45,
+        "code": "SHA256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/security/medical_data_protection.py",
+        "line": 206,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/security/medical_data_protection.py",
+        "line": 212,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/security/medical_data_protection.py",
+        "line": 225,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/security/medical_data_protection.py",
+        "line": 231,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/security/medical_data_protection.py",
+        "line": 9,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/security/medical_data_protection.py",
+        "line": 10,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/security/medical_data_protection.py",
+        "line": 11,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/medical_data_protection.py",
+        "line": 348,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/medical_data_protection.py",
+        "line": 349,
+        "code": "Sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/medical_data_protection.py",
+        "line": 350,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/medical_data_protection.py",
+        "line": 356,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/medical_data_protection.py",
+        "line": 358,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/medical_data_protection.py",
+        "line": 358,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/medical_data_protection.py",
+        "line": 359,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/medical_data_protection.py",
+        "line": 359,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/medical_data_protection.py",
+        "line": 361,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/medical_data_protection.py",
+        "line": 363,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/medical_data_protection.py",
+        "line": 365,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/security/medical_data_protection.py",
+        "line": 367,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 20,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 20,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 106,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 110,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 111,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 111,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 117,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 117,
+        "code": "Fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 121,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 127,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 131,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using Fernet for symmetric encryption",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 134,
+        "code": "fernet"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 170,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 171,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using secrets module for secure random generation",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 389,
+        "code": "secrets."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 20,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 21,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 22,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using cryptography library",
+        "file": "src/security/medical_data_privacy_framework.py",
+        "line": 23,
+        "code": "cryptography."
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Using SHA-256 hash function",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 515,
+        "code": "sha256"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 463,
+        "code": "validate_prediction_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 596,
+        "code": "validate_prediction_input(self, prediction_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 597,
+        "code": "Validate input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input validation detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 611,
+        "code": "validate_medical_image(prediction_input"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 53,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 311,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 326,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 340,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 344,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 347,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 350,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 351,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 359,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 361,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 361,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 366,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 376,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 382,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 392,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 398,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 497,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 515,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 525,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 534,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 537,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 539,
+        "code": "sanitiz"
+      },
+      {
+        "severity": "info",
+        "type": "security_pattern",
+        "description": "Good: Input sanitization detected",
+        "file": "src/validation/comprehensive_input_validation.py",
+        "line": 539,
+        "code": "sanitiz"
+      }
+    ]
+  },
+  "compliance": {
+    "HIPAA": {
+      "encryption_at_rest": true,
+      "encryption_in_transit": true,
+      "audit_logging": true,
+      "access_controls": false,
+      "data_integrity": true,
+      "score": 80
+    },
+    "GDPR": {
+      "data_anonymization": true,
+      "consent_management": true,
+      "data_deletion": false,
+      "privacy_by_design": true,
+      "score": 75
+    },
+    "OWASP": {
+      "injection_prevention": true,
+      "broken_authentication": false,
+      "sensitive_data_exposure": false,
+      "xml_external_entities": false,
+      "broken_access_control": false,
+      "security_misconfiguration": false,
+      "xss_prevention": false,
+      "insecure_deserialization": false,
+      "vulnerable_components": false,
+      "insufficient_logging": true,
+      "score": 20
+    }
+  },
+  "recommendations": [
+    "URGENT: Address all critical security findings immediately, especially hardcoded secrets",
+    "HIGH PRIORITY: Fix dangerous function usage and potential injection vulnerabilities",
+    "GDPR Compliance: Implement privacy protection measures (current score: 75/100)",
+    "Consider implementing automated security scanning in CI/CD pipeline",
+    "Implement regular security code reviews",
+    "Use static analysis security testing (SAST) tools",
+    "Implement dynamic application security testing (DAST)",
+    "Conduct regular penetration testing",
+    "Establish security incident response procedures",
+    "Implement security awareness training for developers"
+  ],
+  "security_score": 0
+}
